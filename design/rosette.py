@@ -1,13 +1,25 @@
 import pylab
 import numpy as np
+import sys
 
 alpha = 0.1
+narms = int(sys.argv[1])
+cyclo_radius = 20.5 # inches
 
 thetas = []
-for i in range(8):
-    thetas.append(np.arange(0,2*np.pi,0.01)+i*np.pi/4)
+for i in range(narms):
+    thetas.append(np.arange(0,2*np.pi+0.1,2*np.pi/24.)+i*2*np.pi/narms)
 
 r = np.exp(alpha*thetas[0])-1
+
+measurements = []
+for rr in r:
+    inch = int( cyclo_radius*rr/np.max(r) )
+    sixteenth = ((cyclo_radius*rr/np.max(r)) - inch) / (1./16)
+    measurements.append((inch,sixteenth))
+
+for m in measurements:
+    print m
 
 for theta in thetas:
     pylab.polar(theta, r, color='k', linewidth=2.5)
