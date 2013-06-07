@@ -99,7 +99,7 @@ class Sine():
    def setDur(self, dur):
       self.env.setDur(dur)
 
-   def play(self, f, amp, dur=0.5):
+   def play(self, f, amp, dur=1.0):
       self.setFreq(f)
       self.setAmp(amp)
       self.setDur(dur)

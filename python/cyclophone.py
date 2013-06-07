@@ -69,8 +69,15 @@ class SoundFlower():
         self.piano = inst.Sampler(packs.piano, amp=3.)
         self.instruments.append(self.piano)
 
-        self.guitar = inst.Sampler(packs.guitar, amp=3.)
+        #self.guitar = inst.Sampler(packs.guitar, amp=3.)
+        #self.instruments.append(self.guitar)
+        
+        self.guitar = inst.Sampler(packs.bass, amp=3.)
         self.instruments.append(self.guitar)
+
+	self.sine = inst.BrutePoly(voice=synths.Sine, order=24, key=60)
+        self.sine.setTonality(Tonality(range(12)))
+	self.instruments.append(self.sine)
 
         self.myVol = 1.
 
@@ -199,30 +206,30 @@ class SoundFlower():
                        'w':(9,22),
                        'x':(9,23)}
 
-        self.stops = {'A':(8,0),
-                       'B':(8,1),
-                       'C':(8,2),
-                       'D':(8,3),
-                       'E':(8,4),
-                       'F':(8,5),
-                       'G':(8,6),
-                       'H':(8,7),
-                       'I':(8,8),
-                       'J':(8,9),
-                       'K':(8,10),
-                       'L':(8,11),
-                       'M':(8,12),
-                       'N':(8,13),
-                       'O':(8,14),
-                       'P':(8,15),
-                       'Q':(8,16),
-                       'R':(8,17),
-                       'S':(8,18),
-                       'T':(8,19),
-                       'U':(8,20),
-                       'V':(8,21),
-                       'W':(8,22),
-                       'X':(8,23)}
+        self.mapping5 = {'a':(10,0),
+                       'b':(10,1),
+                       'c':(10,2),
+                       'd':(10,3),
+                       'e':(10,4),
+                       'f':(10,5),
+                       'g':(10,6),
+                       'h':(10,7),
+                       'i':(10,8),
+                       'j':(10,9),
+                       'k':(10,10),
+                       'l':(10,11),
+                       'm':(10,12),
+                       'n':(10,13),
+                       'o':(10,14),
+                       'p':(10,15),
+                       'q':(10,16),
+                       'r':(10,17),
+                       's':(10,18),
+                       't':(10,19),
+                       'u':(10,20),
+                       'v':(10,21),
+                       'w':(10,22),
+                       'x':(10,23)}
 
         self.mapping = self.mapping1
 
@@ -258,7 +265,7 @@ class SoundFlower():
             self.mapping = self.mapping3
             print 'Mode 3 selected'
         elif letter=='e':
-            self.mapping = self.mapping4
+            self.mapping = self.mapping5
             print 'Mode 4 selected'
 
 ##
