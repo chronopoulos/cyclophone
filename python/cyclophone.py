@@ -74,18 +74,15 @@ class SoundFlower():
         self.tr808 = inst.Sampler(packs.tr808, amp=1.5)
         self.instruments.append(self.tr808)
 
+	#instrument 8
         #self.piano = inst.Sampler(packs.piano, amp=3.)
         #self.instruments.append(self.piano)
-
-	#instrument 8
-        self.tabla = inst.Sampler(packs.tabla, amp=3.)
-        self.instruments.append(self.tabla)
 
         #self.piano = inst.Sampler(packs.newbass, amp=3.)
         #self.instruments.append(self.piano)
 
-        #self.guitar = inst.Sampler(packs.guitar, amp=3.)
-        #self.instruments.append(self.guitar)
+        self.guitar = inst.Sampler(packs.guitar, amp=3.)
+        self.instruments.append(self.guitar)
         
 	#instrument 9
         self.guitar = inst.Sampler(packs.newbass, amp=3.)
@@ -95,6 +92,10 @@ class SoundFlower():
 	self.sine = inst.BrutePoly(voice=synths.Sine, order=24, key=60)
         self.sine.setTonality(Tonality(range(12)))
 	self.instruments.append(self.sine)
+
+	#instrument 11
+        self.tabla = inst.Sampler(packs.tabla, amp=3.)
+        self.instruments.append(self.tabla)
 
         self.myVol = 1.
 
@@ -124,18 +125,24 @@ class SoundFlower():
                        'x':(0,23)}
 
 	# pentatonic plus tabla
-        self.mapping1 = {'a':(8,0),
-                       'b':(8,1),
-                       'c':(8,2),
-                       'd':(8,3),
-                       'e':(8,4),
-                       'f':(8,5),
-                       'g':(2,0),
-                       'h':(2,1),
-                       'i':(2,2),
-                       'j':(2,3),
-                       'k':(2,4),
-                       'l':(2,5),
+        self.mapping1 = {'a':(11,0),
+                       'b':(11,1),
+                       'c':(11,2),
+                       'd':(11,3),
+                       'e':(11,4),
+                       'f':(11,5),
+                       #'g':(2,0),
+                       #'h':(2,1),
+                       #'i':(2,2),
+                       #'j':(2,3),
+                       #'k':(2,4),
+                       #'l':(2,5),
+                       'g':(8,0),
+                       'h':(8,2),
+                       'i':(8,4),
+                       'j':(8,7),
+                       'k':(8,9),
+                       'l':(8,12),
                        'm':(3,0),
                        'n':(3,1),
                        'o':(3,2),
