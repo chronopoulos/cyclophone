@@ -36,15 +36,21 @@ class SoundFlower():
         self.instruments = []
 
 	#instrument 0
+        '''
         self.FMchromatic = inst.BrutePoly(order=24, key=30)
         self.FMchromatic.setTonality(Tonality(range(12)))
         self.instruments.append(self.FMchromatic)
+        '''
 
         """
         self.FMpentatonic = inst.BrutePoly(order=6, key=60)
         self.FMpentatonic.setTonality(Tonality([0,2,4,7,9]))
         self.instruments.append(self.FMpentatonic)
         """
+
+        self.FMmajor = inst.BrutePoly(order=24, key=40)
+        self.FMmajor.setTonality(Tonality([0,2,4,5,7,9,10]))
+        self.instruments.append(self.FMmajor)
 
 	#instrument 1
         self.tr909 = inst.Sampler(packs.tr909, amp=1.5)
@@ -78,8 +84,8 @@ class SoundFlower():
         #self.piano = inst.Sampler(packs.piano, amp=3.)
         #self.instruments.append(self.piano)
 
-        #self.piano = inst.Sampler(packs.newbass, amp=3.)
-        #self.instruments.append(self.piano)
+        #self.newbass = inst.Sampler(packs.newbass, amp=3.)
+        #self.instruments.append(self.newbass)
 
         self.guitar = inst.Sampler(packs.guitar, amp=3.)
         self.instruments.append(self.guitar)
@@ -96,6 +102,12 @@ class SoundFlower():
 	#instrument 11
         self.tabla = inst.Sampler(packs.tabla, amp=3.)
         self.instruments.append(self.tabla)
+
+	#instrument 12
+        self.piano = inst.Sampler(packs.piano, amp=3.)
+        self.instruments.append(self.piano)
+        #self.newbass = inst.Sampler(packs.newbass, amp=3.)
+        #self.instruments.append(self.newbass)
 
         self.myVol = 1.
 
@@ -131,6 +143,7 @@ class SoundFlower():
                        'd':(11,3),
                        'e':(11,4),
                        'f':(11,5),
+		       # rhodes
                        #'g':(2,0),
                        #'h':(2,1),
                        #'i':(2,2),
@@ -181,6 +194,7 @@ class SoundFlower():
                        'w':(7,4),
                        'x':(7,5)}
 
+        '''
         self.mapping3 = {'a':(8,0),
                        'b':(8,1),
                        'c':(8,2),
@@ -205,6 +219,33 @@ class SoundFlower():
                        'v':(8,21),
                        'w':(8,22),
                        'x':(8,23)}
+        '''
+
+	# guitar, bass harmonic minor?
+        self.mapping3 = {'a':(12,0),
+                       'b':(12,2),
+                       'c':(12,3),
+                       'd':(12,5),
+                       'e':(12,7),
+                       'f':(12,8),
+                       'g':(12,11),
+                       'h':(12,12),
+                       'i':(12,14),
+                       'j':(12,15),
+                       'k':(12,17),
+                       'l':(12,19),
+                       'm':(8,0),
+                       'n':(8,2),
+                       'o':(8,3),
+                       'p':(8,5),
+                       'q':(8,7),
+                       'r':(8,8),
+                       's':(8,11),
+                       't':(8,12),
+                       'u':(8,14),
+                       'v':(8,15),
+                       'w':(8,17),
+                       'x':(8,19)}
 
         self.mapping4 = {'a':(9,0),
                        'b':(9,1),
@@ -267,7 +308,8 @@ class SoundFlower():
         self.instruments[i].stop(n)
 
     def handleKnobA(self, value):
-        self.FMchromatic.handleKnobA(value)
+        #self.FMchromatic.handleKnobA(value)
+        self.FMmajor.handleKnobA(value)
         #self.FMpentatonic.handleKnobA(value)
 
     def handleKnobB(self, value):
