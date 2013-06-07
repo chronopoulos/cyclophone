@@ -35,6 +35,7 @@ class SoundFlower():
     def __init__(self):
         self.instruments = []
 
+	#instrument 0
         self.FMchromatic = inst.BrutePoly(order=24, key=30)
         self.FMchromatic.setTonality(Tonality(range(12)))
         self.instruments.append(self.FMchromatic)
@@ -45,39 +46,52 @@ class SoundFlower():
         self.instruments.append(self.FMpentatonic)
         """
 
+	#instrument 1
         self.tr909 = inst.Sampler(packs.tr909, amp=1.5)
         self.instruments.append(self.tr909)
 
+	#instrument 2
         self.rhodes = inst.Sampler(packs.rhodes, amp=1.5)
         self.instruments.append(self.rhodes)
 
+	#instrument 3
         self.koto = inst.Sampler(packs.koto)
         self.instruments.append(self.koto)
 
+	#instrument 4
         self.chimes = inst.Sampler(packs.chimes)
         self.instruments.append(self.chimes)
 
+	#instrument 5
         self.tr606 = inst.Sampler(packs.tr606, amp=1.5)
         self.instruments.append(self.tr606)
 
+	#instrument 6
         self.tr707 = inst.Sampler(packs.tr707, amp=1.5)
         self.instruments.append(self.tr707)
 
+	#instrument 7
         self.tr808 = inst.Sampler(packs.tr808, amp=1.5)
         self.instruments.append(self.tr808)
 
         #self.piano = inst.Sampler(packs.piano, amp=3.)
         #self.instruments.append(self.piano)
 
-        self.piano = inst.Sampler(packs.newbass, amp=3.)
-        self.instruments.append(self.piano)
+	#instrument 8
+        self.tabla = inst.Sampler(packs.tabla, amp=3.)
+        self.instruments.append(self.tabla)
+
+        #self.piano = inst.Sampler(packs.newbass, amp=3.)
+        #self.instruments.append(self.piano)
 
         #self.guitar = inst.Sampler(packs.guitar, amp=3.)
         #self.instruments.append(self.guitar)
         
+	#instrument 9
         self.guitar = inst.Sampler(packs.newbass, amp=3.)
         self.instruments.append(self.guitar)
 
+	#instrument 10
 	self.sine = inst.BrutePoly(voice=synths.Sine, order=24, key=60)
         self.sine.setTonality(Tonality(range(12)))
 	self.instruments.append(self.sine)
@@ -109,12 +123,13 @@ class SoundFlower():
                        'w':(0,22),
                        'x':(0,23)}
 
-        self.mapping1 = {'a':(1,0),
-                       'b':(1,1),
-                       'c':(1,2),
-                       'd':(1,3),
-                       'e':(1,4),
-                       'f':(1,5),
+	# pentatonic plus tabla
+        self.mapping1 = {'a':(8,0),
+                       'b':(8,1),
+                       'c':(8,2),
+                       'd':(8,3),
+                       'e':(8,4),
+                       'f':(8,5),
                        'g':(2,0),
                        'h':(2,1),
                        'i':(2,2),
