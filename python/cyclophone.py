@@ -66,13 +66,16 @@ class SoundFlower():
         self.tr808 = inst.Sampler(packs.tr808, amp=1.5)
         self.instruments.append(self.tr808)
 
-        self.piano = inst.Sampler(packs.piano, amp=3.)
+        #self.piano = inst.Sampler(packs.piano, amp=3.)
+        #self.instruments.append(self.piano)
+
+        self.piano = inst.Sampler(packs.newbass, amp=3.)
         self.instruments.append(self.piano)
 
         #self.guitar = inst.Sampler(packs.guitar, amp=3.)
         #self.instruments.append(self.guitar)
         
-        self.guitar = inst.Sampler(packs.bass, amp=3.)
+        self.guitar = inst.Sampler(packs.newbass, amp=3.)
         self.instruments.append(self.guitar)
 
 	self.sine = inst.BrutePoly(voice=synths.Sine, order=24, key=60)
