@@ -53,7 +53,7 @@ class SoundFlower():
         self.instruments.append(self.FMmajor)
 
 	#instrument 1
-        self.tr909 = inst.Sampler(packs.tr909, amp=1.5)
+        self.tr909 = inst.Sampler(packs.tr909, amp=2.0)
         self.instruments.append(self.tr909)
 
 	#instrument 2
@@ -77,7 +77,7 @@ class SoundFlower():
         self.instruments.append(self.tr707)
 
 	#instrument 7
-        self.tr808 = inst.Sampler(packs.tr808, amp=1.5)
+        self.tr808 = inst.Sampler(packs.tr808, amp=2.0)
         self.instruments.append(self.tr808)
 
 	#instrument 8
@@ -91,8 +91,8 @@ class SoundFlower():
         self.instruments.append(self.guitar)
         
 	#instrument 9
-        self.guitar = inst.Sampler(packs.newbass, amp=3.)
-        self.instruments.append(self.guitar)
+        self.newbass = inst.Sampler(packs.newbass, amp=3.)
+        self.instruments.append(self.newbass)
 
 	#instrument 10
 	self.sine = inst.BrutePoly(voice=synths.Sine, order=24, key=60)
@@ -100,7 +100,7 @@ class SoundFlower():
 	self.instruments.append(self.sine)
 
 	#instrument 11
-        self.tabla = inst.Sampler(packs.tabla, amp=3.)
+        self.tabla = inst.Sampler(packs.tabla, amp=1.5)
         self.instruments.append(self.tabla)
 
 	#instrument 12
@@ -108,6 +108,10 @@ class SoundFlower():
         self.instruments.append(self.piano)
         #self.newbass = inst.Sampler(packs.newbass, amp=3.)
         #self.instruments.append(self.newbass)
+	
+        #instrument 13
+        self.dundunba = inst.Sampler(packs.dundunba, amp=3.)
+        self.instruments.append(self.dundunba)
 
         self.myVol = 1.
 
@@ -175,6 +179,32 @@ class SoundFlower():
                        'd':(1,3),
                        'e':(1,4),
                        'f':(1,5),
+                       'g':(11,0),
+                       'h':(11,1),
+                       'i':(11,2),
+                       'j':(11,3),
+                       'k':(11,4),
+                       'l':(11,5),
+                       'm':(11,6),
+                       'n':(13,0),
+                       'o':(13,1),
+                       'p':(13,2),
+                       'q':(13,3),
+                       'r':(6,5),
+                       's':(7,0),
+                       't':(7,1),
+                       'u':(7,2),
+                       'v':(7,3),
+                       'w':(7,4),
+                       'x':(7,5)}
+
+        '''
+        self.mapping2 = {'a':(1,0),
+                       'b':(1,1),
+                       'c':(1,2),
+                       'd':(1,3),
+                       'e':(1,4),
+                       'f':(1,5),
                        'g':(5,0),
                        'h':(5,1),
                        'i':(5,2),
@@ -194,7 +224,6 @@ class SoundFlower():
                        'w':(7,4),
                        'x':(7,5)}
 
-        '''
         self.mapping3 = {'a':(8,0),
                        'b':(8,1),
                        'c':(8,2),

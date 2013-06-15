@@ -8,7 +8,8 @@ tabla = [
 '../../../samples/tabla/tabla3.aif',
 '../../../samples/tabla/tabla4.aif',
 '../../../samples/tabla/tabla5.aif',
-'../../../samples/tabla/tabla7.aif'
+'../../../samples/tabla/tabla7.aif',
+'../../../samples/tabla/tabla6.aif'
 ]
 
 newbass = [
