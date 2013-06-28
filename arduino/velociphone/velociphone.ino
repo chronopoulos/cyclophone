@@ -14,7 +14,6 @@ int knobPin2 = A2;
 int knobVal2 = 0;
 int prevKnobVal2 = 0;
 
-
 class Button
 {
   public:
@@ -100,41 +99,40 @@ class Button
   }
 };
 
-
-
-
-Button Buttons[6] = { 
+Button Buttons[24] = { 
+  /*
   Button(2, 3, 'K', 'C', 'c'), 
   Button(3, 4, 'K', 'D', 'd'), 
   Button(5, 6, 'K', 'E', 'e'), 
   Button(7, 8, 'K', 'F', 'f'), 
   Button(9, 10, 'K', 'G', 'g'), 
   Button(11, 12, 'K', 'H', 'h:'), 
-  /*
-  Button(26, 'K', 'A', 'a'), 
-  Button(27, 'K', 'B', 'b'), 
-  Button(2, 'K', 'C', 'c'), 
-  Button(3, 'K', 'D', 'd'),
-  Button(4, 'K', 'E', 'e'),
-  Button(5, 'K', 'F', 'f'),
-  Button(6, 'K', 'G', 'g'),
-  Button(7, 'K', 'H', 'h'),
-  Button(8, 'K', 'I', 'i'),
-  Button(9, 'K', 'J', 'j'),
-  Button(10, 'K', 'K', 'k'),
-  Button(11, 'K', 'L', 'l'), 
-  Button(12, 'K', 'M', 'm'), 
-  Button(13, 'K', 'N', 'n'), 
-  Button(14, 'K', 'O', 'o'),
-  Button(15, 'K', 'P', 'p'),
-  Button(16, 'K', 'Q', 'q'),
-  Button(17, 'K', 'R', 'r'),
-  Button(18, 'K', 'S', 's'),
-  Button(19, 'K', 'T', 't'),
-  Button(20, 'K', 'U', 'u'),
-  Button(21, 'K', 'V', 'v'),
-  Button(22, 'K', 'W', 'w'),
-  Button(24, 'K', 'X', 'x') */
+  */
+
+  Button(26, 51, 'K', 'A', 'a'), 
+  Button(27, 52, 'K', 'B', 'b'), 
+  Button(2, 29, 'K', 'C', 'c'), 
+  Button(3, 30, 'K', 'D', 'd'),
+  Button(4, 31, 'K', 'E', 'e'),
+  Button(5, 32, 'K', 'F', 'f'),
+  Button(6, 33, 'K', 'G', 'g'),
+  Button(7, 34, 'K', 'H', 'h'),
+  Button(8, 35, 'K', 'I', 'i'),
+  Button(9, 36, 'K', 'J', 'j'),
+  Button(10, 37, 'K', 'K', 'k'),
+  Button(11, 38, 'K', 'L', 'l'), 
+  Button(12, 39, 'K', 'M', 'm'), 
+  Button(13, 40, 'K', 'N', 'n'), 
+  Button(14, 41, 'K', 'O', 'o'),
+  Button(15, 42, 'K', 'P', 'p'),
+  Button(16, 43, 'K', 'Q', 'q'),
+  Button(17, 44, 'K', 'R', 'r'),
+  Button(18, 45, 'K', 'S', 's'),
+  Button(19, 46, 'K', 'T', 't'),
+  Button(20, 47, 'K', 'U', 'u'),
+  Button(21, 48, 'K', 'V', 'v'),
+  Button(22, 49, 'K', 'W', 'w'),
+  Button(24, 50, 'K', 'X', 'x')
 };
 
 Button Selector[0] = { 
@@ -167,22 +165,64 @@ void setup()
   
 }
 
+int count = 0;
+unsigned long time1 = 0;
+unsigned char oldpina, oldpinb, oldpinc, oldpind, oldpine;
+unsigned char oldpinf, oldping, oldpinh, oldpinj, oldpinl;
 
 void loop()
 {
 
+  // if 10000 loops, print the time.
+  if (count > 10000)
+  {
+    unsigned long time2 = micros();
+    Serial.print("time: ");
+    Serial.println(time2 - time1);
+    time1 = time2;
+    count = 0;
+  }  
+  
+  ++count;
+  
+  /*
+  // takes 167750 for 10000 loops, or 16.7 microseconds.
+  
+  if (oldpina != PINA)
+    oldpina = PINA;
+  if (oldpinb != PINB)
+    oldpinb != PINB;
+  if (oldpinc != PINC)
+    oldpinc != PINC;
+  if (oldpind != PIND)
+    oldpind != PIND;
+  if (oldpine != PINE)
+    oldpine != PINE;
+  if (oldpinf != PINF)
+    oldpinf != PINF;
+  if (oldping != PING)
+    oldping != PING;
+  if (oldpinh != PINH)
+    oldpinh != PINH;
+  if (oldpinj != PINJ)
+    oldpinj != PINJ;
+  if (oldpinl != PINL)
+    oldpinl != PINL;
+  */
+
+  // takes 3671324 per 10000 loops, or 367 microseconds.
   for (int i =0; i< sizeof(Buttons)/sizeof(Button); ++i)
   {
     Buttons[i].DoButtonStuff();  
   }
   
   
-
+/*
   for (int i =0; i< sizeof(Selector)/sizeof(Button); ++i)
   {
     Selector[i].DoButtonStuff();  
   }
-
+*/
 /*
   knobVal0 = analogRead(knobPin0);
   if (abs(knobVal0-prevKnobVal0) > 2) {
