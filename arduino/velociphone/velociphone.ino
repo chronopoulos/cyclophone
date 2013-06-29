@@ -437,16 +437,16 @@ void loop()
   ++count;
   
   // is this as fast as the non-inline function code? 
-  checkbuttons(PINA, oldpina, AButtons);
-  checkbuttons(PINB, oldpinb, BButtons);
-  checkbuttons(PINC, oldpinc, CButtons);
-  checkbuttons(PIND, oldpind, DButtons);
-  checkbuttons(PINE, oldpine, EButtons);
-  checkbuttons(PINF, oldpinf, FButtons);
-  checkbuttons(PING, oldping, GButtons);
-  checkbuttons(PINH, oldpinh, HButtons);
-  checkbuttons(PINJ, oldpinj, JButtons);
-  checkbuttons(PINL, oldpinl, LButtons);
+  checkbuttons(PINA, oldpina, (unsigned int*)AButtons);
+  checkbuttons(PINB, oldpinb, (unsigned int*)BButtons);
+  checkbuttons(PINC, oldpinc, (unsigned int*)CButtons);
+  checkbuttons(PIND, oldpind, (unsigned int*)DButtons);
+  checkbuttons(PINE, oldpine, (unsigned int*)EButtons);
+  checkbuttons(PINF, oldpinf, (unsigned int*)FButtons);
+  checkbuttons(PING, oldping, (unsigned int*)GButtons);
+  checkbuttons(PINH, oldpinh, (unsigned int*)HButtons);
+  checkbuttons(PINJ, oldpinj, (unsigned int*)JButtons);
+  checkbuttons(PINL, oldpinl, (unsigned int*)LButtons);
 
 /* 
   // takes 167750 for 10000 loops, or 16.7 microseconds.
