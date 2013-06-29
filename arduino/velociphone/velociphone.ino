@@ -1,3 +1,7 @@
+//  to do:
+// - save time by only using a button once in a button array
+// - compare with mask for register checks. 
+
 
 long debounceDelay = 20;
 
@@ -217,12 +221,15 @@ class Button
         if (buttonState1 == LOW) 
         {
          time1 = micros();
-         //Serial.print(prefix);
-         //Serial.println(up);
+         
+          // uncomment for single-pin operation
+         Serial.print(prefix);
+         Serial.println(up);
         }
         else {
-         //Serial.print(prefix);
-         //Serial.println(down);
+          // uncomment for single-pin operation
+         Serial.print(prefix);
+         Serial.println(down);
         }
       }
       else {
@@ -232,6 +239,10 @@ class Button
       lastDebounceTime1 = millis();
       prevState1 = buttonState1;
     }
+    
+    // no need to check 2nd pin.
+    if (!buttonState1)
+      return;
 
     int buttonState2 = pc2.isPinOn();
     if (buttonState2 != prevState2) 
@@ -408,18 +419,31 @@ void setup()
   
 }
 
-int count = 0;
-unsigned long time1 = 0;
-unsigned char oldpina, oldpinb, oldpinc, oldpind, oldpine;
-unsigned char oldpinf, oldping, oldpinh, oldpinj, oldpinl;
-
 inline void checkbuttons( volatile unsigned char &aRegister, 
                           unsigned char &aOld, 
                           unsigned int* aButtonArray)
 {
+  while (*aButtonArray != 0)
+  {
+    ((Button*)*aButtonArray)->DoButtonStuff();
+    ++aButtonArray;
+  }
+}
+
+/*
+inline void checkbuttons( volatile unsigned char &aRegister, 
+                          unsigned char &aOld)
+{
   if (aOld != aRegister)
     aOld = aRegister; 
 }
+*/
+
+int count = 0;
+int oldcount = 0;
+unsigned long time1 = 0;
+unsigned char oldpina, oldpinb, oldpinc, oldpind, oldpine;
+unsigned char oldpinf, oldping, oldpinh, oldpinj, oldpinl;
 
 void loop()
 {
@@ -430,26 +454,106 @@ void loop()
     unsigned long time2 = micros();
     Serial.print("time: ");
     Serial.println(time2 - time1);
+    Serial.print("oldcount: ");
+    Serial.println(oldcount);
     time1 = time2;
     count = 0;
+    oldcount = 0;
   }  
   
   ++count;
   
-  // is this as fast as the non-inline function code? 
-  checkbuttons(PINA, oldpina, (unsigned int*)AButtons);
-  checkbuttons(PINB, oldpinb, (unsigned int*)BButtons);
-  checkbuttons(PINC, oldpinc, (unsigned int*)CButtons);
-  checkbuttons(PIND, oldpind, (unsigned int*)DButtons);
-  checkbuttons(PINE, oldpine, (unsigned int*)EButtons);
-  checkbuttons(PINF, oldpinf, (unsigned int*)FButtons);
-  checkbuttons(PING, oldping, (unsigned int*)GButtons);
-  checkbuttons(PINH, oldpinh, (unsigned int*)HButtons);
-  checkbuttons(PINJ, oldpinj, (unsigned int*)JButtons);
-  checkbuttons(PINL, oldpinl, (unsigned int*)LButtons);
+  // is this as fast as the non-inline function code?
+  /* 
+  checkbuttons(PINA, oldpina); 
+  checkbuttons(PINB, oldpinb);
+  checkbuttons(PINC, oldpinc);
+  checkbuttons(PIND, oldpind);
+  checkbuttons(PINE, oldpine);
+  checkbuttons(PINF, oldpinf);
+  checkbuttons(PING, oldping);
+  checkbuttons(PINH, oldpinh);
+  checkbuttons(PINJ, oldpinj);
+  checkbuttons(PINL, oldpinl);
+  */
 
-/* 
-  // takes 167750 for 10000 loops, or 16.7 microseconds.
+  // 3390300!!  super slow.
+  // time: 3557396
+  // oldcount: 24479  
+  if (oldpina != PINA)
+  {
+    oldpina = PINA;
+    checkbuttons(PINA, oldpina, (unsigned int*)AButtons);
+    ++oldcount;
+  }
+  // 669444 - oldcount 10001.
+  if (oldpinb != PINB)
+  {
+    oldpinb = PINB;
+    checkbuttons(PINB, oldpinb, (unsigned int*)BButtons);
+    ++oldcount;
+  }
+  // 743652 - 10001
+  if (oldpinc != PINC)
+  {
+    oldpinc = PINC;
+    checkbuttons(PINC, oldpinc, (unsigned int*)CButtons);
+    ++oldcount;
+  }
+  // 522280 - 10001
+  if (oldpind != PIND)
+  {
+    oldpind = PIND;
+    checkbuttons(PIND, oldpind, (unsigned int*)DButtons);
+    ++oldcount;
+  }
+  // 375116
+  if (oldpine != PINE)
+  {
+    oldpine = PINE;
+    checkbuttons(PINE, oldpine, (unsigned int*)EButtons);
+    ++oldcount;
+  }
+  // 154372
+  if (oldpinf != PINF)
+  {
+    oldpinf = PINF;
+    checkbuttons(PINF, oldpinf, (unsigned int*)FButtons);
+    ++oldcount;
+  }
+  // 449328 - 10001
+  if (oldping != PING)
+  {
+    oldping = PING;
+    checkbuttons(PING, oldping, (unsigned int*)GButtons);
+    ++oldcount;
+  }
+  // 598120 - 10001
+  if (oldpinh != PINH)
+  {
+    oldpinh = PINH;
+    checkbuttons(PINH, oldpinh, (unsigned int*)HButtons);
+    ++oldcount;
+  }
+  // 302796 - 10001
+  if (oldpinj != PINJ)
+  {
+    oldpinj = PINJ;
+    checkbuttons(PINJ, oldpinj, (unsigned int*)JButtons);
+    ++oldcount;
+  }
+  // 745372 - 10001
+  if (oldpinl != PINL)
+  {
+    oldpinl = PINL;
+    checkbuttons(PINL, oldpinl, (unsigned int*)LButtons);
+    ++oldcount;
+  }
+
+
+  // takes 167750 for 10000 loops, or 16.7 microseiconds.
+  // 172780
+  /*
   if (oldpina != PINA)
     oldpina = PINA;
   if (oldpinb != PINB)
@@ -470,8 +574,33 @@ void loop()
     oldpinj != PINJ;
   if (oldpinl != PINL)
     oldpinl != PINL;
-*/
+   */
+  
+  // 140328
   /*
+  if (oldpina != PINA & 0xFEFE)
+    oldpina = PINA & 0xFEFE;
+  if (oldpinb != PINB & 0xFEFE)
+    oldpinb = PINB & 0xFEFE;
+  if (oldpinc != PINC & 0xFEFE)
+    oldpinc = PINC & 0xFEFE;
+  if (oldpind != PIND & 0xFEFE)
+    oldpind = PIND & 0xFEFE;
+  if (oldpine != PINE & 0xFEFE)
+    oldpine = PINE & 0xFEFE;
+  if (oldpinf != PINF & 0xFEFE)
+    oldpinf = PINF & 0xFEFE;
+  if (oldping != PING & 0xFEFE)
+    oldping = PING & 0xFEFE;
+  if (oldpinh != PINH & 0xFEFE)
+    oldpinh = PINH & 0xFEFE;
+  if (oldpinj != PINJ & 0xFEFE)
+    oldpinj = PINJ & 0xFEFE;
+  if (oldpinl != PINL & 0xFEFE)
+    oldpinl = PINL & 0xFEFE;
+    */
+
+/*
   // takes 3671324 per 10000 loops, or 367 microseconds.
   for (int i =0; i< sizeof(Buttons)/sizeof(Button); ++i)
   {
