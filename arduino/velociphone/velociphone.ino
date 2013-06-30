@@ -196,8 +196,8 @@ class Button
   const int buttonPin2;
   PinChecker &pc1;
   PinChecker &pc2;
-  int prevState1;
-  int prevState2;
+  bool prevState1;
+  bool prevState2;
   long lastDebounceTime1;
   long lastDebounceTime2;
   unsigned long time1;
@@ -212,24 +212,24 @@ class Button
 
   void DoButtonStuff()
   {  
-    int buttonState1 = pc1.isPinOn();
+    bool buttonState1 = pc1.isPinOn();
   
     if (buttonState1 != prevState1) 
     {
       if ((millis()-lastDebounceTime1) > debounceDelay)
       {
-        if (buttonState1 == LOW) 
+        if (!buttonState1) 
         {
          time1 = micros();
          
           // uncomment for single-pin operation
-         Serial.print(prefix);
-         Serial.println(up);
+         //Serial.print(prefix);
+         //Serial.println(up);
         }
         else {
           // uncomment for single-pin operation
-         Serial.print(prefix);
-         Serial.println(down);
+         //Serial.print(prefix);
+         //Serial.println(down);
         }
       }
       else {
@@ -241,15 +241,15 @@ class Button
     }
     
     // no need to check 2nd pin.
-    if (!buttonState1)
+    if (buttonState1)
       return;
 
-    int buttonState2 = pc2.isPinOn();
+    bool buttonState2 = pc2.isPinOn();
     if (buttonState2 != prevState2) 
     {
       if ((millis()-lastDebounceTime2) > debounceDelay)
       {
-        if (buttonState2 == LOW) 
+        if (!buttonState2) 
         {
           unsigned long time2 = micros();
           Serial.print(prefix);
@@ -449,6 +449,7 @@ void loop()
 {
 
   // if 10000 loops, print the time.
+  /*
   if (count > 10000)
   {
     unsigned long time2 = micros();
@@ -462,6 +463,7 @@ void loop()
   }  
   
   ++count;
+  */
   
   // is this as fast as the non-inline function code?
   /* 
