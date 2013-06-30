@@ -3,12 +3,12 @@
 base_l = 12;
 base_h = 3;
 
-switch_height = 6.51;
-switch_width = 6.38+1.25;
+switch_height = 6.51-1.;
+switch_width = 6.63;
 switch_thickness = 3.08;
 
-diff = 1;
-wire = 0.8;
+diff = 0.5;
+wire = 0.5;
 
 top_layer = switch_thickness-wire;
 bottom_layer = h - top_layer;
