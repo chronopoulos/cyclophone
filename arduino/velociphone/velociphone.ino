@@ -198,8 +198,10 @@ class Button
 };
 
 Button Buttons[24] = { 
-  Button(26, 51, 'K', 'A', 'a'), //  0
-  Button(27, 52, 'K', 'B', 'b'), //  1
+//  Button(26, 51, 'K', 'A', 'a'), //  0
+//  Button(27, 52, 'K', 'B', 'b'), //  1
+  Button(26, 27, 'K', 'A', 'a'), //  0
+  Button(51, 52, 'K', 'B', 'b'), //  1
   Button(2, 29, 'K', 'C', 'c'),  //  2
   Button(3, 30, 'K', 'D', 'd'),  //  3
   Button(4, 31, 'K', 'E', 'e'),  //  4
