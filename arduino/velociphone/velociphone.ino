@@ -172,13 +172,14 @@ class Button
     {
       if ((millis()-lastDebounceTime2) > debounceDelay)
       {
-        if (!buttonState2) 
+        if (!buttonState2 && time1 != 0) 
         {
           unsigned long time2 = micros();
           Serial.print(prefix);
           Serial.print(up);
           Serial.print(" ");
           Serial.println(time2 - time1);
+          time1 = 0;
         }
         else 
         {
