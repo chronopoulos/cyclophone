@@ -2,7 +2,7 @@
 // - save time by only using a button once in a button array
 // - compare with mask for register checks. 
 
-long debounceDelay = 20;
+unsigned long debounceDelay = 40000;
 
 class PinChecker
 {
@@ -83,8 +83,8 @@ PinChecker& getPinChecker(int pin)
 {
   if (pin < 0 || pin > 53)
   {
-    Serial.print("pin out of range: ");
-    Serial.println(pin);
+    //Serial.print("pin out of range: ");
+    //Serial.println(pin);
 
     // return pc 0 if out of range, so the prog doesn't have to do null checks.
     return PinCheckers[0];  
@@ -102,12 +102,12 @@ class Button
      pc1(getPinChecker(pin1)),
      buttonPin2(pin2), 
      pc2(getPinChecker(pin2)),
-    prefix(aprefix), up(aup), down(adown)
+    prefix(aprefix), up(aup), down(adown) 
     {
-     prevState1 = -1;
-     lastDebounceTime1 = 0;
-     prevState2 = -1;
-     lastDebounceTime2 = 0;
+     prevState1 = false;
+     prevState2 = false;
+     lasttime1 = 0;
+     lasttime2 = 0;
     }  
 
   bool HasRegister(volatile unsigned char *aRegister) const 
@@ -120,11 +120,10 @@ class Button
   const int buttonPin2;
   PinChecker &pc1;
   PinChecker &pc2;
+  unsigned long lasttime1;
+  unsigned long lasttime2;
   bool prevState1;
   bool prevState2;
-  long lastDebounceTime1;
-  long lastDebounceTime2;
-  unsigned long time1;
 
   void InitPin()
   {
@@ -134,71 +133,48 @@ class Button
     digitalWrite(buttonPin2, HIGH);
   }
 
-  void DoButtonStuff()
+  void DoButtonStuff(unsigned long newtime)
   {  
-    bool buttonState1 = pc1.isPinOn();
-  
+    // Serial.println("DoButtonStuff");
+    
+    bool buttonState1 = !pc1.isPinOn();
     if (buttonState1 != prevState1) 
     {
-      if ((millis()-lastDebounceTime1) > debounceDelay)
+      if (buttonState1 && newtime - lasttime1 > debounceDelay)
       {
-        if (!buttonState1) 
-        {
-         time1 = micros();
-         // uncomment for single-pin operation
-         //Serial.print(prefix);
-         //Serial.println(up);
-        }
-        else {
-         // uncomment for single-pin operation
-         //Serial.print(prefix);
-         //Serial.println(down);
-        }
+        //Serial.print("1:");
+        //Serial.println(newtime - lasttime);
+        lasttime1 = newtime;
       }
-      else {
-         //Serial.print(prefix);
-         //Serial.println("9A");
-      }
-      lastDebounceTime1 = millis();
       prevState1 = buttonState1;
     }
     
-    // if 1st switch not engaged, no need to check 2nd pin.
-    if (buttonState1)
-      return;
-
-    bool buttonState2 = pc2.isPinOn();
+    bool buttonState2 = !pc2.isPinOn();
     if (buttonState2 != prevState2) 
     {
-      if ((millis()-lastDebounceTime2) > debounceDelay)
+      if (buttonState2 && newtime - lasttime2 > debounceDelay)
       {
-        if (!buttonState2 && time1 != 0) 
+        //Serial.print("2:");
+        //Serial.print(down);
+        //Serial.write(down);
+        //Serial.println((newtime - lasttime) / 10000);
+        Serial.println(newtime - lasttime1);
+        /*
+        if (newtime - lasttime == 0)
         {
-          unsigned long time2 = micros();
-          Serial.print(prefix);
-          Serial.print(up);
-          Serial.print(" ");
-          Serial.println(time2 - time1);
-          time1 = 0;
+          // turn on pin 13 - the LED.
+          digitalWrite(13, HIGH);   // turn the LED on (HIGH is the voltage level)
         }
-        else 
-        {
-          Serial.print(prefix);
-          Serial.println(down);
-        }
+        */
+
+        lasttime2 = newtime;
       }
-      else 
-      {
-        Serial.print(prefix);
-        Serial.println("9B");
-      }
-      lastDebounceTime2 = millis();
       prevState2 = buttonState2;
     }
   }
 };
 
-Button Buttons[24] = { 
+Button Buttons[23] = { 
 //  Button(26, 51, 'K', 'A', 'a'), //  0
 //  Button(27, 52, 'K', 'B', 'b'), //  1
   Button(26, 27, 'K', 'A', 'a'), //  0
@@ -214,7 +190,7 @@ Button Buttons[24] = {
   Button(10, 37, 'K', 'K', 'k'), //  10
   Button(11, 38, 'K', 'L', 'l'), //  11 
   Button(12, 39, 'K', 'M', 'm'), //  12 
-  Button(13, 40, 'K', 'N', 'n'), //  13 
+//  Button(13, 40, 'K', 'N', 'n'), //  13 
   Button(14, 41, 'K', 'O', 'o'), //  14
   Button(15, 42, 'K', 'P', 'p'), //  15
   Button(16, 43, 'K', 'Q', 'q'), //  16
@@ -240,7 +216,7 @@ int InitPinButtonArray(unsigned int *aButtonArray, volatile unsigned char *aRegi
     }
     if (count > 8)
     {
-      Serial.println("pinbuttonarray count exceeded!!");
+      //Serial.println("pinbuttonarray count exceeded!!");
       count = 8;
       break;
     }
@@ -279,49 +255,67 @@ void setup()
   InitPinButtonArray((unsigned int*)JButtons, &PINJ);
   InitPinButtonArray((unsigned int*)LButtons, &PINL);
   
+  pinMode(13, OUTPUT);
+  digitalWrite(13, LOW);   // turn the LED off.
   // start serial port at 9600 bps:
-  Serial.begin(9600);
+  //Serial.begin(9600);  // 372, 380
+  //Serial.begin(115200);
+  Serial.begin(230400);
+  /*
   while (!Serial) {
     ; // wait for serial port to connect. Needed for Leonardo only
   }
+  */
   
   for (int i =0; i< sizeof(Buttons)/sizeof(Button); ++i)
   {
     Buttons[i].InitPin();  
   }
  
+  // digitalWrite(13, LOW);   // turn the LED off.
 }
 
 inline void checkbuttons( unsigned int* aButtonArray)
 {
+  unsigned long newtime = micros(); 
+
   while (*aButtonArray != 0)
   {
-    ((Button*)*aButtonArray)->DoButtonStuff();
+    ((Button*)*aButtonArray)->DoButtonStuff(newtime);
     ++aButtonArray;
   }
 }
 
 int count = 0;
 int oldcount = 0;
-unsigned long time1 = 0;
 unsigned char oldpina, oldpinb, oldpinc, oldpind, oldpine;
 unsigned char oldpinf, oldping, oldpinh, oldpinj, oldpinl;
 
+unsigned long last10000 = 0;
+unsigned long maxcycle = 0;
+unsigned long lastcycle = 0;
+
+
 void loop()
 {
+  /*
+  unsigned long newtime = micros();
+  if (maxcycle < newtime - lastcycle)
+    maxcycle = newtime - lastcycle;
+
+  lastcycle = newtime;
 
   // if 10000 loops, print the time.
-  /*
   if (count > 10000)
   {
-    unsigned long time2 = micros();
-    Serial.print("time: ");
-    Serial.println(time2 - time1);
-    Serial.print("oldcount: ");
-    Serial.println(oldcount);
-    time1 = time2;
+    //Serial.print("avg time: ");
+    //Serial.println((newtime - last10000) / 10000);
+    //Serial.print("max time: ");
+    unsigned short lS = maxcycle;
+    Serial.write((uint8_t*)&lS, 2);
+    last10000 = newtime;
     count = 0;
-    oldcount = 0;
+    maxcycle = 0;
   }  
   
   ++count;
