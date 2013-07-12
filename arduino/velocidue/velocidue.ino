@@ -216,7 +216,7 @@ void setup ()
   attachInterrupt (49, pinChange49, FALLING);  
   attachInterrupt (50, pinChange50, FALLING);  
 
-  Serial.begin(230400);
+  Serial.begin(115200);
 }  // end of setup
 
 void loop ()
