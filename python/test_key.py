@@ -31,19 +31,21 @@ class Cyclophone():
 
         self.myVol = 1.
 
-        self.mapping0 = {'b':(0,0)}
+        self.mapping0 = {'A':0, 'B':1, 'C':2, 'D':3}
 
         self.mapping = self.mapping0
 
     def play(self, msg):
-        flmsg = float(msg)
-        level = 400./flmsg
-        self.instruments[0].play(1, level)
+        index = self.mapping0[msg[0]]
+        time = int(msg[1:])
+        cal = 400. # must be a float
+        level = cal/time
+        self.instruments[0].play(index, level)
 
 ###
 
 cyclophone = Cyclophone()
-arduino = serial.Serial(deviceFile, 230400)
+arduino = serial.Serial(deviceFile, 115200)
 while True:
     msg = arduino.readline()
     print msg
