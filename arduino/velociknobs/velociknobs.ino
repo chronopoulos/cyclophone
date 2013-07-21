@@ -86,11 +86,11 @@ Knob Knobs[3] = {
 };
 
 Button Selector[5] = { 
-  Button(30, 'S', 'A', 'a'), 
-  Button(31, 'S', 'B', 'b'), 
-  Button(32, 'S', 'C', 'c'), 
-  Button(33, 'S', 'D', 'd'),
-  Button(34, 'S', 'E', 'e')
+  Button(2, '$', 'A', 'a'), 
+  Button(3, '$', 'B', 'b'), 
+  Button(4, '$', 'C', 'c'), 
+  Button(5, '$', 'D', 'd'),
+  Button(6, '$', 'E', 'e')
 };
 
 void setup()
