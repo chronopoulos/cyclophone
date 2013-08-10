@@ -9,7 +9,7 @@ from string import uppercase, lowercase
 deviceFile = '/dev/ttyACM0'
 
 # Start Audio Server
-s = pyo.Server(duplex=0).boot()
+s = pyo.Server(duplex=0, audio='jack').boot()
 
 class Velociphone():
 
@@ -63,7 +63,7 @@ class Velociphone():
                        'X':(23,3,5)}
 
 
-        self.max = [0.1 for i in range(24)]
+        self.max = [0.4 for i in range(24)]
         self.min = [0.05 for i in range(24)]
         self.t1 = [800. for i in range(24)]
         self.t2 = [6000. for i in range(24)]
@@ -78,10 +78,11 @@ class Velociphone():
         t = int(msg[1:])
         if t<self.t1[i]:
             vol = self.max[i]
-	elif t>self.t2[i]:
+        elif t>self.t2[i]:
             vol = self.min[i]
         else:
             vol = self.m[i]*t+self.b[i]
+        print 'Volume: ', vol
         self.instruments[j].play(k, vol)
 
 ##
