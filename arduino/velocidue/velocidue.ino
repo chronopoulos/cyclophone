@@ -1,5 +1,5 @@
 
-unsigned long debouncetime = 20000;
+unsigned long debouncetime = 65000;
 
 
 class Key
@@ -23,7 +23,7 @@ public:
     unsigned long newtime = micros();
     if (newtime - pin1time > debouncetime)
        pin1time = newtime;
-    
+   
   }  // end of pinChange
 
   void pinChange2 ()
