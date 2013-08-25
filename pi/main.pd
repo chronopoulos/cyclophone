@@ -1,0 +1,6 @@
+#N canvas 766 289 450 300 10;
+#X obj 64 87 OSCroute /chimes /koto /tr303;
+#X obj 64 127 chimes;
+#X obj 64 55 dumpOSC 8000;
+#X connect 0 0 1 0;
+#X connect 2 0 0 0;
