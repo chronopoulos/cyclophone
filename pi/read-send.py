@@ -19,7 +19,7 @@ mapping0 = {'A':'/chimes/0',
             'O':'/rhodes/2',
             'P':'/rhodes/3',
             'Q':'/rhodes/4',
-            'R':'/rhodes/5'
+            'R':'/rhodes/5',
             'S':'/tr909/0',
             'T':'/tr909/1',
             'U':'/tr909/2',
