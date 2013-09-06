@@ -85,12 +85,17 @@ Knob Knobs[3] = {
   Knob('C', A2)
 };
 
-Button Selector[5] = { 
+// $ prefix denotes selector knob.
+// @ prefix denotes arcade buttons.
+Button TheButtons[8] = { 
   Button(2, '$', 'A', 'a'), 
   Button(3, '$', 'B', 'b'), 
   Button(4, '$', 'C', 'c'), 
   Button(5, '$', 'D', 'd'),
-  Button(6, '$', 'E', 'e')
+  Button(6, '$', 'E', 'e'),
+  Button(8, '@', 'A', 'a'),
+  Button(9, '@', 'B', 'b'),
+  Button(10, '@', 'C', 'c')
 };
 
 void setup()
@@ -101,9 +106,9 @@ void setup()
     ; // wait for serial port to connect. Needed for Leonardo only
   }
   
-  for (int i =0; i< sizeof(Selector)/sizeof(Button); ++i)
+  for (int i =0; i< sizeof(TheButtons)/sizeof(Button); ++i)
   {
-    Selector[i].InitPin();  
+    TheButtons[i].InitPin();  
   }
   
 }
@@ -112,9 +117,9 @@ void setup()
 void loop()
 {
 
-  for (int i =0; i< sizeof(Selector)/sizeof(Button); ++i)
+  for (int i =0; i< sizeof(TheButtons)/sizeof(Button); ++i)
   {
-    Selector[i].DoButtonStuff();  
+    TheButtons[i].DoButtonStuff();  
   }
 
   for (int i =0; i< sizeof(Knobs)/sizeof(Knob); ++i)
