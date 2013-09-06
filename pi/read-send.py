@@ -1,4 +1,6 @@
-import serial, liblo
+#!/usr/bin/python
+
+import serial, liblo, threading
 
 pd = liblo.Address(8000)
 
@@ -48,17 +50,31 @@ def velocurve(t):
 
 def handleMsg(msg):
     print msg
+    """
     key, t = msg[0], float(msg[1:])
     try:
         pathstr = mapping[key]
         liblo.send(pd, pathstr, velocurve(t))
     except KeyError:
         pass
-
-
+    """
 
 ############
 
-due = serial.Serial('/dev/ttyACM0', 115200)
-while True:
-    handleMsg(due.readline())
+class ArduinoThread(threading.Thread):
+
+    def __init__(self, deviceFile):
+        threading.Thread.__init__(self)
+        self.arduino = serial.Serial(deviceFile, 115200)
+
+    def run(self):
+        while True:
+            handleMsg(self.arduino.readline())
+
+#######
+
+leo = ArduinoThread('/dev/ttyACM1')
+leo.setDaemon(True)
+leo.start()
+due = ArduinoThread('/dev/ttyACM0')
+due.start()
