@@ -1,0 +1,12 @@
+2013-08-06 arduino sketches for cyclophone:
+
+due keys:  'velocidue'
+leonardo knobs and buttons:  'velociknobs'
+
+other sketches:
+
+cuttlefish:    sketch for the 'cuttlefish' test bed.
+velociphone:   velocity sensitive keys for the arduino mega.  mostly works.
+dueinterrupt:  simple interrupt example for the due.
+interrozample: single button interrupt for due.
+
