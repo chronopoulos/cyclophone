@@ -70,9 +70,9 @@ Key Keys[24] = {
   Key('S', 's'), //  18 
   Key('T', 't'), //  19 
   Key('U', 'u'), //  20 
-  Key('V', 'v'),  //  21 
+  Key('V', 'v'), //  21 
   Key('W', 'w'), //  22  
-  Key('X', 'x') //  23 
+  Key('X', 'x')  //  23 
  };
 
 void pinChange2() { Keys[0].pinChange1(); }
@@ -123,32 +123,32 @@ void pinChange31() { Keys[14].pinChange2(); }
 void pinChange32() { Keys[15].pinChange1(); }
 void pinChange33() { Keys[15].pinChange2(); }
 
-void pinChange34() { Keys[10].pinChange1(); }
-void pinChange35() { Keys[10].pinChange2(); }
+void pinChange34() { Keys[16].pinChange1(); }
+void pinChange35() { Keys[16].pinChange2(); }
 
-void pinChange36() { Keys[16].pinChange1(); }
-void pinChange37() { Keys[16].pinChange2(); }
+void pinChange36() { Keys[17].pinChange1(); }
+void pinChange37() { Keys[17].pinChange2(); }
 
-void pinChange38() { Keys[17].pinChange1(); }
-void pinChange39() { Keys[17].pinChange2(); }
+void pinChange38() { Keys[18].pinChange1(); }
+void pinChange39() { Keys[18].pinChange2(); }
 
-void pinChange40() { Keys[18].pinChange1(); }
-void pinChange41() { Keys[18].pinChange2(); }
+void pinChange40() { Keys[19].pinChange1(); }
+void pinChange41() { Keys[19].pinChange2(); }
 
-void pinChange42() { Keys[19].pinChange1(); }
-void pinChange43() { Keys[19].pinChange2(); }
+void pinChange42() { Keys[20].pinChange1(); }
+void pinChange43() { Keys[20].pinChange2(); }
 
-void pinChange44() { Keys[20].pinChange1(); }
-void pinChange45() { Keys[20].pinChange2(); }
+void pinChange44() { Keys[21].pinChange1(); }
+void pinChange45() { Keys[21].pinChange2(); }
 
-void pinChange46() { Keys[21].pinChange1(); }
-void pinChange47() { Keys[21].pinChange2(); }
+void pinChange46() { Keys[22].pinChange1(); }
+void pinChange47() { Keys[22].pinChange2(); }
 
-void pinChange48() { Keys[22].pinChange1(); }
-void pinChange49() { Keys[22].pinChange2(); }
+void pinChange48() { Keys[23].pinChange1(); }
+void pinChange49() { Keys[23].pinChange2(); }
 
-void pinChange50() { Keys[23].pinChange1(); }
-void pinChange51() { Keys[23].pinChange2(); }
+void pinChange50() { Keys[24].pinChange1(); }
+void pinChange51() { Keys[25].pinChange2(); }
 
 void InitPin(int pin)
 {
