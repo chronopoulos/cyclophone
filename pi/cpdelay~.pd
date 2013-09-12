@@ -1,11 +1,11 @@
-#N canvas 712 331 450 300 10;
+#N canvas 0 54 1366 688 10;
 #X obj 123 148 *~ 0.5;
 #X obj 27 60 inlet~;
 #X obj 27 238 outlet~;
-#X obj 163 64 inlet;
-#X obj 294 64 inlet;
+#X obj 172 40 inlet;
+#X obj 370 91 inlet;
 #X text 25 32 audio in;
-#X text 288 12 feedback level range: 0.0-1.0 default: 0.5;
+#X text 311 63 feedback level range: 0.0-1.0 default: 0.5;
 #X text 159 12 delay time range: 0-1000 (ms) default: 100 ms;
 #X obj 67 113 delwrite~ \$0-delname 1000;
 #X obj 69 187 delread~ \$0-delname 100;
