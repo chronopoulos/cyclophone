@@ -50,14 +50,13 @@ def velocurve(t):
 
 def handleMsg(msg):
     print msg
-    """
     key, t = msg[0], float(msg[1:])
     try:
         pathstr = mapping[key]
+        print 'about to send..'
         liblo.send(pd, pathstr, velocurve(t))
     except KeyError:
-        pass
-    """
+        print 'KeyError from key: ', key
 
 ############
 
@@ -73,8 +72,11 @@ class ArduinoThread(threading.Thread):
 
 #######
 
-leo = ArduinoThread('/dev/ttyACM1')
-leo.setDaemon(True)
-leo.start()
-due = ArduinoThread('/dev/ttyACM0')
-due.start()
+if __name__ == '__main__':
+
+    leo = ArduinoThread('/dev/ttyACM1')
+    leo.setDaemon(True)
+    leo.start()
+    due = ArduinoThread('/dev/ttyACM0')
+    due.start()
+
