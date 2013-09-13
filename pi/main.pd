@@ -1,4 +1,4 @@
-#N canvas 770 84 524 455 10;
+#N canvas 770 85 524 455 10;
 #X obj 31 212 chimes;
 #X obj 32 129 dumpOSC 8000;
 #X obj 39 22 loadbang;
@@ -16,6 +16,7 @@
 #X text 137 158 use with -stderr to debug;
 #X msg 228 46 list /home/chrono/cyclophone_samples;
 #X obj 228 81 s sampledir;
+#X obj 240 233 * 1000;
 #X connect 0 0 9 0;
 #X connect 0 0 12 0;
 #X connect 1 0 8 0;
@@ -35,9 +36,10 @@
 #X connect 8 3 7 0;
 #X connect 8 4 10 0;
 #X connect 9 0 11 0;
-#X connect 10 0 9 1;
-#X connect 10 0 12 1;
+#X connect 10 0 17 0;
 #X connect 10 1 9 2;
 #X connect 10 1 12 2;
 #X connect 12 0 11 1;
 #X connect 15 0 16 0;
+#X connect 17 0 12 1;
+#X connect 17 0 9 1;
