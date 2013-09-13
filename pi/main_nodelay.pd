@@ -10,7 +10,7 @@
 #X obj 99 306 dac~;
 #X obj 64 160 print OSC;
 #X text 137 158 use with -stderr to debug;
-#X msg 228 46 list /home/chrono/cyclophone_samples;
+#X msg 228 46 list /home/pi/cyclophone_samples;
 #X obj 228 81 s sampledir;
 #X obj 32 189 OSCroute /chimes /koto /rhodes /tr909;
 #X connect 0 0 8 0;
