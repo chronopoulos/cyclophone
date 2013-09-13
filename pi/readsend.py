@@ -64,11 +64,8 @@ def handleMsg(msg):
         button = msg[1]
     else:
         t = float(msg[1:])
-        try:
-            pathstr = keymapping[head]
-            liblo.send(pd, pathstr, velocurve(t))
-        except KeyError:
-            pass
+        pathstr = keymapping[head]
+        liblo.send(pd, pathstr, velocurve(t))
 
 ############
 
@@ -80,7 +77,10 @@ class ArduinoThread(threading.Thread):
 
     def run(self):
         while True:
-            handleMsg(self.arduino.readline())
+            try:
+                handleMsg(self.arduino.readline())
+            except:
+                pass
 
 #######
 
