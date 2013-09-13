@@ -4,7 +4,7 @@ import serial, liblo, threading
 
 pd = liblo.Address(8000)
 
-mapping0 = {'A':'/chimes/0',
+keymapping0 = {'A':'/chimes/0',
             'B':'/chimes/1',
             'C':'/chimes/2',
             'D':'/chimes/3',
@@ -29,7 +29,12 @@ mapping0 = {'A':'/chimes/0',
             'W':'/tr909/4',
             'X':'/tr909/5'}
 
-mapping = mapping0
+keymapping = keymapping0
+
+knobmapping = {'A':'/delay/time',
+                'B':'/delay/feedback',
+                'C':'/other'
+                }
 
 t1 = 800.
 t2 = 6000.
@@ -50,13 +55,20 @@ def velocurve(t):
 
 def handleMsg(msg):
     print msg
-    key, t = msg[0], float(msg[1:])
-    try:
-        pathstr = mapping[key]
-        print 'about to send..'
-        liblo.send(pd, pathstr, velocurve(t))
-    except KeyError:
-        print 'KeyError from key: ', key
+    head = msg[0]
+    if head=='#':
+        liblo.send(pd, knobmapping[msg[1]], float(msg[2:])/1023)
+    elif head=='$':
+        mode = msg[1]
+    elif head=='@':
+        button = msg[1]
+    else:
+        t = float(msg[1:])
+        try:
+            pathstr = keymapping[head]
+            liblo.send(pd, pathstr, velocurve(t))
+        except KeyError:
+            pass
 
 ############
 
