@@ -34,7 +34,7 @@
 #X msg 390 324 0;
 #X msg 438 325 1;
 #X obj 12 639 dac~;
-#X msg 78 46 list /home/chrono/cyclophone_samples;
+#X msg 78 46 list /home/pi/cyclophone_samples;
 #X text 464 324 kill;
 #X connect 0 0 16 0;
 #X connect 0 0 17 0;

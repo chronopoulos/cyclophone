@@ -68,6 +68,8 @@ def handleMsg(msg):
         mode = msg[1]
     elif head=='@':
         button = msg[1]
+        pathstr = buttonmapping[button]
+        liblo.send(pd, pathstr)
     else:
         t = float(msg[1:])
         pathstr = keymapping[head]
@@ -86,7 +88,7 @@ class ArduinoThread(threading.Thread):
             try:
                 handleMsg(self.arduino.readline())
             except:
-                pass
+                pass # lol
 
 #######
 
