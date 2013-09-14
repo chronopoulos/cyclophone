@@ -36,6 +36,12 @@ knobmapping = {'A':'/delay/time',
                 'C':'/other'
                 }
 
+buttonmapping = {'a':'/delay/onoff',
+                'b':'/kill/on',
+                'B':'/kill/off',
+                'c':'/other'
+                    }
+
 t1 = 800.
 t2 = 6000.
 mn = 0.05
