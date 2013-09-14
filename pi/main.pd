@@ -1,4 +1,4 @@
-#N canvas 839 266 524 455 10;
+#N canvas 809 150 524 570 10;
 #X obj 31 212 chimes;
 #X obj 32 129 dumpOSC 8000;
 #X obj 39 22 loadbang;
@@ -9,43 +9,60 @@
 #X obj 195 212 tr909;
 #X obj 32 189 OSCroute /chimes /koto /rhodes /tr909 /delay;
 #X obj 240 212 OSCroute /time /feedback;
-#X obj 31 402 dac~;
-#X obj 193 327 cpdelay~;
+#X obj 22 532 dac~;
+#X obj 185 456 cpdelay~;
 #X obj 64 160 print OSC;
 #X text 137 158 use with -stderr to debug;
 #X obj 228 81 s sampledir;
-#X obj 240 283 * 1000;
-#X msg 228 46 list /home/chrono/cyclophone_samples;
-#X obj 240 238 knob 32 32 0 1 0 0 empty empty empty 0 -8 0 8 -262144
+#X obj 240 343 * 1000;
+#X obj 116 456 cpdelay~;
+#X obj 328 270 knob 32 32 0 1 0 0 empty empty empty 0 -8 0 8 -262144
 -1 -1 0 1;
-#X obj 310 237 knob 32 32 0 1 0 0 empty empty empty 0 -8 0 8 -262144
+#X obj 376 268 knob 32 32 0 1 0 0 empty empty empty 0 -8 0 8 -262144
 -1 -1 0 1;
-#X obj 32 331 cpdelay~;
-#X connect 0 0 11 0;
+#X obj 22 333 spigot~;
+#X obj 132 333 spigot~;
+#X obj 61 317 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
+1;
+#X obj 171 317 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
+1;
+#X obj 201 281 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X msg 228 46 list /home/pi/cyclophone_samples;
 #X connect 0 0 19 0;
+#X connect 0 0 20 0;
 #X connect 1 0 8 0;
 #X connect 1 0 12 0;
 #X connect 2 0 3 0;
-#X connect 2 0 16 0;
+#X connect 2 0 24 0;
 #X connect 3 0 4 0;
 #X connect 5 0 19 0;
-#X connect 5 1 11 0;
-#X connect 6 0 11 0;
+#X connect 5 1 20 0;
 #X connect 6 0 19 0;
-#X connect 7 0 11 0;
+#X connect 6 0 20 0;
 #X connect 7 0 19 0;
+#X connect 7 0 20 0;
 #X connect 8 0 0 0;
 #X connect 8 1 5 0;
 #X connect 8 2 6 0;
 #X connect 8 3 7 0;
 #X connect 8 4 9 0;
-#X connect 9 0 17 0;
-#X connect 9 1 18 0;
+#X connect 9 0 15 0;
+#X connect 9 1 11 2;
+#X connect 9 1 16 2;
 #X connect 11 0 10 1;
 #X connect 15 0 11 1;
-#X connect 15 0 19 1;
-#X connect 16 0 14 0;
+#X connect 15 0 16 1;
+#X connect 16 0 10 0;
 #X connect 17 0 15 0;
+#X connect 18 0 16 2;
 #X connect 18 0 11 2;
-#X connect 18 0 19 2;
 #X connect 19 0 10 0;
+#X connect 19 1 16 0;
+#X connect 20 0 10 1;
+#X connect 20 1 11 0;
+#X connect 21 0 19 1;
+#X connect 22 0 20 1;
+#X connect 23 0 21 0;
+#X connect 23 0 22 0;
+#X connect 24 0 14 0;
