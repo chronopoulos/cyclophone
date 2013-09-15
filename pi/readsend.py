@@ -37,7 +37,7 @@ knobmapping = {'A':'/delay/time',
 buttonmapping = {'a':'/delay/onoff',
                 'b':'/kill/on',
                 'B':'/kill/off',
-                'c':'/other'
+                'c':'/loop'
                     }
 
 scale = scales.chromatic
