@@ -1,33 +1,62 @@
 #!/usr/bin/python
 
-import serial, liblo, threading, scales
+import serial, liblo, threading
 
 pd = liblo.Address(8000)
 
-keymapping = {'A':('/fm',0),
-            'B':('/fm',1),
-            'C':('/fm',2),
-            'D':('/fm',3),
-            'E':('/fm',4),
-            'F':('/fm',5),
-            'G':('/fm',6),
-            'H':('/fm',7),
-            'I':('/fm',8),
-            'J':('/fm',9),
-            'K':('/fm',10),
-            'L':('/fm',11),
-            'M':('/fm',12),
-            'N':('/fm',13),
-            'O':('/fm',14),
-            'P':('/fm',15),
-            'Q':('/fm',16),
-            'R':('/fm',17),
-            'S':('/fm',18),
-            'T':('/fm',19),
-            'U':('/fm',20),
-            'V':('/fm',21),
-            'W':('/fm',22),
-            'X':('/fm',23)}
+keymapping_samples = {'A':'/chimes/0',
+            'B':'/chimes/1',
+            'C':'/chimes/2',
+            'D':'/chimes/3',
+            'E':'/chimes/4',
+            'F':'/chimes/5',
+            'G':'/koto/0',
+            'H':'/koto/1',
+            'I':'/koto/2',
+            'J':'/koto/3',
+            'K':'/koto/4',
+            'L':'/koto/5',
+            'M':'/rhodes/0',
+            'N':'/rhodes/1',
+            'O':'/rhodes/2',
+            'P':'/rhodes/3',
+            'Q':'/rhodes/4',
+            'R':'/rhodes/5',
+            'S':'/tr909/0',
+            'T':'/tr909/1',
+            'U':'/tr909/2',
+            'V':'/tr909/3',
+            'W':'/tr909/4',
+            'X':'/tr909/5'}
+
+keymapping_fm = {'A':('/fm',60),
+            'B':('/fm',62),
+            'C':('/fm',64),
+            'D':('/fm',67),
+            'E':('/fm',69),
+            'F':('/fm',72),
+            'G':('/fm',74),
+            'H':('/fm',76),
+            'I':('/fm',79),
+            'J':('/fm',81),
+            'K':('/fm',84),
+            'L':('/fm',90),
+            'M':('/fm',92),
+            'N':('/fm',94),
+            'O':('/fm',97),
+            'P':('/fm',100),
+            'Q':('/fm',102),
+            'R':('/fm',104),
+            'S':('/fm',107),
+            'T':('/fm',109),
+            'U':('/fm',112),
+            'V':('/fm',114),
+            'W':('/fm',118),
+            'X':('/fm',120)}
+
+#global variables
+keymapping = keymapping_samples
+synth = False
 
 knobmapping = {'A':'/delay/time',
                 'B':'/fm/harmonic',
@@ -39,11 +68,6 @@ buttonmapping = {'a':'/delay/onoff',
                 'B':'/kill/off',
                 'c':'/other'
                     }
-
-scale = scales.chromatic
-key = 60
-
-###############
 
 t1 = 800.
 t2 = 6000.
@@ -62,8 +86,6 @@ def velocurve(t):
     print vol
     return vol
 
-##########
-
 def handleMsg(msg):
     global keymapping, synth
     print msg
@@ -73,15 +95,11 @@ def handleMsg(msg):
     elif head=='$':
         mode = msg[1]
         if mode=='a':
-            scale = scales.chromatic
+            keymapping = keymapping_samples
+            synth = False
         elif mode=='b':
-            scale = scales.major
-        elif mode=='c':
-            scale = scales.minor
-        elif mode=='d':
-            scale = scales.majorPentatonic
-        elif mode=='e':
-            scale = scales.minorPentatonic
+            keymapping = keymapping_fm
+            synth = True
     elif head=='@':
         button = msg[1]
         pathstr = buttonmapping[button]
