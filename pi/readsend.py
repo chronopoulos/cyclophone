@@ -4,7 +4,7 @@ import serial, liblo, threading
 
 pd = liblo.Address(8000)
 
-keymapping0 = {'A':'/chimes/0',
+keymapping_samples = {'A':'/chimes/0',
             'B':'/chimes/1',
             'C':'/chimes/2',
             'D':'/chimes/3',
@@ -29,7 +29,33 @@ keymapping0 = {'A':'/chimes/0',
             'W':'/tr909/4',
             'X':'/tr909/5'}
 
-keymapping = keymapping0
+keymapping_fm = {'A':('/fm',60),
+            'B':('/fm',62),
+            'C':('/fm',64),
+            'D':('/fm',67),
+            'E':('/fm',69),
+            'F':('/fm',72),
+            'G':('/fm',74),
+            'H':('/fm',76),
+            'I':('/fm',79),
+            'J':('/fm',81),
+            'K':('/fm',84),
+            'L':('/fm',90),
+            'M':('/fm',92),
+            'N':('/fm',94),
+            'O':('/fm',97),
+            'P':('/fm',100),
+            'Q':('/fm',102),
+            'R':('/fm',104),
+            'S':('/fm',107),
+            'T':('/fm',109),
+            'U':('/fm',112),
+            'V':('/fm',114),
+            'W':('/fm',118),
+            'X':('/fm',120)}
+
+keymapping = keymapping_samples
+synth = False
 
 knobmapping = {'A':'/delay/time',
                 'B':'/delay/feedback',
@@ -66,14 +92,23 @@ def handleMsg(msg):
         liblo.send(pd, knobmapping[msg[1]], float(msg[2:])/1023)
     elif head=='$':
         mode = msg[1]
+        if mode=='a':
+            keymapping = keymapping_samples
+        elif mode=='b':
+            keymapping = keymapping_fm
+            global synth = True
     elif head=='@':
         button = msg[1]
         pathstr = buttonmapping[button]
         liblo.send(pd, pathstr)
     else:
         t = float(msg[1:])
-        pathstr = keymapping[head]
-        liblo.send(pd, pathstr, velocurve(t))
+        if synth:
+            pathstr, midi = keymapping[head]
+            liblo.send(pd, pathstr, midi, velocurve(t))
+        else:
+            pathstr = keymapping[head]
+            liblo.send(pd, pathstr, velocurve(t))
 
 ############
 
