@@ -87,6 +87,7 @@ def velocurve(t):
     return vol
 
 def handleMsg(msg):
+    global keymapping, synth
     print msg
     head = msg[0]
     if head=='#':
@@ -94,10 +95,10 @@ def handleMsg(msg):
     elif head=='$':
         mode = msg[1]
         if mode=='a':
-            global keymapping = keymapping_samples
+            keymapping = keymapping_samples
         elif mode=='b':
-            global keymapping = keymapping_fm
-            global synth = True
+            keymapping = keymapping_fm
+            synth = True
     elif head=='@':
         button = msg[1]
         pathstr = buttonmapping[button]
