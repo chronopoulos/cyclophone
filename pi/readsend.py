@@ -96,6 +96,7 @@ def handleMsg(msg):
         mode = msg[1]
         if mode=='a':
             keymapping = keymapping_samples
+            synth = False
         elif mode=='b':
             keymapping = keymapping_fm
             synth = True
