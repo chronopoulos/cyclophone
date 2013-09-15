@@ -54,6 +54,7 @@ keymapping_fm = {'A':('/fm',60),
             'W':('/fm',118),
             'X':('/fm',120)}
 
+#global variables
 keymapping = keymapping_samples
 synth = False
 
@@ -93,9 +94,9 @@ def handleMsg(msg):
     elif head=='$':
         mode = msg[1]
         if mode=='a':
-            keymapping = keymapping_samples
+            global keymapping = keymapping_samples
         elif mode=='b':
-            keymapping = keymapping_fm
+            global keymapping = keymapping_fm
             global synth = True
     elif head=='@':
         button = msg[1]
