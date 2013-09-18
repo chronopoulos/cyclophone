@@ -26,6 +26,12 @@ def harmonicMinor(i):
    scale = [0,2,3,5,7,8,11]
    return k*12 + scale[j]
 
+def hungarianMinor(i):
+   j=i%7
+   k=i//7
+   scale = [0,2,3,6,7,8,11]
+   return k*12 + scale[j]
+
 def majorPentatonic(i):
    j=i%5
    k=i//5
