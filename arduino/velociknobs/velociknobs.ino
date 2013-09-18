@@ -119,7 +119,7 @@ void loop()
 
   for (int i =0; i< sizeof(TheButtons)/sizeof(Button); ++i)
   {
-    TheButtons[i].DoButtonStuff();  
+    TheButtons[i].DoButtonStuff();
   }
 
   for (int i =0; i< sizeof(Knobs)/sizeof(Knob); ++i)
