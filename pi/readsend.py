@@ -70,7 +70,7 @@ def handleMsg(msg):
     head = msg[0]
     if head=='#':
         if msg[1]=='C':
-            key = 54 + int(float(msg[2:])/85.25) # 1023/12 = 85.25
+            key = 36 + int(float(msg[2:])/21.3125) # 1023/48. = 21.3125
         else:
             liblo.send(pd, knobmapping[msg[1]], float(msg[2:])/1023)
     elif head=='$':
