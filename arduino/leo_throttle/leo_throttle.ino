@@ -70,10 +70,12 @@ class Button
          Serial.println(down);
         }
       }
+      /*
       else {
          Serial.print(prefix);
          Serial.println('9');
       }
+      */
       lastDebounceTime = millis();
       prevState = buttonState;
     }
