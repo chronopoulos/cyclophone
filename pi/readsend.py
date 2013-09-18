@@ -65,11 +65,14 @@ def velocurve(t):
 ##########
 
 def handleMsg(msg):
-    global scale
+    global scale, key
     print msg
     head = msg[0]
     if head=='#':
-        liblo.send(pd, knobmapping[msg[1]], float(msg[2:])/1023)
+        if msg[1]=='C':
+            key = 54 + int(float(msg[2:])/85.25) # 1023/12 = 85.25
+        else:
+            liblo.send(pd, knobmapping[msg[1]], float(msg[2:])/1023)
     elif head=='$':
         mode = msg[1]
         if mode=='a':
