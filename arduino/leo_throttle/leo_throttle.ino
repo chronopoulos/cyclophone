@@ -128,7 +128,7 @@ void loop()
     TheButtons[i].DoButtonStuff();
   }
 
-  now = millis()
+  now = millis();
   if (now-lastTransmission>knobCadence)
   {
     for (i=0; i<nKnobs; ++i)
