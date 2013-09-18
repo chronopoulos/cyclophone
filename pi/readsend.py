@@ -77,11 +77,11 @@ def handleMsg(msg):
         elif mode=='b':
             scale = scales.major
         elif mode=='c':
-            scale = scales.minor
+            scale = scales.harmonicMinor
         elif mode=='d':
-            scale = scales.majorPentatonic
+            scale = scales.hungarianMinor
         elif mode=='e':
-            scale = scales.minorPentatonic
+            scale = scales.majorPentatonic
     elif head=='@':
         button = msg[1]
         pathstr = buttonmapping[button]
