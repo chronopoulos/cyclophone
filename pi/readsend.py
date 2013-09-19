@@ -105,11 +105,21 @@ class ArduinoThread(threading.Thread):
 
     def run(self):
         while True:
-            handleMsg(self.arduino.readline())
+            try:
+                handleMsg(self.arduino.readline())
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
+            except:
+                print 'Something weird happened'
 
     def startKingpin(self):
         while True:
-            handleMsg(self.arduino.readline())
+            try:
+                handleMsg(self.arduino.readline())
+            except KeyboardInterrupt:
+                raise KeyboardInterrupt
+            except:
+                print 'Something weird happened'
 
 #######
 
