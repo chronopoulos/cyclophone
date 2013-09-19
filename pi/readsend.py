@@ -133,7 +133,7 @@ if __name__ == '__main__':
     try:
         while True: time.sleep(0.1)
     except KeyboardInterrupt:
-        print 'OHAI CTRL-C'
+        print 'Quitting threads...'
         leo.join()
         due.join()
 
