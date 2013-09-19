@@ -110,6 +110,13 @@ class ArduinoThread(threading.Thread):
             except:
                 print 'Something bad happened.'
 
+    def startKingpin(self):
+        while True:
+            try:
+                handleMsg(self.arduino.readline())
+            except:
+                print 'Something bad happened.'
+
 #######
 
 if __name__ == '__main__':
