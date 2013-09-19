@@ -105,17 +105,11 @@ class ArduinoThread(threading.Thread):
 
     def run(self):
         while True:
-            try:
-                handleMsg(self.arduino.readline())
-            except:
-                print 'Something bad happened.'
+            handleMsg(self.arduino.readline())
 
     def startKingpin(self):
         while True:
-            try:
-                handleMsg(self.arduino.readline())
-            except:
-                print 'Something bad happened.'
+            handleMsg(self.arduino.readline())
 
 #######
 
@@ -125,5 +119,11 @@ if __name__ == '__main__':
     leo.setDaemon(True)
     leo.start()
     due = ArduinoThread('/dev/ttyACM0')
-    due.start()
+    due.startKingpin()
+    try:
+        while True: time.sleep(0.1)
+    except KeyboardInterrupt:
+        print 'OHAI CTRL-C'
+        leo.join()
+        due.join()
 
