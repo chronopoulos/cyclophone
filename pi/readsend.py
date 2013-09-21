@@ -51,8 +51,8 @@ drummapping = {'A':'/drums/tr909/0',
             'T':'/drums/tabla/3',
             'U':'/drums/tabla/4',
             'V':'/drums/tabla/5',
-            'W':'/drums/tabla/5',
-            'X':'/drums/tabla/5'
+            'W':'/drums/tabla/6',
+            'X':'/drums/tabla/7'
             }
 
 knobmapping = {'A':'/delay/time',

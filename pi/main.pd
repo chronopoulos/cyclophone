@@ -62,7 +62,7 @@
 #X msg 361 57 1;
 #X obj 362 109 dac~;
 #X msg 454 57 /home/pi/starsplash.wav;
-#N canvas 86 340 450 300 drums 1;
+#N canvas 86 341 450 300 drums 0;
 #X obj 31 115 tr909;
 #X obj 94 115 dundunba;
 #X obj 158 115 rx21latin;
@@ -82,7 +82,7 @@
 #X restore 192 162 pd drums;
 #X obj 436 156 s sampledir;
 #X obj 12 59 OSCroute /fm /delay /kill /loop /drums;
-#X msg 436 133 list /home/pi/cyclophone_samples;
+#X msg 436 133 list /home/chrono/cyclophone_samples;
 #X connect 0 0 4 0;
 #X connect 0 0 31 0;
 #X connect 1 0 2 0;
