@@ -1,4 +1,4 @@
-#N canvas 642 55 701 672 10;
+#N canvas 642 56 701 672 10;
 #X obj 12 9 dumpOSC 8000;
 #X obj 361 7 loadbang;
 #X obj 361 28 delay 100;
@@ -62,7 +62,7 @@
 #X msg 361 57 1;
 #X obj 362 109 dac~;
 #X msg 454 57 /home/pi/starsplash.wav;
-#N canvas 86 339 450 300 drums 1;
+#N canvas 86 340 450 300 drums 1;
 #X obj 31 115 tr909;
 #X obj 94 115 dundunba;
 #X obj 158 115 rx21latin;
