@@ -68,7 +68,7 @@ buttonmapping = {'a':'/delay/onoff',
 
 scale = scales.chromatic
 key = 60
-mode = synth
+mode = 'synth'
 
 ###############
 
