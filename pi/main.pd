@@ -82,7 +82,7 @@
 #X restore 192 162 pd drums;
 #X obj 436 156 s sampledir;
 #X obj 12 59 OSCroute /fm /delay /kill /loop /drums;
-#X msg 436 133 list /home/chrono/cyclophone_samples;
+#X msg 436 133 list /home/pi/cyclophone_samples;
 #X connect 0 0 4 0;
 #X connect 0 0 31 0;
 #X connect 1 0 2 0;
