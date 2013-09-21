@@ -1,4 +1,4 @@
-#N canvas 3 55 768 486 10;
+#N canvas 170 205 768 486 10;
 #X obj 44 163 sampler;
 #X obj 94 203 sampler;
 #X obj 144 243 sampler;
@@ -8,7 +8,7 @@
 #X obj 44 101 OSCroute /0 /1 /2 /3 /4 /5;
 #X obj 44 58 inlet;
 #X obj 44 410 outlet~;
-#X obj 527 71 r sampledir;
+#X obj 617 56 r sampledir;
 #X msg 137 141 \$1/drums/rxlatin21/agogo.wav;
 #X msg 187 181 \$1/drums/rxlatin21/bongo.wav;
 #X msg 237 221 \$1/drums/rxlatin21/conga.wav;

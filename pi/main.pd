@@ -1,4 +1,4 @@
-#N canvas 592 68 701 672 10;
+#N canvas 642 54 701 672 10;
 #X obj 12 9 dumpOSC 8000;
 #X obj 361 7 loadbang;
 #X obj 361 28 delay 100;
@@ -62,7 +62,7 @@
 #X msg 361 57 1;
 #X obj 362 109 dac~;
 #X msg 454 57 /home/pi/starsplash.wav;
-#N canvas 861 346 450 300 drums 1;
+#N canvas 86 338 450 300 drums 1;
 #X obj 31 115 tr909;
 #X obj 94 115 dundunba;
 #X obj 158 115 rx21latin;
@@ -79,12 +79,12 @@
 #X connect 5 2 2 0;
 #X connect 5 3 4 0;
 #X connect 6 0 5 0;
-#X restore 437 361 pd drums;
-#X msg 515 163 /home/pi/cylophone_samples;
-#X obj 515 186 s sampledir;
+#X restore 192 162 pd drums;
+#X obj 396 186 s sampledir;
 #X obj 12 59 OSCroute /fm /delay /kill /loop /drums;
+#X msg 396 163 list /home/pi/cyclophone_samples;
 #X connect 0 0 4 0;
-#X connect 0 0 32 0;
+#X connect 0 0 31 0;
 #X connect 1 0 2 0;
 #X connect 2 0 3 0;
 #X connect 2 0 26 0;
@@ -116,8 +116,10 @@
 #X connect 25 1 27 1;
 #X connect 26 0 25 0;
 #X connect 28 0 25 1;
-#X connect 30 0 31 0;
-#X connect 32 0 17 0;
-#X connect 32 1 7 0;
-#X connect 32 2 10 0;
-#X connect 32 3 21 0;
+#X connect 29 0 16 0;
+#X connect 31 0 17 0;
+#X connect 31 1 7 0;
+#X connect 31 2 10 0;
+#X connect 31 3 21 0;
+#X connect 31 4 29 0;
+#X connect 32 0 30 0;

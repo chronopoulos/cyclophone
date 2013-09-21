@@ -1,4 +1,4 @@
-#N canvas 3 54 768 486 10;
+#N canvas 144 171 768 486 10;
 #X obj 44 163 sampler;
 #X obj 94 203 sampler;
 #X obj 144 243 sampler;
