@@ -29,6 +29,32 @@ keymapping = {'A':0,
             'W':22,
             'X':23}
 
+drummapping = {'A':'/drums/tr909/0',
+            'B':'/drums/tr909/1',
+            'C':'/drums/tr909/2',
+            'D':'/drums/tr909/3',
+            'E':'/drums/tr909/4',
+            'F':'/drums/tr909/5',
+            'G':'/drums/dundunba/0',
+            'H':'/drums/dundunba/1',
+            'I':'/drums/dundunba/2',
+            'J':'/drums/dundunba/3',
+            'K':'/drums/rx21latin/0',
+            'L':'/drums/rx21latin/1',
+            'M':'/drums/rx21latin/2',
+            'N':'/drums/rx21latin/3',
+            'O':'/drums/rx21latin/4',
+            'P':'/drums/rx21latin/5',
+            'Q':'/drums/tabla/0',
+            'R':'/drums/tabla/1',
+            'S':'/drums/tabla/2',
+            'T':'/drums/tabla/3',
+            'U':'/drums/tabla/4',
+            'V':'/drums/tabla/5',
+            'W':'/drums/tabla/5',
+            'X':'/drums/tabla/5'
+            }
+
 knobmapping = {'A':'/delay/time',
                 'B':'/fm/harmonic',
                 'C':'/fm/index'
@@ -42,6 +68,7 @@ buttonmapping = {'a':'/delay/onoff',
 
 scale = scales.chromatic
 key = 60
+mode = synth
 
 ###############
 
@@ -65,7 +92,7 @@ def velocurve(t):
 ##########
 
 def handleMsg(msg):
-    global scale, key
+    global scale, key, mode
     print msg
     head = msg[0]
     if head=='#':
@@ -76,24 +103,31 @@ def handleMsg(msg):
     elif head=='$':
         mode = msg[1]
         if mode=='a':
+            mode = 'synth'
             scale = scales.chromatic
         elif mode=='b':
+            mode = 'synth'
             scale = scales.major
         elif mode=='c':
-            scale = scales.harmonicMinor
-        elif mode=='d':
+            mode = 'synth'
             scale = scales.hungarianMinor
-        elif mode=='e':
+        elif mode=='d':
+            mode = 'synth'
             scale = scales.majorPentatonic
+        elif mode=='e':
+            mode = 'drum'
     elif head=='@':
         button = msg[1]
         pathstr = buttonmapping[button]
         liblo.send(pd, pathstr)
     else:
         t = float(msg[1:])
-        index = keymapping[head]
-        midi = key + scale(index)
-        liblo.send(pd, '/fm/note', midi, velocurve(t))
+        if mode=='synth':
+            index = keymapping[head]
+            midi = key + scale(index)
+            liblo.send(pd, '/fm/note', midi, velocurve(t))
+        else:
+            liblo.send(pd, drummapping[head], velocurve(t))
 
 ############
 
