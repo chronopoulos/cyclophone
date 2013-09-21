@@ -1,4 +1,4 @@
-#N canvas 144 171 768 486 10;
+#N canvas 144 172 768 486 10;
 #X obj 44 163 sampler;
 #X obj 94 203 sampler;
 #X obj 144 243 sampler;
@@ -15,6 +15,7 @@
 #X msg 337 301 \$1/drums/tr909/closedhat.wav;
 #X msg 387 341 \$1/drums/tr909/ride.wav;
 #X obj 527 71 r sampledir;
+#X obj 15 267 print debug;
 #X connect 0 0 8 0;
 #X connect 1 0 8 0;
 #X connect 2 0 8 0;
@@ -22,6 +23,7 @@
 #X connect 4 0 8 0;
 #X connect 5 0 8 0;
 #X connect 6 0 0 0;
+#X connect 6 0 16 0;
 #X connect 6 1 1 0;
 #X connect 6 2 2 0;
 #X connect 6 3 3 0;
