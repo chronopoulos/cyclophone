@@ -56,7 +56,7 @@
 #X obj 671 80 sampler;
 #X msg 671 60 1;
 #X obj 672 112 dac~;
-#X msg 764 60 /home/pi/starsplash.wav;
+#X msg 764 60 /home/ccrma/starsplash.wav;
 #N canvas 86 342 450 300 drums 0;
 #X obj 31 115 tr909;
 #X obj 94 115 dundunba;
@@ -86,7 +86,7 @@
 #X obj 41 244 * 2000;
 #X obj 51 266 * 2000;
 #X obj 21 194 * 12;
-#X msg 746 136 list /home/pi/cyclophone_samples;
+#X msg 746 136 list /home/ccrma/cyclophone_samples;
 #X obj 12 78 routeOSC /arduino /webserver;
 #X obj 28 53 print OSC;
 #X connect 0 0 1 0;
