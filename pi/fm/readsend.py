@@ -29,41 +29,40 @@ keymapping = {'A':0,
             'W':22,
             'X':23}
 
-drummapping = {'A':'/drums/tr909/0',
-            'B':'/drums/tr909/1',
-            'C':'/drums/tr909/2',
-            'D':'/drums/tr909/3',
-            'E':'/drums/tr909/4',
-            'F':'/drums/tr909/5',
-            'G':'/drums/dundunba/0',
-            'H':'/drums/dundunba/1',
-            'I':'/drums/dundunba/2',
-            'J':'/drums/dundunba/3',
-            'K':'/drums/rx21Latin/0',
-            'L':'/drums/rx21Latin/1',
-            'M':'/drums/rx21Latin/2',
-            'N':'/drums/rx21Latin/3',
-            'O':'/drums/rx21Latin/4',
-            'P':'/drums/rx21Latin/5',
-            'Q':'/drums/tabla/0',
-            'R':'/drums/tabla/1',
-            'S':'/drums/tabla/2',
-            'T':'/drums/tabla/3',
-            'U':'/drums/tabla/4',
-            'V':'/drums/tabla/5',
-            'W':'/drums/tabla/6',
-            'X':'/drums/tabla/7'
+drummapping = {'A':'/arduino/drums/tr909/0',
+            'B':'/arduino/drums/tr909/1',
+            'C':'/arduino/drums/tr909/2',
+            'D':'/arduino/drums/tr909/3',
+            'E':'/arduino/drums/tr909/4',
+            'F':'/arduino/drums/tr909/5',
+            'G':'/arduino/drums/dundunba/0',
+            'H':'/arduino/drums/dundunba/1',
+            'I':'/arduino/drums/dundunba/2',
+            'J':'/arduino/drums/dundunba/3',
+            'K':'/arduino/drums/rx21Latin/0',
+            'L':'/arduino/drums/rx21Latin/1',
+            'M':'/arduino/drums/rx21Latin/2',
+            'N':'/arduino/drums/rx21Latin/3',
+            'O':'/arduino/drums/rx21Latin/4',
+            'P':'/arduino/drums/rx21Latin/5',
+            'Q':'/arduino/drums/tabla/0',
+            'R':'/arduino/drums/tabla/1',
+            'S':'/arduino/drums/tabla/2',
+            'T':'/arduino/drums/tabla/3',
+            'U':'/arduino/drums/tabla/4',
+            'V':'/arduino/drums/tabla/5',
+            'W':'/arduino/drums/tabla/6',
+            'X':'/arduino/drums/tabla/7'
             }
 
-knobmapping = {'A':'/delay/time',
-                'B':'/fm/harmonic',
-                'C':'/fm/index'
+knobmapping = {'A':'/arduino/delay/time',
+                'B':'/arduino/fm/harmonic'
                 }
 
-buttonmapping = {'a':'/delay/onoff',
-                'b':'/kill/on',
-                'B':'/kill/off',
-                'c':'/loop'
+buttonmapping = {'a':'/arduino/delay/onoff',
+                'b':'/arduino/kill/on',
+                'B':'/arduino/kill/off',
+                'c':'/arduino/loop'
                     }
 
 scale = scales.chromatic
@@ -125,7 +124,7 @@ def handleMsg(msg):
         if mode=='synth':
             index = keymapping[head]
             midi = key + scale(index)
-            liblo.send(pd, '/fm/note', midi, velocurve(t))
+            liblo.send(pd, '/arduino/fm/note', midi, velocurve(t))
         else:
             liblo.send(pd, drummapping[head], velocurve(t))
 
