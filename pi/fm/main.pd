@@ -1,4 +1,4 @@
-#N canvas 217 7 1136 672 10;
+#N canvas 217 54 1136 672 10;
 #X declare -lib mrpeach;
 #X obj 671 10 loadbang;
 #X obj 671 31 delay 100;
@@ -13,18 +13,14 @@
 #X obj 11 631 dac~;
 #X text 257 444 kill;
 #X obj 12 304 fmpoly6;
-#N canvas 601 328 425 355 killdelay 0;
-#X obj 33 33 inlet~;
+#N canvas 601 329 425 355 killdelay 1;
+#X obj 31 33 inlet~;
 #X obj 30 328 outlet~;
 #X obj 89 32 inlet;
 #X obj 353 35 inlet;
 #X obj 93 186 * 1000;
-#X obj 93 145 knob 32 32 0 1 0 0 empty empty empty 0 -8 0 8 -262144
--1 -1 0 1;
-#X obj 161 146 knob 32 32 0 1 0 0 empty empty empty 0 -8 0 8 -262144
--1 -1 0 1;
-#X obj 32 83 spigot~;
-#X obj 31 284 spigot~;
+#X obj 31 183 spigot~;
+#X obj 30 114 spigot~;
 #X text 87 7 delay onoff;
 #X text 350 9 kill;
 #X obj 167 33 inlet;
@@ -33,18 +29,16 @@
 #X text 247 7 delay feedback;
 #X obj 70 216 cpdelay~;
 #X text 35 8 signal;
-#X connect 0 0 7 0;
-#X connect 2 0 7 1;
-#X connect 3 0 8 1;
-#X connect 4 0 15 1;
-#X connect 5 0 4 0;
-#X connect 6 0 15 2;
-#X connect 7 0 8 0;
-#X connect 7 1 15 0;
-#X connect 8 0 1 0;
-#X connect 11 0 5 0;
-#X connect 12 0 6 0;
-#X connect 15 0 8 0;
+#X connect 0 0 6 0;
+#X connect 2 0 5 1;
+#X connect 3 0 6 1;
+#X connect 4 0 13 1;
+#X connect 5 0 1 0;
+#X connect 5 1 13 0;
+#X connect 6 0 5 0;
+#X connect 9 0 4 0;
+#X connect 10 0 13 2;
+#X connect 13 0 1 0;
 #X restore 13 498 pd killdelay;
 #X obj 31 219 * 1000;
 #X obj 12 585 loopstation;
