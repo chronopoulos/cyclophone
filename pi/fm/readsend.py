@@ -73,16 +73,16 @@ mode = 'synth'
 
 t1 = 800.
 t2 = 6000.
-mn = 0.05
+mn = 0.01
 mx = 0.25
 m = (mx-mn)/(t1-t2)
 b = (mx+mn-m*(t1+t2))/2.
 
 def velocurve(t):
     if t<800:
-        vol = 0.25
+        vol = mx
     elif t>6000:
-        vol = 0.05
+        vol = mn
     else:
         vol = m*t+b
     print vol
