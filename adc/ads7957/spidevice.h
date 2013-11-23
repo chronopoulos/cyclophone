@@ -34,9 +34,10 @@
 #include <stdlib.h>
 #include <string>
 #include <iostream>
- 
- 
-class spidevice{
+
+
+class spidevice
+{
  
 public:
     spidevice();

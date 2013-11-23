@@ -22,14 +22,14 @@
 #include "spidevice.h"
  
 using namespace std;
-    
+
 int main(void)
 {
-    spidevice a2d("/dev/spidev0.0", SPI_MODE_0, 1000000, 8);
     int i = 20;
+    spidevice a2d("/dev/spidev0.0", SPI_MODE_0, 1000000, 8);
 
-    int a2dVal = 0;
-    int a2dChannel = 0;
+    // int a2dVal = 0;
+    // int a2dChannel = 0;
   
     unsigned short data;
  
@@ -45,9 +45,9 @@ int main(void)
         //                         1 = return digital IO vals.
         //                   ||||  digital IO vals, if they are configged for output
         //                         numbering is 3210.
-        data = 0b0001101011000000
+        data = 0b0001101011000000;
 
-        a2d.spiWriteRead(data, sizeof(data) );
+        a2d.spiWriteRead((unsigned char*)&data, sizeof(data) );
 
         // ---------------- decode the recieved data ---------------
        
