@@ -2,7 +2,7 @@
 These are just lists of filenames.
 """
 
-sampledir = '/home/bburdette/samples/'
+sampledir = '~/samples/'
 
 tabla = [
 sampledir+'tabla/tabla1.aif',
