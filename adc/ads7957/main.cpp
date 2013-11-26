@@ -31,9 +31,11 @@ void printBits(void const * const ptr, size_t const size)
     unsigned char byte=0;
     int i, j;
 
-    for (i=size-1;i>=0;i--)
+    //for (i=size-1;i>=0;i--)
+    for (i=0; i<size ;i++)
     {
         for (j=7;j>=0;j--)
+        //for (j=0;j<8;j++)
         {
             byte = b[i] & (1<<j);
             byte >>= j;
@@ -47,13 +49,13 @@ int main(void)
 {
     int i = 20;
     // spidevice a2d("/dev/spidev0.0", SPI_MODE_0, 4000000, 16);
-    spidevice a2d("/dev/spidev0.0", SPI_MODE_1, 4000000, 8);
+    spidevice a2d("/dev/spidev0.0", SPI_MODE_0, 4000000, 8);
     // spidevice a2d("/dev/spidev0.1", SPI_MODE_0, 1000000, 8);
 
     // int a2dVal = 0;
     // int a2dChannel = 0;
   
-    unsigned short data;
+    unsigned char data[2];
 
     // verify that data is actually 2 bytes.
     // assert(sizeof(data) == 2);
@@ -70,27 +72,30 @@ int main(void)
         //                         1 = return digital IO vals.
         //                   ||||  digital IO vals, if they are configged for output
         //                         numbering is 3210.
-     // data = 0b0001101011000000;
-        data = 0b0001100001000000;
-     // data = 0b0001101011000000;
+     // data = 0b0001100001000000;
+	data[0]=0b00011000;
+	data[1]=0b01000000;
 
-	cout << "control word is: " << data << endl;
+	cout << "control word is: ";
+	printBits(&data, sizeof(data));
+	cout << endl;
 
-        a2d.spiWriteRead((unsigned char*)&data, sizeof(data) );
+        a2d.spiWriteRead(data, sizeof(data));
 
         // ---------------- decode the recieved data ---------------
        
         // first 4 bits are adc number. 
-        unsigned char adcnumber = (data & 0b1111000000000000) >> 12; 
-        // these 10 bits are the adc value.
-        unsigned int adcvalue = (data & 0b0000111111111100) >> 2; 
+        unsigned int adcnumber = (data[0] & 0b11110000) >> 4; 
+        // next 10 bits are the adc value.
+        unsigned int adcvalue = ((data[0] & 0b00001111) << 6) | ((data[1] & 0b11111100) >> 2); 
 
         // cout << "raw data: " << data << endl; 
         cout << "raw data: ";
         printBits(&data, sizeof(data));
 	cout << endl;
+
         cout << "adc number: " << (int)adcnumber << " returned: " << (int)adcvalue << endl;
- 	sleep(1);
+ 	sleep(0.1);
 
     }
     return 0;
