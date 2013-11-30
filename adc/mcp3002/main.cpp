@@ -22,17 +22,37 @@
 #include "mcp3002Spi.h"
  
 using namespace std;
+
+
+void printBits(void const * const ptr, size_t const size)
+{
+    unsigned char *b = (unsigned char*) ptr;
+    unsigned char byte=0;
+    int i, j;
+
+    //for (i=size-1;i>=0;i--)
+    for (i=0; i<size ;i++)
+    {
+        for (j=7;j>=0;j--)
+        //for (j=0;j<8;j++)
+        {
+            byte = b[i] & (1<<j);
+            byte >>= j;
+ 	    printf("%u", byte);
+        }
+    }
+    puts("");
+}
     
 int main(void)
 {
-    mcp3008Spi a2d("/dev/spidev0.0", SPI_MODE_0, 1000000, 8);
-    int i = 20;
+    mcp3008Spi a2d("/dev/spidev1.0", SPI_MODE_0, 1000000, 8);
 
     int a2dVal = 0;
     int a2dChannel = 0;
     unsigned char data[3];
  
-    while(i > 0)
+    while(true)
     {
         data[0] = 1;  //  first byte transmitted -> start bit
         // data[1] = 0b10000000 |( ((a2dChannel & 7) << 4)); // second byte transmitted -> (SGL/DIF = 1, D2=D1=D0=0)
@@ -49,6 +69,7 @@ int main(void)
         cout << "The Result is: " << a2dVal << endl;
         i--;
         */
+        printBits(&data, sizeof(data));
         a2dVal = 0;
         a2dVal = data[1];
         a2dVal &= 0x0f;
