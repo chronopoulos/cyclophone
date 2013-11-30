@@ -1,4 +1,4 @@
-#include "mcp3008Spi.h"
+#include "mcp3002Spi.h"
 using namespace std;
 /**********************************************************
  * spiOpen() :function is called by the constructor.
