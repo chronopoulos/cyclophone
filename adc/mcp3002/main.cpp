@@ -54,28 +54,51 @@ int main(void)
  
     while(true)
     {
+
+ // First do Channel 0
+
         data[0] = 1;  //  first byte transmitted -> start bit
-        // data[1] = 0b10000000 |( ((a2dChannel & 7) << 4)); // second byte transmitted -> (SGL/DIF = 1, D2=D1=D0=0)
+        // this means: single ended mode, channel 0 (10) and MSB-first format (1) (and then 5 zeros)
+        // -> see page 13 in the datasheet
         data[1] = 0b10100000;
         data[2] = 0; // third byte transmitted....don't care
  
         a2d.spiWriteRead(data, sizeof(data) );
- 
-        /*
-        a2dVal = 0;
-        a2dVal = (data[1]<< 8) & 0b1100000000; //merge data[1] & data[2] to get result
-        a2dVal |=  (data[2] & 0xff);
-        sleep(1);
-        cout << "The Result is: " << a2dVal << endl;
-        i--;
-        */
+
+        cout << "Channel 0: " << endl;
+        cout << "Raw: ";
         printBits(&data, sizeof(data));
+        cout << "Cooked: ";
         a2dVal = 0;
         a2dVal = data[1];
         a2dVal &= 0x0f;
         a2dVal <<= 6;
         a2dVal |= data[2] >> 2;
-        cout << "The Result is: " << a2dVal << endl;
+        cout << a2dVal << endl;
+
+ // Now do channel 1
+
+        data[0] = 1;  //  first byte transmitted -> start bit
+        // this means: single ended mode, channel 1 (11) and MSB-first format (1) (and then 5 zeros)
+        // -> see page 13 in the datasheet
+        data[1] = 0b11100000;
+        data[2] = 0; // third byte transmitted....don't care
+ 
+        a2d.spiWriteRead(data, sizeof(data) );
+
+        cout << "Channel 1: " << endl;
+        cout << "Raw: ";
+        printBits(&data, sizeof(data));
+        cout << "Cooked: ";
+        a2dVal = 0;
+        a2dVal = data[1];
+        a2dVal &= 0x0f;
+        a2dVal <<= 6;
+        a2dVal |= data[2] >> 2;
+        cout << a2dVal << endl;
+        cout << "" << endl; // empty line
+
+        sleep(1);
 
     }
     return 0;
