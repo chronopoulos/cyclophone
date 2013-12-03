@@ -20,7 +20,12 @@
  *
  * *********************************************************************/
 #include "mcp3002Spi.h"
- 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#include "lo/lo.h"
+
 using namespace std;
 
 
@@ -46,10 +51,12 @@ void printBits(void const * const ptr, size_t const size)
     
 int main(void)
 {
+
+    lo_address pd = lo_address_new(NULL, "8000");
+
     mcp3008Spi a2d("/dev/spidev1.0", SPI_MODE_0, 1000000, 8);
 
     int a2dVal = 0;
-    int a2dChannel = 0;
     unsigned char data[3];
  
     while(true)
@@ -65,19 +72,21 @@ int main(void)
  
         a2d.spiWriteRead(data, sizeof(data) );
 
-        cout << "Channel 0: " << endl;
-        cout << "Raw: ";
-        printBits(&data, sizeof(data));
-        cout << "Cooked: ";
+ //       cout << "Channel 0: " << endl;
+ //       cout << "Raw: ";
+ //       printBits(&data, sizeof(data));
+ //       cout << "Cooked: ";
         a2dVal = 0;
         a2dVal = data[1];
         a2dVal &= 0x0f;
         a2dVal <<= 6;
         a2dVal |= data[2] >> 2;
         cout << a2dVal << endl;
+        lo_send(pd, "/photodiode", "i", a2dVal);
+        sleep(0.1);
 
  // Now do channel 1
-
+/*
         data[0] = 1;  //  first byte transmitted -> start bit
         // this means: single ended mode, channel 1 (11) and MSB-first format (1) (and then 5 zeros)
         // -> see page 13 in the datasheet
@@ -99,7 +108,7 @@ int main(void)
         cout << "" << endl; // empty line
 
         sleep(1);
-
+*/
     }
     return 0;
 }
