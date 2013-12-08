@@ -19,43 +19,96 @@
  *
  *
  * *********************************************************************/
-#include "mcp3008Spi.h"
- 
+#include "mcp3002Spi.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#include "lo/lo.h"
+
 using namespace std;
+
+
+void printBits(void const * const ptr, size_t const size)
+{
+    unsigned char *b = (unsigned char*) ptr;
+    unsigned char byte=0;
+    int i, j;
+
+    //for (i=size-1;i>=0;i--)
+    for (i=0; i<size ;i++)
+    {
+        for (j=7;j>=0;j--)
+        //for (j=0;j<8;j++)
+        {
+            byte = b[i] & (1<<j);
+            byte >>= j;
+ 	    printf("%u", byte);
+        }
+    }
+    puts("");
+}
     
 int main(void)
 {
-    mcp3008Spi a2d("/dev/spidev0.0", SPI_MODE_0, 1000000, 8);
-    int i = 20;
+
+    lo_address pd = lo_address_new(NULL, "8000");
+
+    mcp3008Spi a2d("/dev/spidev1.0", SPI_MODE_0, 1000000, 8);
 
     int a2dVal = 0;
-    int a2dChannel = 0;
     unsigned char data[3];
  
-    while(i > 0)
+    while(true)
     {
+
+ // First do Channel 0
+
         data[0] = 1;  //  first byte transmitted -> start bit
-        // data[1] = 0b10000000 |( ((a2dChannel & 7) << 4)); // second byte transmitted -> (SGL/DIF = 1, D2=D1=D0=0)
+        // this means: single ended mode, channel 0 (10) and MSB-first format (1) (and then 5 zeros)
+        // -> see page 13 in the datasheet
         data[1] = 0b10100000;
         data[2] = 0; // third byte transmitted....don't care
  
         a2d.spiWriteRead(data, sizeof(data) );
- 
-        /*
-        a2dVal = 0;
-        a2dVal = (data[1]<< 8) & 0b1100000000; //merge data[1] & data[2] to get result
-        a2dVal |=  (data[2] & 0xff);
-        sleep(1);
-        cout << "The Result is: " << a2dVal << endl;
-        i--;
-        */
+
+ //       cout << "Channel 0: " << endl;
+ //       cout << "Raw: ";
+ //       printBits(&data, sizeof(data));
+ //       cout << "Cooked: ";
         a2dVal = 0;
         a2dVal = data[1];
         a2dVal &= 0x0f;
         a2dVal <<= 6;
         a2dVal |= data[2] >> 2;
-        cout << "The Result is: " << a2dVal << endl;
+        cout << a2dVal << endl;
+        lo_send(pd, "/photodiode", "i", a2dVal);
+        sleep(0.1);
 
+ // Now do channel 1
+/*
+        data[0] = 1;  //  first byte transmitted -> start bit
+        // this means: single ended mode, channel 1 (11) and MSB-first format (1) (and then 5 zeros)
+        // -> see page 13 in the datasheet
+        data[1] = 0b11100000;
+        data[2] = 0; // third byte transmitted....don't care
+ 
+        a2d.spiWriteRead(data, sizeof(data) );
+
+        cout << "Channel 1: " << endl;
+        cout << "Raw: ";
+        printBits(&data, sizeof(data));
+        cout << "Cooked: ";
+        a2dVal = 0;
+        a2dVal = data[1];
+        a2dVal &= 0x0f;
+        a2dVal <<= 6;
+        a2dVal |= data[2] >> 2;
+        cout << a2dVal << endl;
+        cout << "" << endl; // empty line
+
+        sleep(1);
+*/
     }
     return 0;
 }
