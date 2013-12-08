@@ -20,6 +20,8 @@
  *
  * *********************************************************************/
 #include "spidevice.h"
+#include <stdio.h>
+#include "lo/lo.h"
  
 using namespace std;
 
@@ -47,6 +49,7 @@ void printBits(void const * const ptr, size_t const size)
 
 int main(void)
 {
+    lo_address pd = lo_address_new(NULL, "8000");
     int i = 20;
     // spidevice a2d("/dev/spidev0.0", SPI_MODE_0, 4000000, 16);
     spidevice a2d("/dev/spidev0.0", SPI_MODE_0, 4000000, 8);
@@ -110,6 +113,7 @@ int main(void)
 	cout << "raw data: ";
         printBits(&data, sizeof(data));
 	cout << endl;
+        lo_send(pd, "/photodiode", "i", 1023-adcvalue);
 
 
 	/*
@@ -149,7 +153,7 @@ int main(void)
  
 	*/
 
- 	sleep(1);
+ 	sleep(0.03);
 
     }
     return 0;
