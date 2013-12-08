@@ -56,6 +56,9 @@ int main(void)
     // int a2dChannel = 0;
   
     unsigned char data[2];
+    unsigned int adcnumber;
+    unsigned int adcvalue;
+
 
     // verify that data is actually 2 bytes.
     // assert(sizeof(data) == 2);
@@ -73,21 +76,69 @@ int main(void)
         //                   ||||  digital IO vals, if they are configged for output
         //                         numbering is 3210.
      // data = 0b0001100001000000;
-	data[0]=0b00011000;
-	data[1]=0b01000000;
+	// input 0
+	//data[0]=0b00011000;
+	//data[1]=0b01000000;
 
-	cout << "control word is: ";
-	printBits(&data, sizeof(data));
-	cout << endl;
+	// input 15
+	//data[0]=0b00011111;
+	//data[1]=0b11000000;
+
+	// input 15
+	data[0]=0b00011111;
+	data[1]=0b10000000;
+
+	// input 0101 (5)
+	//data[0]=0b00011010;
+	//data[1]=0b11000000;
+
+	//cout << "sending control word: ";
+	//printBits(&data, sizeof(data));
+	//cout << endl;
 
         a2d.spiWriteRead(data, sizeof(data));
 
         // ---------------- decode the recieved data ---------------
        
         // first 4 bits are adc number. 
-        unsigned int adcnumber = (data[0] & 0b11110000) >> 4; 
+        adcnumber = (data[0] & 0b11110000) >> 4; 
         // next 10 bits are the adc value.
-        unsigned int adcvalue = ((data[0] & 0b00001111) << 6) | ((data[1] & 0b11111100) >> 2); 
+        adcvalue = ((data[0] & 0b00001111) << 6) | ((data[1] & 0b11111100) >> 2); 
+
+        cout << "adc number: " << (int)adcnumber << " returned: " << (int)adcvalue << endl;
+        // cout << "raw data: " << data << endl; 
+	cout << "raw data: ";
+        printBits(&data, sizeof(data));
+	cout << endl;
+
+
+	/*
+
+        // --------------- set up the control word -------------
+        //          |              indicates manual mode.
+        //           |             "enables programming of bits DI6-00"  
+        //            ||||         address of the ADC for the next frame.
+	//                |        1 = 5V range.  0 = 2.5v
+        //                 |       0 = normal operation.  1 = power down.
+        //                  |      0 = return ADC address.  
+        //                         1 = return digital IO vals.
+        //                   ||||  digital IO vals, if they are configged for output
+        //                         numbering is 3210.
+	data[0]=0b00011000;
+	data[1]=0b11000000;
+
+	//cout << "control word is: ";
+	//printBits(&data, sizeof(data));
+	//cout << endl;
+
+        a2d.spiWriteRead(data, sizeof(data));
+
+        // ---------------- decode the recieved data ---------------
+       
+        // first 4 bits are adc number. 
+        adcnumber = (data[0] & 0b11110000) >> 4; 
+        // next 10 bits are the adc value.
+        adcvalue = ((data[0] & 0b00001111) << 6) | ((data[1] & 0b11111100) >> 2); 
 
         // cout << "raw data: " << data << endl; 
         cout << "raw data: ";
@@ -95,7 +146,10 @@ int main(void)
 	cout << endl;
 
         cout << "adc number: " << (int)adcnumber << " returned: " << (int)adcvalue << endl;
- 	sleep(0.1);
+ 
+	*/
+
+ 	sleep(1);
 
     }
     return 0;
