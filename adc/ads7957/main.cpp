@@ -66,7 +66,7 @@ int main(void)
         //          |              indicates manual mode.
         //           |             "enables programming of bits DI6-00"  
         //            ||||         address of the ADC for the next frame.
-	//                |        1 = 5V range.  0 = 2.5v
+	    //                |        1 = 5V range.  0 = 2.5v
         //                 |       0 = normal operation.  1 = power down.
         //                  |      0 = return ADC address.  
         //                         1 = return digital IO vals.
