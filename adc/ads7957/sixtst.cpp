@@ -66,7 +66,7 @@ int main(void)
     unsigned int adcvalue;
 
     size_t iocount = 6;
-    unsigned short iodata[6];
+    unsigned char iodata[12];
     unsigned int inputstatus[6];
 
     for (unsigned int i =0; i < iocount; ++i)
@@ -86,31 +86,53 @@ int main(void)
     //                            1 = return digital IO vals.
     //                      ||||  digital IO vals, if they are configged for output
     //                           numbering is 3210.
-    iodata[0]=0b0001100000000000;
-    iodata[1]=0b0001100010000000;
-    iodata[2]=0b0001100100000000;
-    iodata[3]=0b0001100110000000;
-    iodata[4]=0b0001101000000000;
-    iodata[5]=0b0001101010000000;
+    //        0b0001100110000000
+
+    // input 0
+    iodata[0]=0b00011000;    // input 0
+    iodata[1]=0b00000000;
+
+    iodata[2]=0b00011000;    // input 1
+    iodata[3]=0b10000000;
+
+    iodata[4]=0b00011001;    // input 2
+    iodata[5]=0b00000000;
+
+    iodata[6]=0b00011001;    // input 3
+    iodata[7]=0b10000000;
+
+    iodata[8]=0b00011010;    // input 4
+    iodata[9]=0b00000000;
+
+    iodata[10]=0b00011010;    // input 5
+    iodata[11]=0b10000000;
 
     for (unsigned int i = 0; i < 6; ++i)
     {   
         cout << "send::::: ";
         printBits((void*)(iodata + i), 2);
         cout << "\n";
+    
+        int j = i + i;
         
-        // a2d.spiWriteRead((unsigned char*)(iodata + i), sizeof(iodata[0]));
-        a2d.spiWriteRead((unsigned char*)&(iodata[i]), sizeof(iodata[0]));
+        a2d.spiWriteRead((iodata + j), 2); 
+
+        // a2d.spiWriteRead((unsigned char*)&(iodata[i]), sizeof(iodata[0]));
         // ---------------- decode the recieved data ---------------
 
         cout << "received: ";
-        printBits((void*)(iodata + i), 2);
+        printBits((void*)(iodata + j), 2);
         cout << "\n";
         
         // first 4 bits are adc number. 
-        adcnumber = (iodata[i] & 0b1111000000000000) >> 12; 
+        adcnumber = (iodata[j] & 0b11110000) >> 4; 
         // next 10 bits are the adc value.
-        adcvalue =  (iodata[i] & 0b0000111111111100) >> 2;
+        adcvalue = ((iodata[j] & 0b00001111) << 6) | ((iodata[j+1] & 0b11111100) >> 2); 
+
+        // first 4 bits are adc number. 
+        // adcnumber = (iodata[i] & 0b1111000000000000) >> 12; 
+        // next 10 bits are the adc value.
+        // adcvalue =  (iodata[i] & 0b0000111111111100) >> 2;
 
 
         cout << "received " << adcnumber << " " << adcvalue << "\n";
