@@ -78,7 +78,7 @@ int main(void)
         //                         1 = return digital IO vals.
         //                   ||||  digital IO vals, if they are configged for output
         //                         numbering is 3210.
-     // data = 0b0001100001000000;
+     //   data = 0b0001100001000000;
 	// input 0
 	//data[0]=0b00011000;
 	//data[1]=0b01000000;
@@ -88,12 +88,15 @@ int main(void)
 	//data[1]=0b11000000;
 
 	// input 15
-	data[0]=0b00011111;
-	data[1]=0b10000000;
+	//data[0]=0b00011111;
+	//data[1]=0b10000000;
 
 	// input 0101 (5)
-	//data[0]=0b00011010;
-	//data[1]=0b11000000;
+	//data[0]=0b00011000;
+	//data[1]=0b01000000;
+
+	data[0]=0b00011000;
+	data[1]=0b11000000;
 
 	//cout << "sending control word: ";
 	//printBits(&data, sizeof(data));
