@@ -158,7 +158,7 @@ int main(void)
         // lo_send(pd, "/photodiode", "i", 1023-adcvalue);
 
  	//sleep(0.03);
- 	sleep(1.25);
+ 	sleep(0.1);
 
     }
     return 0;
