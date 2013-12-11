@@ -50,8 +50,6 @@ void printBits(const void *ptr, size_t const bytes)
 
 int main(void)
 {
-    cout << "starting1" << endl;
- 
     // lo_address pd = lo_address_new(NULL, "8000");
     int i = 20;
     // spidevice a2d("/dev/spidev0.0", SPI_MODE_0, 4000000, 16);
@@ -72,8 +70,6 @@ int main(void)
     for (unsigned int i =0; i < iocount; ++i)
         inputstatus[i] = 0;
      
-    cout << "starting2" << endl;
- 
     while(i > 0)
     {
     // --------------- set up the control word -------------
@@ -109,9 +105,9 @@ int main(void)
 
     for (unsigned int i = 0; i < 6; ++i)
     {   
-        cout << "send::::: ";
-        printBits((void*)(iodata + i), 2);
-        cout << "\n";
+        // cout << "send::::: ";
+        // printBits((void*)(iodata + i), 2);
+        // cout << "\n";
     
         int j = i + i;
         
@@ -120,9 +116,9 @@ int main(void)
         // a2d.spiWriteRead((unsigned char*)&(iodata[i]), sizeof(iodata[0]));
         // ---------------- decode the recieved data ---------------
 
-        cout << "received: ";
-        printBits((void*)(iodata + j), 2);
-        cout << "\n";
+        // cout << "received: ";
+        // printBits((void*)(iodata + j), 2);
+        // cout << "\n";
         
         // first 4 bits are adc number. 
         adcnumber = (iodata[j] & 0b11110000) >> 4; 
@@ -135,19 +131,19 @@ int main(void)
         // adcvalue =  (iodata[i] & 0b0000111111111100) >> 2;
 
 
-        cout << "received " << adcnumber << " " << adcvalue << "\n";
+        // cout << "received " << adcnumber << " " << adcvalue << "\n";
 
         // keep the array of inputs updated.
         if (0 <= adcnumber && adcnumber < 6)
         {
-            cout << "updating " << adcnumber << " " << adcvalue << "\n";
+            // cout << "updating " << adcnumber << " " << adcvalue << "\n";
             inputstatus[adcnumber] = adcvalue;
         }
     }
 
     // spew out the input status.
     
-    cout << "inputstatus " << endl;   
+    cout << "inputstatus ";
  
     for (unsigned int i =0; i < iocount; ++i)
         cout << inputstatus[i] << " ";
