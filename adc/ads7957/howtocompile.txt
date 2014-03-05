@@ -1,0 +1,3 @@
+g++ -Wall -o main main.cpp spidevice.cpp
+sudo ./main
+
