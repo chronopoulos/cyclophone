@@ -123,15 +123,24 @@ void CheckSensors(spidevice &aSpi,
 
   }
 
+  for (unsigned int i = 0; i < aUiCount; ++i)
+  {
+    cout << aIrsArray[i].mUsLast << " ";
+  }  
+
+  cout << endl;
+
   cout.flush();
 }
 
-int main(void)
+int main(int argc, const char *args[])
 {
+  cout << "argc: " << argc << endl;
+
   // lo_address pd = lo_address_new(NULL, "8000");
 
+  // spidevice lSpi0("/dev/spidev0.0", SPI_MODE_0, 4000000, 8);
   spidevice lSpi1("/dev/spidev0.1", SPI_MODE_0, 4000000, 8);
- // spidevice lSpi0("/dev/spidev0.0", SPI_MODE_0, 4000000, 8);
   
   IRSensor lIrsSpi0Sensors[] = 
     {
@@ -185,8 +194,6 @@ int main(void)
 
   cout << "size: " << sizeof(lIrsSpi0Sensors) << " " << sizeof(IRSensor) << " " << sizeof(lIrsSpi0Sensors) / sizeof(IRSensor) << endl;
 
-//  CheckSensors(lSpi0, sizeof(lIrsSpi0Sensors) / sizeof(IRSensor), lIrsSpi0Sensors, lIrsSpi0ByPin);
-
   while (true)
   {
     // CheckSensors(lSpi0, sizeof(lIrsSpi0Sensors) / sizeof(IRSensor), lIrsSpi0Sensors, lIrsSpi0ByPin);
@@ -198,31 +205,3 @@ int main(void)
   return 0;
 }
 
-/*
-    for (i = 0; i < sizeof(lIrsSpi0Sensors); ++i)
-    {
-      data[0] = lIrsSpi0Sensors[i].mUcControlWord[0];
-      data[1] = lIrsSpi0Sensors[i].mUcControlWord[1];
-
-      lSpi0.spiWriteRead(data, sizeof(data));
-      
-      // ---------------- decode the recieved data ---------------
-      
-      // first 4 bits are adc number. 
-      adcnumber = (data[0] & 0b11110000) >> 4; 
-      // next 10 bits are the adc value.
-      adcvalue = ((data[0] & 0b00001111) << 6) | ((data[1] & 0b11111100) >> 2); 
-
-      // if new is different from last by more than thres, print.
-
-      int diff = abs(adcvalue - lIrsSpi0ByPin[adcnumber]->mUsLast);
-      
-      if (diff > lIThres) 
-        cout << (int)adcnumber << "\t" << (int)adcvalue << "\n";
-
-      lIrsSpi0ByPin[adcnumber]->mUsLast = adcvalue;
-
-    }
-  
- 
-*/
