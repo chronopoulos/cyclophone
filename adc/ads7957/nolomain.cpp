@@ -22,6 +22,7 @@
 #include "spidevice.h"
 #include <stdio.h>
 // #include "lo/lo.h"
+#include <sstream>
  
 using namespace std;
 
@@ -128,18 +129,25 @@ void CheckSensors(spidevice &aSpi,
     cout << aIrsArray[i].mUsLast << " ";
   }  
 
-  cout << endl;
-
-  cout.flush();
 }
 
 int main(int argc, const char *args[])
 {
   cout << "argc: " << argc << endl;
 
+  int sensor = 0;
+
+  if (argc > 1)
+  {
+    istringstream lIss(args[1]);
+    lIss >> sensor;
+  }
+ 
+  cout << "sensor: " << sensor << endl;
+
   // lo_address pd = lo_address_new(NULL, "8000");
 
-  // spidevice lSpi0("/dev/spidev0.0", SPI_MODE_0, 4000000, 8);
+  spidevice lSpi0("/dev/spidev0.0", SPI_MODE_0, 4000000, 8);
   spidevice lSpi1("/dev/spidev0.1", SPI_MODE_0, 4000000, 8);
   
   IRSensor lIrsSpi0Sensors[] = 
@@ -181,7 +189,7 @@ int main(int argc, const char *args[])
   for (i = 0; i < 16; ++i)
     lIrsSpi0ByPin[i] = 0;
 
-  for (i = 0; i < sizeof(lIrsSpi0Sensors); ++i)
+  for (i = 0; i < sizeof(lIrsSpi0Sensors) / sizeof(IRSensor); ++i)
     lIrsSpi0ByPin[lIrsSpi0Sensors[i].mUcInputPin] = &(lIrsSpi0Sensors[i]);
 
   // lookup table for IRSensors by pin, for SPI device 1.
@@ -189,15 +197,17 @@ int main(int argc, const char *args[])
   for (i = 0; i < 16; ++i)
     lIrsSpi1ByPin[i] = 0;
 
-  for (i = 0; i < sizeof(lIrsSpi1Sensors); ++i)
+  for (i = 0; i < sizeof(lIrsSpi1Sensors) / sizeof(IRSensor); ++i)
     lIrsSpi1ByPin[lIrsSpi1Sensors[i].mUcInputPin] = &(lIrsSpi1Sensors[i]);
 
   cout << "size: " << sizeof(lIrsSpi0Sensors) << " " << sizeof(IRSensor) << " " << sizeof(lIrsSpi0Sensors) / sizeof(IRSensor) << endl;
 
   while (true)
   {
-    // CheckSensors(lSpi0, sizeof(lIrsSpi0Sensors) / sizeof(IRSensor), lIrsSpi0Sensors, lIrsSpi0ByPin);
+    CheckSensors(lSpi0, sizeof(lIrsSpi0Sensors) / sizeof(IRSensor), lIrsSpi0Sensors, lIrsSpi0ByPin);
     CheckSensors(lSpi1, sizeof(lIrsSpi1Sensors) / sizeof(IRSensor), lIrsSpi1Sensors, lIrsSpi1ByPin);
+
+    cout << endl;
 
     sleep(0.03);
   }
