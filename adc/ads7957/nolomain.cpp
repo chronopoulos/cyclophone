@@ -23,6 +23,7 @@
 #include <stdio.h>
 // #include "lo/lo.h"
 #include <sstream>
+#include <iomanip>
  
 using namespace std;
 
@@ -80,11 +81,12 @@ public:
     setupcontrolword(aUcInputPin, mUcControlWord);
   }
   unsigned short mUsLast;
+  unsigned short mUsBaseline;
   unsigned char mUcControlWord[2];
   const unsigned char mUcInputPin;
 };
 
-void CheckSensors(spidevice &aSpi, 
+void UpdateSensors(spidevice &aSpi, 
 		unsigned int aUiCount, IRSensor aIrsArray[], 
                 IRSensor* aIrsByPin[])
 {
@@ -109,26 +111,39 @@ void CheckSensors(spidevice &aSpi,
     adcvalue = ((data[0] & 0b00001111) << 6) | ((data[1] & 0b11111100) >> 2); 
 
     // if new is different from last by more than thres, print.
-
-    int diff = abs(adcvalue - aIrsByPin[adcnumber]->mUsLast);
-    
-    // printBits(&data, sizeof(data));
-    // printBits(&data, 2);
-    // cout << adcnumber << " " << adcvalue << endl;   
-
-    // cout << "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r";
+    // int diff = abs(adcvalue - aIrsByPin[adcnumber]->mUsLast);
     // if (diff > gIThres) 
     //   cout << (int)adcnumber << "\t" << (int)adcvalue << "\t" << diff << "\n";
 
     aIrsByPin[adcnumber]->mUsLast = adcvalue;
-
   }
 
+}
+
+void setBaselines(unsigned int aUiCount, IRSensor aIrsArray[])
+{
   for (unsigned int i = 0; i < aUiCount; ++i)
   {
+    aIrsArray[i].mUsBaseline = aIrsArray[i].mUsLast;
+  }  
+}
+
+void printVals(unsigned int aUiCount, IRSensor aIrsArray[])
+{
+  for (unsigned int i = 0; i < aUiCount; ++i)
+  {
+    cout << setw(4) << setfill(' ');
     cout << aIrsArray[i].mUsLast << " ";
   }  
+}
 
+void printDiffs(unsigned int aUiCount, IRSensor aIrsArray[])
+{
+  for (unsigned int i = 0; i < aUiCount; ++i)
+  {
+    cout << setw(4) << setfill(' ');
+    cout << aIrsArray[i].mUsLast - aIrsArray[i].mUsBaseline << " ";
+  }  
 }
 
 int main(int argc, const char *args[])
@@ -149,7 +164,7 @@ int main(int argc, const char *args[])
 
   spidevice lSpi0("/dev/spidev0.0", SPI_MODE_0, 4000000, 8);
   spidevice lSpi1("/dev/spidev0.1", SPI_MODE_0, 4000000, 8);
-  
+ 
   IRSensor lIrsSpi0Sensors[] = 
     {
        IRSensor(2), 
@@ -165,6 +180,7 @@ int main(int argc, const char *args[])
        IRSensor(12), 
        IRSensor(13) 
     };
+  unsigned int lUi0Count = sizeof(lIrsSpi0Sensors) / sizeof(IRSensor);
 
   IRSensor lIrsSpi1Sensors[] = 
     {
@@ -181,6 +197,7 @@ int main(int argc, const char *args[])
        IRSensor(12), 
        IRSensor(13) 
     };
+  unsigned int lUi1Count = sizeof(lIrsSpi1Sensors) / sizeof(IRSensor);
 
   unsigned int i;
   
@@ -189,7 +206,7 @@ int main(int argc, const char *args[])
   for (i = 0; i < 16; ++i)
     lIrsSpi0ByPin[i] = 0;
 
-  for (i = 0; i < sizeof(lIrsSpi0Sensors) / sizeof(IRSensor); ++i)
+  for (i = 0; i < lUi0Count; ++i)
     lIrsSpi0ByPin[lIrsSpi0Sensors[i].mUcInputPin] = &(lIrsSpi0Sensors[i]);
 
   // lookup table for IRSensors by pin, for SPI device 1.
@@ -197,15 +214,28 @@ int main(int argc, const char *args[])
   for (i = 0; i < 16; ++i)
     lIrsSpi1ByPin[i] = 0;
 
-  for (i = 0; i < sizeof(lIrsSpi1Sensors) / sizeof(IRSensor); ++i)
+  for (i = 0; i < lUi1Count; ++i)
     lIrsSpi1ByPin[lIrsSpi1Sensors[i].mUcInputPin] = &(lIrsSpi1Sensors[i]);
 
-  cout << "size: " << sizeof(lIrsSpi0Sensors) << " " << sizeof(IRSensor) << " " << sizeof(lIrsSpi0Sensors) / sizeof(IRSensor) << endl;
+  // baseline values.
+  for (i = 0; i < 10; ++i)
+  {
+    UpdateSensors(lSpi0, lUi0Count, lIrsSpi0Sensors, lIrsSpi0ByPin);
+    UpdateSensors(lSpi1, lUi1Count, lIrsSpi1Sensors, lIrsSpi1ByPin);
+  }
+
+  setBaselines(lUi0Count, lIrsSpi0Sensors);
+  setBaselines(lUi1Count, lIrsSpi1Sensors);
+
+  cout << setw(4) << setfill('0');
 
   while (true)
   {
-    CheckSensors(lSpi0, sizeof(lIrsSpi0Sensors) / sizeof(IRSensor), lIrsSpi0Sensors, lIrsSpi0ByPin);
-    CheckSensors(lSpi1, sizeof(lIrsSpi1Sensors) / sizeof(IRSensor), lIrsSpi1Sensors, lIrsSpi1ByPin);
+    UpdateSensors(lSpi0, lUi0Count, lIrsSpi0Sensors, lIrsSpi0ByPin);
+    UpdateSensors(lSpi1, lUi1Count, lIrsSpi1Sensors, lIrsSpi1ByPin);
+
+    printDiffs(lUi0Count, lIrsSpi0Sensors);
+    printDiffs(lUi1Count, lIrsSpi1Sensors);
 
     cout << endl;
 
