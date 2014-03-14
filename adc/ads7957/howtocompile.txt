@@ -1,3 +1,7 @@
 g++ -Wall -o main main.cpp spidevice.cpp
 sudo ./main
 
+with liblo (for osc send/receive):
+g++ -Wall -o sixtst sixtst.cpp spidevice.cpp -llo
+sudo ./sixtst
+
