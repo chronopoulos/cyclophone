@@ -1,0 +1,20 @@
+----------------------------------------------
+
+Ok basically want to duplicate the SPI stuff in spidevice.cpp, .h. 
+
+already is an ioctl lib.
+
+
+basic functionality is 
+ - open device (devname, mode, speed, bitsperword)
+ - readwrite device
+ - close device.
+
+one option: make an spidevice lib and use that.  
+ - need to rewrite in C rather than C++.
+ - other option, use the C interface used by spidevice.cpp, basically 
+ reimplement spidevice.cpp.   
+
+could make the C interface very simple and specific to ads7957.  maybe a good place to start!
+
+----------------------------------------------
