@@ -11,7 +11,7 @@
  
 using namespace std;
 
-int gIThres = -75;
+int gIThres = -25;
 
 //assumes little endian
 void printBits(void const * const ptr, size_t const size)
@@ -69,7 +69,7 @@ public:
   {
     // if the last was above the thres and the current is below, then 
     // the sensor is active.  So its only active on the threshold crossing.
-    mBActive = mILast > mIThres && aILast < mIThres;
+    mBActive = mILast >= mIThres && aILast < mIThres;
       
     mILast = aILast;
   }
@@ -151,6 +151,20 @@ void printDiffs(unsigned int aUiCount, IRSensor aIrsArray[])
   {
     cout << setw(4) << setfill(' ');
     cout << aIrsArray[i].GetLast() - aIrsArray[i].GetBaseline() << " ";
+  }  
+}
+
+// print the index of any activated sensor, added to the offset.
+void printActDiff(unsigned int aUiOffset, unsigned int aUiCount, IRSensor aIrsArray[])
+{
+  for (unsigned int i = 0; i < aUiCount; ++i)
+  {
+    int lIDiff = aIrsArray[i].GetLast() - aIrsArray[i].GetBaseline();
+    if (lIDiff < gIThres)
+      cout << "U" << setw(3) << setfill(' ') << lIDiff;
+    else
+      cout << "_" << setw(3) << setfill(' ') << lIDiff;
+
   }  
 }
 
@@ -256,6 +270,10 @@ int main(int argc, const char *args[])
     // printDiffs(lUi0Count, lIrsSpi0Sensors);
     // printDiffs(lUi1Count, lIrsSpi1Sensors);
     // cout << endl;
+
+    //printActDiff(0, lUi0Count, lIrsSpi0Sensors);
+    //printActDiff(lUi0Count, lUi1Count, lIrsSpi1Sensors);
+    //cout << endl;
 
     printActive(0, lUi0Count, lIrsSpi0Sensors);
     printActive(lUi0Count, lUi1Count, lIrsSpi1Sensors);
