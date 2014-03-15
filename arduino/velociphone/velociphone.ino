@@ -1,3 +1,11 @@
+// ----------------------------------------------------------
+// velociphone sketch.  
+//  this sketch is for the velocity sensitive cyclophone
+//  this is the first iteration using the arduino mega.
+//  ultimately we abandoned this approach and went with the
+//  'velocidue' sketch instead.
+// ----------------------------------------------------------
+
 //  to do:
 // - save time by only using a button once in a button array
 // - compare with mask for register checks. 
