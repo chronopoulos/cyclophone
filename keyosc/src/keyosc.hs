@@ -1,18 +1,29 @@
-{-# INCLUDE <math.h> #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
-
 -- module Main where
 import Sound.OSC
 import System.Environment
-import Foreign.C
+import System.Posix.IOCtl
+import System.Posix.IO
+import GHC.IO.Device
+import Spidev
 
-foreign import ccall "sin" c_sin :: CDouble -> CDouble
-sin :: Double -> Double
-sin d = realToFrac (c_sin (realToFrac d))
+-- mode = SPI_MODE_0 ;
+-- bitsPerWord = 8;
+-- speed = 1000000;
+-- spifd = -1;
+
+{-
+spiopen devname spimode bitsPerWord speed = 
+ do
+  fd <- openFd (args !! 0) ReadOnly Nothing defaultFileFlags 
+  -} 
+  
 
 main = 
  do
   args <- getArgs
+  fd <- openFd (args !! 0) ReadOnly Nothing defaultFileFlags 
+  end <- fdSeek fd SeekFromEnd 0
+  putStrLn (show end)
+  putStrLn (show spihigh)
   mapM putStrLn args
-  putStrLn (show (Main.sin (read (args !! 0))))
 
