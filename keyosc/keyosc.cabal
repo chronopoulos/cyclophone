@@ -16,10 +16,13 @@ build-type:          Simple
 -- extra-source-files:  
 cabal-version:       >=1.10
 
+
 executable keyosc
   main-is:            keyosc.hs
   hs-source-dirs:     src
   other-modules:      Spidev 
+  extra-lib-dirs:      /home/bburdette/code/cyclophone/keyosc/C
+  extra-libraries:     spicrap
   -- other-extensions:    
   build-depends:       base >=4.6 && <4.7,
                        hosc,

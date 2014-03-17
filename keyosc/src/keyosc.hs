@@ -15,15 +15,17 @@ import Spidev
 spiopen devname spimode bitsPerWord speed = 
  do
   fd <- openFd (args !! 0) ReadOnly Nothing defaultFileFlags 
+
+  args <- getArgs
+  fd <- openFd (args !! 0) ReadOnly Nothing defaultFileFlags 
+  end <- fdSeek fd SeekFromEnd 0
+  putStrLn (show end)
+  putStrLn (show rdmode)
+  mapM putStrLn args
+
   -} 
   
 
 main = 
  do
-  args <- getArgs
-  fd <- openFd (args !! 0) ReadOnly Nothing defaultFileFlags 
-  end <- fdSeek fd SeekFromEnd 0
-  putStrLn (show end)
-  putStrLn (show spihigh)
-  mapM putStrLn args
-
+   preent
