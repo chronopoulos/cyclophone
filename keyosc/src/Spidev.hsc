@@ -16,10 +16,14 @@ spihigh = #const SPI_CS_HIGH
 foreign import ccall unsafe "GetSPICrap8"
    c_getspicrap8 :: CInt -> IO CInt
 
+printit x = 
+ do 
+  wha <- c_getspicrap8 x
+  putStrLn (show wha)
+
 preent = 
  do
   let blah = #const SPI_CS_HIGH 
   putStrLn (show blah)
-  crap8 <- c_getspicrap8 2
-  putStrLn (show crap8)
+  mapM printit [0..5]
 
