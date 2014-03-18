@@ -38,7 +38,7 @@ main =
    putStrLn "Hello"
    S.useAsCString (S.pack "/dev/spidev0.0")
     (\devname -> do
-      fd1 <- c_spiOpen devname 0 1000000 8
+      fd1 <- c_spiOpen devname 0 8 1000000
       putStr "fd1 = "
       putStrLn (show fd1))
 
