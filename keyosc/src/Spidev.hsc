@@ -20,27 +20,26 @@ import GHC.IO.Device
 -- unsigned char GetSPICrap8(SPIThing8 aSpit)
 -- unsigned char GetSPICrap32(SPIThing32 aSpit)
 
+
+-- int spiOpen(const char *aCDevspi,
+--            unsigned char mode,
+--            unsigned char bitsPerWord, 
+--            unsigned int speed);
 foreign import ccall unsafe "spiOpen"
    c_spiOpen :: CString -> CUChar -> CUChar -> CInt -> IO CInt
 
+-- int spiWriteRead( int fd,
+--                   unsigned char *data, 
+--                   int length,
+--                   unsigned char bitsPerWord, 
+--                   unsigned int speed);
 foreign import ccall unsafe "spiWriteRead"
    c_spiWriteRead :: CInt -> CString -> CInt -> CUChar -> CInt -> IO CInt
 
+-- int spiClose(int fd);
 foreign import ccall unsafe "spiClose"
    c_spiClose :: CInt -> IO CInt
 
-{-
-int spiOpen(const char *aCDevspi,
-            unsigned char mode,
-            unsigned char bitsPerWord, 
-            unsigned int speed);
-int spiClose(int fd);
-int spiWriteRead( int fd,
-                  unsigned char *data, 
-                  int length,
-                  unsigned char bitsPerWord, 
-                  unsigned int speed);
--}
 
 {- 
 foreign import ccall unsafe "GetSPICrap8"
@@ -59,6 +58,8 @@ preent =
   putStrLn (show mahblah)
   mapM printit [0..5]
 -}
+
+
 {-
 spiopen pathname mode bitsPerWord speed = 
  do 
