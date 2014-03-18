@@ -22,10 +22,11 @@ executable keyosc
   hs-source-dirs:     src
   other-modules:      Spidev 
   extra-lib-dirs:      /home/bburdette/code/cyclophone/keyosc/C
-  extra-libraries:     spicrap
+  extra-libraries:     spidevice
   -- other-extensions:    
   build-depends:       base >=4.6 && <4.7,
                        hosc,
                        ioctl,
-                       unix
+                       unix,
+                       bytestring
   default-language:    Haskell2010

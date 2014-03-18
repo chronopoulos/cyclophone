@@ -6,6 +6,12 @@ import System.Posix.IO
 import GHC.IO.Device
 import Spidev
 
+import qualified Data.ByteString.Char8 as S
+-- import qualified Data.ByteString.Unsafe   as S
+-- import qualified Data.ByteString.Internal as S
+
+
+
 -- mode = SPI_MODE_0 ;
 -- bitsPerWord = 8;
 -- speed = 1000000;
@@ -24,8 +30,15 @@ spiopen devname spimode bitsPerWord speed =
   mapM putStrLn args
 
   -} 
-  
+
+
 
 main = 
  do
-   preent
+   putStrLn "Hello"
+   S.useAsCString (S.pack "/dev/spidev0.0")
+    (\devname -> do
+      fd1 <- c_spiOpen devname 0 1000000 8
+      putStr "fd1 = "
+      putStrLn (show fd1))
+
