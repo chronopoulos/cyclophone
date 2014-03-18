@@ -32,37 +32,37 @@ int spiOpen(const char *aCDevspi,
       return -1;
   }
 
-  statusVal = ioctl (fd, SPI_IOC_WR_MODE, mode);
+  statusVal = ioctl (fd, SPI_IOC_WR_MODE, &mode);
   if(statusVal < 0){
       perror("Could not set SPIMode (WR)...ioctl fail");
       return -1;
   }
 
-  statusVal = ioctl (fd, SPI_IOC_RD_MODE, mode);
+  statusVal = ioctl (fd, SPI_IOC_RD_MODE, &mode);
   if(statusVal < 0) {
     perror("Could not set SPIMode (RD)...ioctl fail");
     return -1;
   }
 
-  statusVal = ioctl (fd, SPI_IOC_WR_BITS_PER_WORD, bitsPerWord);
+  statusVal = ioctl (fd, SPI_IOC_WR_BITS_PER_WORD, &bitsPerWord);
   if(statusVal < 0) {
     perror("Could not set SPI bitsPerWord (WR)...ioctl fail");
     return -1;
   }
 
-  statusVal = ioctl (fd, SPI_IOC_RD_BITS_PER_WORD, bitsPerWord);
+  statusVal = ioctl (fd, SPI_IOC_RD_BITS_PER_WORD, &bitsPerWord);
   if(statusVal < 0) {
     perror("Could not set SPI bitsPerWord(RD)...ioctl fail");
     return -1;
   }  
 
-  statusVal = ioctl (fd, SPI_IOC_WR_MAX_SPEED_HZ, speed);    
+  statusVal = ioctl (fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed);    
   if(statusVal < 0) {
     perror("Could not set SPI speed (WR)...ioctl fail");
     return -1;
   }
 
-  statusVal = ioctl (fd, SPI_IOC_RD_MAX_SPEED_HZ, speed);    
+  statusVal = ioctl (fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed);    
   if(statusVal < 0) {
     perror("Could not set SPI speed (RD)...ioctl fail");
     return -1;
