@@ -14,6 +14,8 @@ import Data.Bits
 import Foreign.C.Types
 import Foreign.C.String
 
+import Control.Concurrent
+
 -- mode = SPI_MODE_0 ;
 -- bitsPerWord = 8;
 -- speed = 1000000;
@@ -64,6 +66,21 @@ setupcontrolword adcindex =
  in (b1,b2)
 
 
+--  // first 4 bits are adc number. 
+--  adcnumber = (data[0] & 0b11110000) >> 4; 
+--  // next 10 bits are the adc value.
+--  adcvalue = ((data[0] & 0b00001111) << 6) | ((data[1] & 0b11111100) >> 2); 
+
+decodedata :: CUChar -> CUChar -> (Int, Int)
+decodedata b1 b2 = 
+  let i1 = (fromIntegral b1) :: Int
+      i2 = (fromIntegral b2) :: Int
+      adcindex = shift (i1 .&. 0xF0) (-4)
+      adcvalue = (shift (i1 .&. 0x0F) 6) .|. 
+                 (shift (i2 .&. 0xFA) (-2))
+  in (adcindex, adcvalue)
+
+
 -- map setupcontrolword [2..12]
 
   
@@ -73,20 +90,42 @@ setupcontrolword adcindex =
 --                   unsigned char bitsPerWord,
 --                   unsigned int speed);
 
+speed = 4000000
+bitsperword = 8
+
 poll fd (b1,b2) = 
  do 
-  S.useAsCString (S.pack [castCUCharToChar b1,castCUCharToChar b2]) 
+  S.useAsCStringLen (S.pack [castCUCharToChar b1,castCUCharToChar b2]) 
    (\sendbytes -> do
-    c_spiWriteRead fd sendbytes 2 8 1000000)
+    threadDelay 1000
+    c_spiWriteRead fd (fst sendbytes) 2 bitsperword speed
+    bs <- S.packCStringLen sendbytes
+    return (decodedata (castCharToCUChar (S.index bs 0)) (castCharToCUChar (S.index bs 1)))
+    )
+
+sensors = map setupcontrolword [2..13]
+
+printsensorval x = 
+ do 
+   y <- x
+   putStr (show (snd y))
+   putStr " "
+
+pollall fd = 
+ do 
+  mapM printsensorval (map (\x -> poll fd x) sensors)
+  putStrLn ""
+  pollall fd
 
 main = 
  do
    putStrLn "Hello"
    S.useAsCString (S.pack "/dev/spidev0.0")
     (\devname -> do
-      fd1 <- c_spiOpen devname 0 8 1000000
+      fd1 <- c_spiOpen devname 0 bitsperword speed
       putStr "fd1 = "
       putStrLn (show fd1)
       wut <- (poll fd1 (setupcontrolword 2))
-      putStrLn (show wut))
+      putStrLn (show (snd wut))
+      pollall fd1)
 
