@@ -6,7 +6,7 @@ cc -Wall -c mahtest.c
 g++ -c mahtest.cpp
 
 # put one or more .o files into a .a static library.
-ar -cvq libmahtest.a mahtest.o 
+ar -cvr libmahtest.a mahtest.o 
 
 # list the files in the library.
 ar -t libmahtest.a
