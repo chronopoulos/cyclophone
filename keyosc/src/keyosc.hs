@@ -93,6 +93,7 @@ decodedata b1 b2 =
 speed = 4000000
 bitsperword = 8
 
+poll :: CInt -> (CUChar, CUChar) -> IO (Int, Int)
 poll fd (b1,b2) = 
  do 
   S.useAsCStringLen (S.pack [castCUCharToChar b1,castCUCharToChar b2]) 
@@ -105,6 +106,7 @@ poll fd (b1,b2) =
 
 sensors = map setupcontrolword [2..13]
 
+printsensorval :: Show a => IO (a1, a) -> IO ()
 printsensorval x = 
  do 
    y <- x
@@ -112,6 +114,8 @@ printsensorval x =
    putStr " "
 
 -- assuming two spi devices both using the same input pins.
+
+pollall :: CInt -> CInt -> IO b
 pollall fd1 fd2 = 
  do 
   mapM printsensorval (map (\x -> poll fd1 x) sensors)
@@ -119,6 +123,7 @@ pollall fd1 fd2 =
   putStrLn ""
   pollall fd1 fd2
 
+spiOpen :: String -> CUChar -> CUChar -> CInt -> IO CInt
 spiOpen devname mode bitsperword speed = 
  S.useAsCString (S.pack devname) 
   (\bdevname -> do
