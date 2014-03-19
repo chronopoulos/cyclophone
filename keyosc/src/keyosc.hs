@@ -111,21 +111,24 @@ printsensorval x =
    putStr (show (snd y))
    putStr " "
 
-pollall fd = 
+-- assuming two spi devices both using the same input pins.
+pollall fd1 fd2 = 
  do 
-  mapM printsensorval (map (\x -> poll fd x) sensors)
+  mapM printsensorval (map (\x -> poll fd1 x) sensors)
+  mapM printsensorval (map (\x -> poll fd2 x) sensors)
   putStrLn ""
-  pollall fd
+  pollall fd1 fd2
+
+spiOpen devname mode bitsperword speed = 
+ S.useAsCString (S.pack devname) 
+  (\bdevname -> do
+    c_spiOpen bdevname mode bitsperword speed)
 
 main = 
  do
-   putStrLn "Hello"
-   S.useAsCString (S.pack "/dev/spidev0.0")
-    (\devname -> do
-      fd1 <- c_spiOpen devname 0 bitsperword speed
-      putStr "fd1 = "
-      putStrLn (show fd1)
-      wut <- (poll fd1 (setupcontrolword 2))
-      putStrLn (show (snd wut))
-      pollall fd1)
+   putStrLn "keyosc v1.0"
+   fd1 <- spiOpen "/dev/spidev0.0" 0 bitsperword speed
+   fd2 <- spiOpen "/dev/spidev0.0" 0 bitsperword speed
+   pollall fd1 fd2
+
 
