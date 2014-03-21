@@ -70,18 +70,18 @@ int main()
 
   printf("fd: %i \n", fd);
 
-  // while (true)
-  // {
+  while (true)
+  {
     for (unsigned char index = 0; index < 16; ++index)
     {
       setupcontrolword(index, data);
-      logSpiWriteRead(fd, data, 2, 8, 4000000);
+      // logSpiWriteRead(fd, data, 2, 8, 4000000);
       spiWriteRead(fd, data, 2, 8, 4000000);
       decodeAdsWord(data, sensorindex, sensorval);
       printf ("(%i, %i) ", sensorindex, sensorval);
     }
     printf("\n");
-  // }
+  }
 } 
 
 

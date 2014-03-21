@@ -69,7 +69,9 @@ int spiOpen(const char *aCDevspi,
     perror("Could not set SPI speed (RD)...ioctl fail");
     return -1;
   }
-  return statusVal;
+
+  // return file descriptor
+  return fd;
 }
  
 /***********************************************************
@@ -113,6 +115,7 @@ int spiWriteRead( int fd,
     spi[i].cs_change = 0;
   }
 
+  /*
   printf("ioctl args: \n");
   printf("fd = %i\n", fd);
   printf("SPI_IOC_MESSAGE(length) = %i\n", SPI_IOC_MESSAGE(length));
@@ -127,8 +130,7 @@ int spiWriteRead( int fd,
     printf("spi[i].bits_per_word = %i\n", spi[i].bits_per_word );
     printf("spi[i].cs_change = %i\n", spi[i].cs_change );
   }
-
-
+  */
 
   retVal = ioctl (fd, SPI_IOC_MESSAGE(length), &spi) ;
  
