@@ -5,6 +5,7 @@ import System.Posix.IOCtl
 import System.Posix.IO
 import GHC.IO.Device
 import Spidev
+import Text.Printf
 
 import qualified Data.ByteString.Char8 as S
 -- import qualified Data.ByteString.Unsafe   as S
@@ -138,13 +139,30 @@ getvallists fd1 fd2 =
     b <- sequence (getvallist fd2) 
     return (a ++ (map (\(x,y) -> ((x + 16), y)) b))
 
-
 repete :: CInt -> CInt -> [Int] -> IO ()
 repete fd1 fd2 baselines = 
  do 
   newvals <- (getvallists fd1 fd2)
-  putStrLn (show (zipWith (-) (map snd newvals) baselines))
+  -- putStrLn (show (zipWith (-) (map snd newvals) baselines))
+  niceprint (zipWith (-) (map snd newvals) baselines)
   repete fd1 fd2 baselines
+
+getvalseries count fd1 fd2 appendtome = 
+  if (count <= 0)
+   then 
+    return appendtome
+   else
+    do 
+      newvals <- getvallists fd1 fd2
+      getvalseries (count - 1) fd1 fd2 (newvals : appendtome)
+
+niceprint [] = 
+ do 
+   putStrLn ""
+niceprint lst = 
+ do 
+  printf "%4d " (head lst)
+  niceprint (tail lst)
 
 main = 
  do
