@@ -133,7 +133,7 @@ main =
  do
    putStrLn "keyosc v1.0"
    fd1 <- spiOpen "/dev/spidev0.0" 0 bitsperword speed
-   fd2 <- spiOpen "/dev/spidev0.0" 0 bitsperword speed
+   fd2 <- spiOpen "/dev/spidev0.1" 0 bitsperword speed
    pollall fd1 fd2
 
 
