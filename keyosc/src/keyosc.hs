@@ -128,20 +128,30 @@ pollall fd1 fd2 =
   putStrLn ""
   pollall fd1 fd2
 
-{-
-getvallist :: CInt -> CInt -> IO [a]
-getvallist fd1 fd2 = 
+getvallist fd = 
+  (map (\x -> poll fd x) sensors)
+
+
+getvallists fd1 fd2 =
+  do 
+    a <- sequence (getvallist fd1)
+    b <- sequence (getvallist fd2) 
+    return (a ++ (map (\(x,y) -> ((x + 16), y)) b))
+
+
+repete :: CInt -> CInt -> [Int] -> IO ()
+repete fd1 fd2 baselines = 
  do 
-  v1 <- (map (\x -> poll fd1 x) sensors)
-  v2 <- (map (\x -> poll fd2 x) sensors)
-  (v1,v2)
--}
+  newvals <- (getvallists fd1 fd2)
+  putStrLn (show (zipWith (-) (map snd newvals) baselines))
+  repete fd1 fd2 baselines
 
 main = 
  do
    putStrLn "keyosc v1.0"
    fd1 <- spiOpen "/dev/spidev0.0" 0 bitsperword speed
    fd2 <- spiOpen "/dev/spidev0.1" 0 bitsperword speed
-   pollall fd1 fd2
+   vals <- getvallists fd1 fd2
+   repete fd1 fd1 (map snd vals)
 
 
