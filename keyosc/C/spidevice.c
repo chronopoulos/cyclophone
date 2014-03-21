@@ -32,6 +32,8 @@ int spiOpen(const char *aCDevspi,
       return -1;
   }
 
+  printf("SPI_MODE_0 = %i", SPI_MODE_0);
+
   statusVal = ioctl (fd, SPI_IOC_WR_MODE, &mode);
   if(statusVal < 0){
       perror("Could not set SPIMode (WR)...ioctl fail");
@@ -92,15 +94,16 @@ int spiWriteRead( int fd,
                   unsigned char *data, 
                   int length,
                   unsigned char bitsPerWord, 
-                  unsigned int speed){
+                  unsigned int speed)
+{
   struct spi_ioc_transfer spi[length];
   int i = 0;
   int retVal = -1; 
  
   // one spi transfer for each byte
  
-  for (i = 0 ; i < length ; i++){
- 
+  for (i = 0 ; i < length ; i++)
+  {
     spi[i].tx_buf        = (unsigned long)(data + i); // transmit from "data"
     spi[i].rx_buf        = (unsigned long)(data + i) ; // receive into "data"
     spi[i].len           = sizeof(*(data + i)) ;
@@ -109,13 +112,31 @@ int spiWriteRead( int fd,
     spi[i].bits_per_word = bitsPerWord ;
     spi[i].cs_change = 0;
   }
- 
+
+  printf("ioctl args: \n");
+  printf("fd = %i\n", fd);
+  printf("SPI_IOC_MESSAGE(length) = %i\n", SPI_IOC_MESSAGE(length));
+  
+  for (i = 0 ; i < length ; i++)
+  {
+    printf("spi[i].tx_buf      %llu\n ", spi[i].tx_buf        );
+    printf("spi[i].rx_buf      %llu\n ", spi[i].rx_buf        );
+    printf("spi[i].len         %i\n ", spi[i].len           );
+    printf("spi[i].delay_usecs %i\n ", spi[i].delay_usecs   );
+    printf("spi[i].speed_hz    %i\n ", spi[i].speed_hz      );
+    printf("spi[i].bits_per_word = %i\n", spi[i].bits_per_word );
+    printf("spi[i].cs_change = %i\n", spi[i].cs_change );
+  }
+
+
+
   retVal = ioctl (fd, SPI_IOC_MESSAGE(length), &spi) ;
  
-//  if(retVal < 0){
-//    perror("Problem transmitting spi data..ioctl");
-//    return -1;
-//  }
+  if(retVal < 0){
+    perror("Problem transmitting spi data..ioctl");
+    return -1;
+  }
+
   return retVal;
 }
  

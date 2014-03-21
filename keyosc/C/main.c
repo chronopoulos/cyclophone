@@ -34,6 +34,16 @@ void decodeAdsWord(unsigned char data[2], unsigned int &adcnumber, unsigned int 
     adcvalue = ((data[0] & 0b00001111) << 6) | ((data[1] & 0b11111100) >> 2); 
 }
 
+void logSpiWriteRead( int fd,
+                  unsigned char *data, 
+                  int length,
+                  unsigned char bitsPerWord, 
+                  unsigned int speed)
+{
+  printf("logSpiWriteRead \n");
+  printf("fd: %i, (data1, data2): (%i,%i)", fd, data[0], data[1]);
+  printf("length: %i bpw: %i speed: %i\n", length, bitsPerWord, speed);
+}
 /*
 int spiOpen(const char *aCDevspi,
             unsigned char mode,
@@ -50,22 +60,28 @@ int spiWriteRead( int fd,
 int main() 
 {
   printf("sensorcheck - start");
-  int fd = spiOpen("/dev/spidev0.0", 0, 8, 1000000);
+
+//  printf("SPI_MODE_0 = %i", SPI_MODE_0)
+
+  int fd = spiOpen("/dev/spidev0.0", 0, 8, 4000000);
 
   unsigned char data[2];
   unsigned int sensorindex, sensorval;
 
-  while (true)
-  {
+  printf("fd: %i \n", fd);
+
+  // while (true)
+  // {
     for (unsigned char index = 0; index < 16; ++index)
     {
       setupcontrolword(index, data);
-      spiWriteRead(fd, data, 2, 8, 1000000);
+      logSpiWriteRead(fd, data, 2, 8, 4000000);
+      spiWriteRead(fd, data, 2, 8, 4000000);
       decodeAdsWord(data, sensorindex, sensorval);
-      printf ("%i ", sensorval);
+      printf ("(%i, %i) ", sensorindex, sensorval);
     }
     printf("\n");
-  }
+  // }
 } 
 
 
