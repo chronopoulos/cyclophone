@@ -129,8 +129,9 @@ pollall fd1 fd2 =
   putStrLn ""
   pollall fd1 fd2
 
+getvallist :: CInt -> IO [(Int,Int)]
 getvallist fd = 
-  (map (\x -> poll fd x) sensors)
+  sequence (map (\x -> poll fd x) sensors)
 
 {-
 getvallists fd1 fd2 =
@@ -140,11 +141,13 @@ getvallists fd1 fd2 =
     return (a ++ (map (\(x,y) -> ((x + 16), y)) b))
 -}
 
-getallvals [] = []
+getallvals :: [CInt] -> IO [(Int,Int)]
 getallvals (fd:fdr) = 
  do 
-   a <- sequence (getvallist fd)
-   a ++ (getallvals fdr)
+   a <- getvallist fd
+   b <- getallvals fdr
+   return (a ++ b)
+getallvals [] = return []
 
 repete :: [CInt] -> [Int] -> IO ()
 repete fdlist baselines = 
