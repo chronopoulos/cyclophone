@@ -91,7 +91,7 @@ decodedata b1 b2 =
 --                   unsigned char bitsPerWord,
 --                   unsigned int speed);
 
-speed = 1000000
+speed = 2000000
 bitsperword = 8
 
 poll :: CInt -> (CUChar, CUChar) -> IO (Int, Int)
@@ -99,13 +99,14 @@ poll fd (b1,b2) =
  do 
   S.useAsCStringLen (S.pack [castCUCharToChar b1,castCUCharToChar b2]) 
    (\sendbytes -> do
-    threadDelay 500
+    -- threadDelay 500
     c_spiWriteRead fd (fst sendbytes) 2 bitsperword speed
     bs <- S.packCStringLen sendbytes
     return (decodedata (castCharToCUChar (S.index bs 0)) (castCharToCUChar (S.index bs 1)))
     )
 
 sensors = map setupcontrolword [2..13]
+sensorcount = length sensors
 
 printsensorval :: Show a => IO (a1, a) -> IO ()
 printsensorval x = 
@@ -142,20 +143,24 @@ getvallists fd1 fd2 =
 -}
 
 getallvals :: [CInt] -> IO [(Int,Int)]
-getallvals (fd:fdr) = 
+getallvals fdlst = getallvalz fdlst 0
+
+getallvalz :: [CInt] -> Int -> IO [(Int,Int)]
+getallvalz (fd:fdr) offset = 
  do 
    a <- getvallist fd
-   b <- getallvals fdr
-   return (a ++ b)
-getallvals [] = return []
+   b <- getallvalz fdr (offset + sensorcount)
+   return ((map addoff a) ++ b)
+   where addoff (a,b) = (a + offset, b)
+getallvalz [] offset = return []
 
 repete :: [CInt] -> [Int] -> IO ()
 repete fdlist baselines = 
  do 
   newvals <- (getallvals fdlist)
-  putStrLn (show newvals)
+  -- putStrLn (show newvals)
   -- putStrLn (show (zipWith (-) (map snd newvals) baselines))
-  -- niceprint (zipWith (-) (map snd newvals) baselines)
+  niceprint (zipWith (-) (map snd newvals) baselines)
   repete fdlist baselines
 
 {-
@@ -182,7 +187,9 @@ main =
    putStrLn "keyosc v1.0"
    fd1 <- spiOpen "/dev/spidev0.0" 0 bitsperword speed
    fd2 <- spiOpen "/dev/spidev0.1" 0 bitsperword speed
-   vals <- getallvals [fd1,fd2]
-   repete [fd1,fd2] (map snd vals)
+   let fdlst = [fd1, fd2]
+    in do
+     vals <- getallvals fdlst 
+     repete fdlst (map snd vals)
 
 
