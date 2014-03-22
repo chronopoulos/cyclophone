@@ -99,7 +99,7 @@ poll fd (b1,b2) =
  do 
   S.useAsCStringLen (S.pack [castCUCharToChar b1,castCUCharToChar b2]) 
    (\sendbytes -> do
-    threadDelay 1000
+    threadDelay 500
     c_spiWriteRead fd (fst sendbytes) 2 bitsperword speed
     bs <- S.packCStringLen sendbytes
     return (decodedata (castCharToCUChar (S.index bs 0)) (castCharToCUChar (S.index bs 1)))
@@ -132,21 +132,30 @@ pollall fd1 fd2 =
 getvallist fd = 
   (map (\x -> poll fd x) sensors)
 
-
+{-
 getvallists fd1 fd2 =
   do 
     a <- sequence (getvallist fd1)
     b <- sequence (getvallist fd2) 
     return (a ++ (map (\(x,y) -> ((x + 16), y)) b))
+-}
 
-repete :: CInt -> CInt -> [Int] -> IO ()
-repete fd1 fd2 baselines = 
+getallvals [] = []
+getallvals (fd:fdr) = 
  do 
-  newvals <- (getvallists fd1 fd2)
-  -- putStrLn (show (zipWith (-) (map snd newvals) baselines))
-  niceprint (zipWith (-) (map snd newvals) baselines)
-  repete fd1 fd2 baselines
+   a <- sequence (getvallist fd)
+   a ++ (getallvals fdr)
 
+repete :: [CInt] -> [Int] -> IO ()
+repete fdlist baselines = 
+ do 
+  newvals <- (getallvals fdlist)
+  putStrLn (show newvals)
+  -- putStrLn (show (zipWith (-) (map snd newvals) baselines))
+  -- niceprint (zipWith (-) (map snd newvals) baselines)
+  repete fdlist baselines
+
+{-
 getvalseries count fd1 fd2 appendtome = 
   if (count <= 0)
    then 
@@ -155,6 +164,7 @@ getvalseries count fd1 fd2 appendtome =
     do 
       newvals <- getvallists fd1 fd2
       getvalseries (count - 1) fd1 fd2 (newvals : appendtome)
+-}
 
 niceprint [] = 
  do 
@@ -169,7 +179,7 @@ main =
    putStrLn "keyosc v1.0"
    fd1 <- spiOpen "/dev/spidev0.0" 0 bitsperword speed
    fd2 <- spiOpen "/dev/spidev0.1" 0 bitsperword speed
-   vals <- getvallists fd1 fd2
-   repete fd1 fd1 (map snd vals)
+   vals <- getallvals [fd1,fd2]
+   repete [fd1,fd2] (map snd vals)
 
 
