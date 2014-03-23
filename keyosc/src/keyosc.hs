@@ -163,12 +163,12 @@ repete fdlist baselines =
   niceprint (zipWith (-) (map snd newvals) baselines)
   repete fdlist baselines
 
-repetay :: [CInt] -> ([(Int,Int)] -> IO [()]) -> IO ()
-repetay fdlist theftn =  
+repetay :: [CInt] -> ([(Int,Int)] -> [Int] -> IO [Int]) -> [Int] -> IO ()
+repetay fdlist theftn onlist =  
  do 
   newvals <- (getallvals fdlist)
-  theftn newvals
-  repetay fdlist theftn
+  onlist <- theftn newvals onlist
+  repetay fdlist theftn onlist
 
 
 thres = -50
@@ -218,12 +218,13 @@ niceprint lst =
   niceprint (tail lst)
 
 -- makes a ftn which contains its own sendfun, msglist, and baselines.
-thressend sendfun msglist baselines = (\newvals ->
- let indexlist = filter (\(x,y) -> y < -50) (zip [0..] (zipWith (\(i,v) b -> v-b) newvals baselines))
+thressend sendfun msglist baselines = (\newvals onlist ->
+ let indexeson = map fst (filter (\(x,y) -> y < -50) (zip [0..] (zipWith (\(i,v) b -> v-b) newvals baselines)))
+     sendlist = filter (\i -> not (elem i onlist)) indexeson
   in do
-   sequence (map (\(i,v) -> sendfun (msglist !! i)) indexlist)
+   sequence_ (map (\(i,v) -> sendfun (msglist !! i)) sendlist)
+   return sendlist ++ (filter (\i -> (elem i indexeson) onlist))
   )
-
 
 main = 
   do
@@ -241,7 +242,7 @@ main =
             sendftn msg = sendOSC t (Message msg [Int32 1])
          in do
           vals <- getallvals fdlst 
-          repetay fdlst (thressend sendftn drumlist (map snd vals))
+          repetay fdlst (thressend sendftn drumlist (map snd vals)) []
 
 
 {-
