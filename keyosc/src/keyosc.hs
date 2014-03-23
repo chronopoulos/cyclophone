@@ -228,14 +228,13 @@ thressend sendfun msglist baselines = (\newvals ->
 main = 
   do
     args <- getArgs
-    if (length args) < 4
+    if (length args) < 2
       then do
-        putStrLn "keyosc requires at least 4 args:"
-        putStrLn "keyosc <ip> <port> <prefix> <quantities>"
+        putStrLn "keyosc requires at least 2 args:"
+        putStrLn "keyosc <ip> <port>"
       else do
         putStrLn "keyosc v1.0"
         t <- openUDP (args !! 0) (read (args !! 1))
-        sendOSC t (Message (args !! 2) [Float 1])
         fd1 <- spiOpen "/dev/spidev0.0" 0 bitsperword speed
         fd2 <- spiOpen "/dev/spidev0.1" 0 bitsperword speed
         let fdlst = [fd1, fd2]
