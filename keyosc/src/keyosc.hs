@@ -66,7 +66,6 @@ setupcontrolword adcindex =
      b2 = (64::CUChar) .|. ((shift adcindex 7)::CUChar)
  in (b1,b2)
 
-
 --  // first 4 bits are adc number. 
 --  adcnumber = (data[0] & 0b11110000) >> 4; 
 --  // next 10 bits are the adc value.
@@ -170,7 +169,6 @@ repetay fdlist theftn onlist =
   onlist <- theftn newvals onlist
   repetay fdlist theftn onlist
 
-
 thres = -50
 
 drumlist = ["/arduino/drums/tr909/0",
@@ -227,6 +225,24 @@ thressend sendfun msglist baselines = (\newvals onlist ->
    return (sendlist ++ (filter (\i -> (elem i indexeson)) onlist))
   )
 
+-- ftn that subtracts the baselines and prints.
+mkniceprint :: [Int] -> ([(Int, Int)] -> [Int] -> IO [Int])
+mkniceprint baselines = (\newvals onlist ->
+ let diffs = (zipWith (\(i,v) b -> v-b) newvals baselines)
+  in do
+   niceprint diffs
+   return onlist
+ )
+
+-- ftn that calls multiple ftns.
+-- 'onlist' is updated by the first ftn, the rest are ignored.
+mkmulti :: [([(Int, Int)] -> [Int] -> IO [Int])] -> ([(Int, Int)] -> [Int] -> IO [Int])
+mkmulti ftnlist = (\newvals onlist ->
+ do
+  wut <- mapM (\ftn -> ftn newvals onlist) ftnlist
+  return (wut !! 0)
+ )
+
 main = 
   do
     args <- getArgs
@@ -239,11 +255,15 @@ main =
         t <- openUDP (args !! 0) (read (args !! 1))
         fd1 <- spiOpen "/dev/spidev0.0" 0 bitsperword speed
         fd2 <- spiOpen "/dev/spidev0.1" 0 bitsperword speed
-        let fdlst = [fd1, fd2]
+        let fdlist = [fd1, fd2]
             sendftn msg = sendOSC t (Message msg [Int32 1])
          in do
-          vals <- getallvals fdlst 
-          repetay fdlst (thressend sendftn drumlist (map snd vals)) []
+          vals <- getallvals fdlist 
+          let blah = thressend sendftn drumlist (map snd vals)
+              print = mkniceprint (map snd vals)
+              multay = mkmulti [blah, print]
+           in              
+            repetay fdlist multay [] 
 
 
 {-
