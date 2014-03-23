@@ -1,9 +1,8 @@
 -- module Main where
-import Sound.OSC
 import System.Environment
-import System.Posix.IOCtl
-import System.Posix.IO
-import GHC.IO.Device
+-- import System.Posix.IOCtl
+-- import System.Posix.IO
+-- import GHC.IO.Device
 import Spidev
 import Text.Printf
 import Sound.OSC.FD
@@ -164,7 +163,7 @@ repete fdlist baselines =
   niceprint (zipWith (-) (map snd newvals) baselines)
   repete fdlist baselines
 
-repetay :: [CInt] -> ([Int] -> IO ()) -> IO ()
+repetay :: [CInt] -> ([(Int,Int)] -> IO [()]) -> IO ()
 repetay fdlist theftn =  
  do 
   newvals <- (getallvals fdlist)
@@ -219,8 +218,8 @@ niceprint lst =
   niceprint (tail lst)
 
 -- makes a ftn which contains its own sendfun, msglist, and baselines.
-thressend sendfun msglist baselines = (\lst ->
- let indexlist = filter (\(x,y) -> y < -50) (zipWith (\(i,v) b ->(i,v-b)) baselines)
+thressend sendfun msglist baselines = (\newvals ->
+ let indexlist = filter (\(x,y) -> y < -50) (zipWith (\(i,v) b ->(i,v-b)) newvals baselines)
   in do
    sequence (map (\(i,v) -> sendfun (msglist !! i)) indexlist)
   )
@@ -236,7 +235,7 @@ main =
       else do
         putStrLn "keyosc v1.0"
         t <- openUDP (args !! 0) (read (args !! 1))
-        sendOSC t (Message (args !! 2) dtm)
+        sendOSC t (Message (args !! 2) [Float 1])
         fd1 <- spiOpen "/dev/spidev0.0" 0 bitsperword speed
         fd2 <- spiOpen "/dev/spidev0.1" 0 bitsperword speed
         let fdlst = [fd1, fd2]
