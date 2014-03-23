@@ -219,7 +219,7 @@ niceprint lst =
 
 -- makes a ftn which contains its own sendfun, msglist, and baselines.
 thressend sendfun msglist baselines = (\newvals ->
- let indexlist = filter (\(x,y) -> y < -50) (zipWith (\(i,v) b ->(i,v-b)) newvals baselines)
+ let indexlist = filter (\(x,y) -> y < -50) (zip [0..] (zipWith (\(i,v) b -> v-b) newvals baselines))
   in do
    sequence (map (\(i,v) -> sendfun (msglist !! i)) indexlist)
   )
