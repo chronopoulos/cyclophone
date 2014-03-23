@@ -218,12 +218,13 @@ niceprint lst =
   niceprint (tail lst)
 
 -- makes a ftn which contains its own sendfun, msglist, and baselines.
+thressend :: (String -> IO ()) -> [String] -> [Int] -> ([(Int, Int)] -> [Int] -> IO [Int])
 thressend sendfun msglist baselines = (\newvals onlist ->
  let indexeson = map fst (filter (\(x,y) -> y < -50) (zip [0..] (zipWith (\(i,v) b -> v-b) newvals baselines)))
      sendlist = filter (\i -> not (elem i onlist)) indexeson
   in do
-   sequence_ (map (\(i,v) -> sendfun (msglist !! i)) sendlist)
-   return sendlist ++ (filter (\i -> (elem i indexeson) onlist))
+   sequence_ (map (\i -> sendfun (msglist !! i)) sendlist)
+   return (sendlist ++ (filter (\i -> (elem i indexeson)) onlist))
   )
 
 main = 
