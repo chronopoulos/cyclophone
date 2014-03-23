@@ -6,6 +6,7 @@ import System.Posix.IO
 import GHC.IO.Device
 import Spidev
 import Text.Printf
+import Sound.OSC.FD
 
 import qualified Data.ByteString.Char8 as S
 -- import qualified Data.ByteString.Unsafe   as S
@@ -163,6 +164,41 @@ repete fdlist baselines =
   niceprint (zipWith (-) (map snd newvals) baselines)
   repete fdlist baselines
 
+repetay :: [CInt] -> ([Int] -> IO ()) -> IO ()
+repetay fdlist theftn =  
+ do 
+  newvals <- (getallvals fdlist)
+  theftn newvals
+  repetay fdlist theftn
+
+
+thres = -50
+
+drumlist = ["/arduino/drums/tr909/0",
+            "/arduino/drums/tr909/1",
+            "/arduino/drums/tr909/2",
+            "/arduino/drums/tr909/3",
+            "/arduino/drums/tr909/4",
+            "/arduino/drums/tr909/5",
+            "/arduino/drums/dundunba/0",
+            "/arduino/drums/dundunba/1",
+            "/arduino/drums/dundunba/2",
+            "/arduino/drums/dundunba/3",
+            "/arduino/drums/rx21Latin/0",
+            "/arduino/drums/rx21Latin/1",
+            "/arduino/drums/rx21Latin/2",
+            "/arduino/drums/rx21Latin/3",
+            "/arduino/drums/rx21Latin/4",
+            "/arduino/drums/rx21Latin/5",
+            "/arduino/drums/tabla/0",
+            "/arduino/drums/tabla/1",
+            "/arduino/drums/tabla/2",
+            "/arduino/drums/tabla/3",
+            "/arduino/drums/tabla/4",
+            "/arduino/drums/tabla/5",
+            "/arduino/drums/tabla/6",
+            "/arduino/drums/tabla/7"]
+
 {-
 getvalseries count fd1 fd2 appendtome = 
   if (count <= 0)
@@ -182,6 +218,35 @@ niceprint lst =
   printf "%4d " (head lst)
   niceprint (tail lst)
 
+-- makes a ftn which contains its own sendfun, msglist, and baselines.
+thressend sendfun msglist baselines = (\lst ->
+ let indexlist = filter (\(x,y) -> y < -50) (zipWith (\(i,v) b ->(i,v-b)) baselines)
+  in do
+   sequence (map (\(i,v) -> sendfun (msglist !! i)) indexlist)
+  )
+
+
+main = 
+  do
+    args <- getArgs
+    if (length args) < 4
+      then do
+        putStrLn "keyosc requires at least 4 args:"
+        putStrLn "keyosc <ip> <port> <prefix> <quantities>"
+      else do
+        putStrLn "keyosc v1.0"
+        t <- openUDP (args !! 0) (read (args !! 1))
+        sendOSC t (Message (args !! 2) dtm)
+        fd1 <- spiOpen "/dev/spidev0.0" 0 bitsperword speed
+        fd2 <- spiOpen "/dev/spidev0.1" 0 bitsperword speed
+        let fdlst = [fd1, fd2]
+            sendftn msg = sendOSC t (Message msg [Int32 1])
+         in do
+          vals <- getallvals fdlst 
+          repetay fdlst (thressend sendftn drumlist (map snd vals))
+
+
+{-
 main = 
  do
    putStrLn "keyosc v1.0"
@@ -191,5 +256,5 @@ main =
     in do
      vals <- getallvals fdlst 
      repete fdlst (map snd vals)
-
+-}
 
