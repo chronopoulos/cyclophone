@@ -22,20 +22,48 @@ import Control.Concurrent
 -- speed = 1000000;
 -- spifd = -1;
 
-{-
-spiopen devname spimode bitsPerWord speed = 
+-- speed = 2000000
+-- sensors = map setupcontrolword [2..13]
+-- sensorcount = length sensors
+
+bitsperword = 8
+
+data Sensor = Sensor {
+  fd :: CInt,
+  devname :: String,
+  controlwords :: [(CUChar, CUChar)]
+  }
+  deriving (Show)
+
+data SensorSets = SensorSets {
+  sensors :: [Sensor],
+  spiSpeed :: CInt
+  }
+  deriving (Show)
+
+makeDefaultSets speed = 
+ SensorSets [Sensor (-1) "/dev/spidev0.0" (map setupcontrolword [2..13]),
+             Sensor (-1) "/dev/spidev0.1" (map setupcontrolword [2..13])]
+            speed
+
+updateFd :: Sensor -> CInt -> Sensor
+updateFd sensor newfd = 
+  sensor { fd = newfd }
+
+addRealFd :: Sensor -> CInt -> IO Sensor
+addRealFd sensor speed = 
  do
-  fd <- openFd (args !! 0) ReadOnly Nothing defaultFileFlags 
+   sensorfd <- spiOpen (devname sensor) 0 bitsperword speed
+   return (updateFd sensor sensorfd)
 
-  args <- getArgs
-  fd <- openFd (args !! 0) ReadOnly Nothing defaultFileFlags 
-  end <- fdSeek fd SeekFromEnd 0
-  putStrLn (show end)
-  putStrLn (show rdmode)
-  mapM putStrLn args
-
-  -} 
-
+--   return (sensor { fd = sensorfd })
+ 
+addRealFds :: SensorSets -> IO SensorSets
+addRealFds sensets = 
+ do 
+  added <- sequence (map (\s -> addRealFd s (spiSpeed sensets)) (sensors sensets))
+  return (sensets { sensors = added })
+ 
 {-
     // --------------- set up the control word -------------
     //            |              indicates manual mode.
@@ -90,11 +118,8 @@ decodedata b1 b2 =
 --                   unsigned char bitsPerWord,
 --                   unsigned int speed);
 
-speed = 2000000
-bitsperword = 8
-
-poll :: CInt -> (CUChar, CUChar) -> IO (Int, Int)
-poll fd (b1,b2) = 
+poll :: CInt -> CInt -> (CUChar, CUChar) -> IO (Int, Int)
+poll fd speed (b1,b2) = 
  do 
   S.useAsCStringLen (S.pack [castCUCharToChar b1,castCUCharToChar b2]) 
    (\sendbytes -> do
@@ -103,9 +128,6 @@ poll fd (b1,b2) =
     bs <- S.packCStringLen sendbytes
     return (decodedata (castCharToCUChar (S.index bs 0)) (castCharToCUChar (S.index bs 1)))
     )
-
-sensors = map setupcontrolword [2..13]
-sensorcount = length sensors
 
 printsensorval :: Show a => IO (a1, a) -> IO ()
 printsensorval x = 
@@ -120,54 +142,42 @@ spiOpen devname mode bitsperword speed =
   (\bdevname -> do
     c_spiOpen bdevname mode bitsperword speed)
 
--- assuming two spi devices both using the same 'sensors', ie input pins.
-pollall :: CInt -> CInt -> IO b
-pollall fd1 fd2 = 
+getvallist :: CInt -> CInt -> [(CUChar, CUChar)] -> IO [(Int,Int)]
+getvallist fd speed controlwords = 
+  sequence (map (\x -> poll fd speed x) controlwords)
+
+getallvals :: SensorSets -> IO [(Int,Int)]
+getallvals sensets = getallvalz sensets 0 0
+
+getallvalz :: SensorSets -> Int -> Int -> IO [(Int,Int)]
+getallvalz sensets sindex offset =
+  if (sindex < (length (sensors sensets)))
+    then 
+      let sensor = ((sensors sensets) !! sindex) 
+          addoff (a,b) = (a + offset, b)
+      in do 
+        a <- getvallist (fd sensor) (spiSpeed sensets) (controlwords sensor)
+        b <- getallvalz sensets (sindex + 1) 
+                (offset + (length (controlwords sensor)))
+        return ((map addoff a) ++ b)
+    else
+      return []
+
+repete :: SensorSets -> [Int] -> IO ()
+repete sensets baselines = 
  do 
-  mapM printsensorval (map (\x -> poll fd1 x) sensors)
-  mapM printsensorval (map (\x -> poll fd2 x) sensors)
-  putStrLn ""
-  pollall fd1 fd2
-
-getvallist :: CInt -> IO [(Int,Int)]
-getvallist fd = 
-  sequence (map (\x -> poll fd x) sensors)
-
-{-
-getvallists fd1 fd2 =
-  do 
-    a <- sequence (getvallist fd1)
-    b <- sequence (getvallist fd2) 
-    return (a ++ (map (\(x,y) -> ((x + 16), y)) b))
--}
-
-getallvals :: [CInt] -> IO [(Int,Int)]
-getallvals fdlst = getallvalz fdlst 0
-
-getallvalz :: [CInt] -> Int -> IO [(Int,Int)]
-getallvalz (fd:fdr) offset = 
- do 
-   a <- getvallist fd
-   b <- getallvalz fdr (offset + sensorcount)
-   return ((map addoff a) ++ b)
-   where addoff (a,b) = (a + offset, b)
-getallvalz [] offset = return []
-
-repete :: [CInt] -> [Int] -> IO ()
-repete fdlist baselines = 
- do 
-  newvals <- (getallvals fdlist)
+  newvals <- (getallvals sensets)
   -- putStrLn (show newvals)
   -- putStrLn (show (zipWith (-) (map snd newvals) baselines))
   niceprint (zipWith (-) (map snd newvals) baselines)
-  repete fdlist baselines
+  repete sensets baselines
 
-repetay :: [CInt] -> ([(Int,Int)] -> [Int] -> IO [Int]) -> [Int] -> IO ()
-repetay fdlist theftn onlist =  
+repetay :: SensorSets -> ([(Int,Int)] -> [Int] -> IO [Int]) -> [Int] -> IO ()
+repetay sensets theftn onlist =  
  do 
-  newvals <- (getallvals fdlist)
+  newvals <- (getallvals sensets)
   onlist <- theftn newvals onlist
-  repetay fdlist theftn onlist
+  repetay sensets theftn onlist
 
 thres = -50
 
@@ -243,27 +253,31 @@ mkmulti ftnlist = (\newvals onlist ->
   return (wut !! 0)
  )
 
+--getspeed :: [String] :: CInt
+getspeed args = 
+  if (length args) > 2 
+    then (read (args !! 2)) :: CInt 
+    else 4000000
+
 main = 
   do
     args <- getArgs
     if (length args) < 2
       then do
         putStrLn "keyosc requires at least 2 args:"
-        putStrLn "keyosc <ip> <port>"
+        putStrLn "keyosc <ip> <port> <optional spispeed>"
       else do
         putStrLn "keyosc v1.0"
         t <- openUDP (args !! 0) (read (args !! 1))
-        fd1 <- spiOpen "/dev/spidev0.0" 0 bitsperword speed
-        fd2 <- spiOpen "/dev/spidev0.1" 0 bitsperword speed
-        let fdlist = [fd1, fd2]
-            sendftn msg = sendOSC t (Message msg [Int32 1])
+        sensets <- addRealFds (makeDefaultSets (getspeed args))
+        let sendftn msg = sendOSC t (Message msg [Int32 1])
          in do
-          vals <- getallvals fdlist 
+          vals <- getallvals sensets
           let blah = thressend sendftn drumlist (map snd vals)
               print = mkniceprint (map snd vals)
               multay = mkmulti [blah, print]
            in              
-            repetay fdlist multay [] 
+            repetay sensets multay [] 
 
 
 {-
