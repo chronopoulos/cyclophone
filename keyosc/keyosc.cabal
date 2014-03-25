@@ -29,5 +29,6 @@ executable keyosc
                        hosc,
                        ioctl,
                        unix,
-                       bytestring
+                       bytestring,
+                       directory
   default-language:    Haskell2010
