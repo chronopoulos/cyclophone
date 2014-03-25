@@ -1,0 +1,58 @@
+keyosc is a haskell program, but it uses a C library.  compiling it takes 3 steps:
+
+0) set up haskell
+1) compile the C program.
+2) change the library path in keyosc.cabal
+3) compile the haskell code.
+
+So, more about the above:
+
+0) set up haskell.
+
+the versions used to develop this thing:
+
+ccrma@cyclophone ~/cyclophone/keyosc $ ghc --version
+The Glorious Glasgow Haskell Compilation System, version 7.8.0.20140228
+ccrma@cyclophone ~/cyclophone/keyosc $ cabal --version
+cabal-install version 1.18.0.3
+using version 1.18.1.3 of the Cabal library 
+
+getting this compiled and installed on the PI was a monumental effort.  I have precompiled binaries for ghc and cabal on my dropbox.  If the current haskell platform is newer, hopefully that will work.  
+
+
+1) compile the C program.
+
+The C code is in the 'C' directory. to compile it, do this:
+
+bburdette@parvis:~/code/cyclophone/keyosc$ cd C
+bburdette@parvis:~/code/cyclophone/keyosc/C$ ./compilelibspidevice.sh 
+
+the result should be a libspidevice.a file in the C directory.
+
+2) change the library path in keyosc.cabal
+
+ok this is a dumb haskell thing.  basically you aren't allowed to have a relative path to a library directory.  you have to put the absolute path into the keyosc.cabal file.  currently there are two possibilities in there:
+
+  extra-lib-dirs:      /home/bburdette/code/cyclophone/keyosc/C
+  --extra-lib-dirs:      /home/ccrma/cyclophone/keyosc/C
+
+so in the above its set to the absolute path to the 'C' directory on my laptop.  the commented out line is for the 'C' directory on the raspberry PI.  modify as necessary. 
+
+3) compile the haskell code.
+
+from the keyosc root dir, type 'cabal install'.  the result should be:
+
+bburdette@parvis:~/code/cyclophone/keyosc$ cabal install
+Warning: The package list for 'hackage.haskell.org' is 28 days old.
+Run 'cabal update' to get the latest list of available packages.
+Resolving dependencies...
+Configuring keyosc-0.1.0.0...
+Building keyosc-0.1.0.0...
+Preprocessing executable 'keyosc' for keyosc-0.1.0.0...
+Installing executable(s) in /home/bburdette/.cabal/bin
+Installed keyosc-0.1.0.0
+bburdette@parvis:~/code/cyclophone/keyosc$ 
+
+
+
+
