@@ -41,7 +41,7 @@ data AppSettings = AppSettings {
 data AdcSettings = AdcSettings { 
   adcs :: [Adc],
   spiSpeed :: CInt,
-  spiDelay :: CInt
+  spiDelay :: Int
   }
   deriving (Show, Read)
 
@@ -72,16 +72,9 @@ data Sensor = Sensor {
 data SensorSets = SensorSets {
   sensors :: [Sensor],
   speed :: CInt,
-  delay :: CInt
+  delay :: Int
   }
   deriving (Show)
-
-{-
-makeDefaultSets speed = 
- SensorSets [Sensor (-1) "/dev/spidev0.0" (map setupcontrolword [2..13]),
-             Sensor (-1) "/dev/spidev0.1" (map setupcontrolword [2..13])]
-            speed
--}
 
 -- makeSensorSets :: AdcSettings -> IO SensorSets
 makeSensorSets adcSettings = 
@@ -102,26 +95,6 @@ makeSensor :: CInt -> CUChar -> Sensor
 makeSensor sensorfd pin = 
   (Sensor sensorfd (setupcontrolword pin))
 
-
-{-
-updateFd :: Sensor -> CInt -> Sensor
-updateFd sensor newfd = 
-  sensor { fd = newfd }
-
-addRealFd :: Sensor -> CInt -> IO Sensor
-addRealFd sensor speed = 
- do
-   sensorfd <- spiOpen (devname sensor) 0 bitsperword speed
-   return (updateFd sensor sensorfd)
-
---   return (sensor { fd = sensorfd })
- 
-addRealFds :: SensorSets -> IO SensorSets
-addRealFds sensets = 
- do 
-  added <- sequence (map (\s -> addRealFd s (speed sensets)) (sensors sensets))
-  return (sensets { sensors = added })
--}
 
 
 {-
@@ -178,12 +151,12 @@ decodedata b1 b2 =
 --                   unsigned char bitsPerWord,
 --                   unsigned int speed);
 
-poll :: CInt -> CInt -> (CUChar, CUChar) -> IO (Int, Int)
-poll fd speed (b1,b2) = 
+poll :: CInt -> CInt -> Int -> (CUChar, CUChar) -> IO (Int, Int)
+poll fd speed delay (b1,b2) = 
  do 
   S.useAsCStringLen (S.pack [castCUCharToChar b1,castCUCharToChar b2]) 
    (\sendbytes -> do
-    -- threadDelay 500
+    threadDelay delay 
     c_spiWriteRead fd (fst sendbytes) 2 bitsperword speed
     bs <- S.packCStringLen sendbytes
     return (decodedata (castCharToCUChar (S.index bs 0)) (castCharToCUChar (S.index bs 1)))
@@ -202,45 +175,12 @@ spiOpen devname mode bitsperword speed =
   (\bdevname -> do
     c_spiOpen bdevname mode bitsperword speed)
 
-getval :: Sensor -> CInt -> IO (Int,Int)
-getval sensor speed = 
- poll (fd sensor) speed (controlword sensor) 
+getval :: Sensor -> CInt -> Int -> IO (Int,Int)
+getval sensor speed delay = 
+ poll (fd sensor) speed delay (controlword sensor) 
 
 getsetvals :: SensorSets -> IO [(Int,Int)]
-getsetvals sensets = sequence (map (\s -> getval s (speed sensets)) (sensors sensets)) 
-
-{-
-getvallist :: CInt -> CInt -> [(CUChar, CUChar)] -> IO [(Int,Int)]
-getvallist fd speed controlwords = 
-  sequence (map (\x -> poll fd speed x) controlwords)
--}
-
-{-
-getallvals :: SensorSets -> IO [(Int,Int)]
-getallvals sensets = getallvalz sensets 0 0
-
-getallvalz :: SensorSets -> Int -> Int -> IO [(Int,Int)]
-getallvalz sensets sindex offset =
-  if (sindex < (length (sensors sensets)))
-    then 
-      let sensor = ((sensors sensets) !! sindex) 
-      in do 
-        a <- getvallist (fd sensor) (speed sensets) (controlword sensor)
-        b <- getallvalz sensets (sindex + 1) 
-                (offset + (length (controlword sensor)))
-        return (a ++ b)
-    else
-      return []
- 
-repete :: SensorSets -> [Int] -> IO ()
-repete sensets baselines = 
- do 
-  newvals <- (getallvals sensets)
-  -- putStrLn (show newvals)
-  -- putStrLn (show (zipWith (-) (map snd newvals) baselines))
-  niceprint (zipWith (-) (map snd newvals) baselines)
-  repete sensets baselines
--}
+getsetvals sensets = sequence (map (\s -> getval s (speed sensets) (delay sensets)) (sensors sensets)) 
 
 repetay :: SensorSets -> ([(Int,Int)] -> [Int] -> IO [Int]) -> [Int] -> IO ()
 repetay sensets theftn onlist =  
@@ -275,17 +215,6 @@ drumlist = ["/arduino/drums/tr909/0",
             "/arduino/drums/tabla/5",
             "/arduino/drums/tabla/6",
             "/arduino/drums/tabla/7"]
-
-{-
-getvalseries count fd1 fd2 appendtome = 
-  if (count <= 0)
-   then 
-    return appendtome
-   else
-    do 
-      newvals <- getvallists fd1 fd2
-      getvalseries (count - 1) fd1 fd2 (newvals : appendtome)
--}
 
 niceprint [] = 
  do 
@@ -345,6 +274,7 @@ main =
 
 nowgo appsettings = 
  do 
+  putStrLn "keyosc v1.0"
   t <- openUDP (targetIP appsettings) (targetPort appsettings)
   sensets <- makeSensorSets (adcSettings appsettings)
   let sendftn msg = sendOSC t (Message msg [Int32 1])
@@ -356,37 +286,4 @@ nowgo appsettings =
      in              
       repetay sensets multay [] 
 
-{-
-main = 
-  do        
-    args <- getArgs
-    if (length args) < 2
-      then do
-        putStrLn "keyosc requires at least 2 args:"
-        putStrLn "keyosc <ip> <port> <optional spispeed>"
-      else do
-        putStrLn "keyosc v1.0"
-        t <- openUDP (args !! 0) (read (args !! 1))
-        sensets <- addRealFds (makeDefaultSets (getspeed args))
-        let sendftn msg = sendOSC t (Message msg [Int32 1])
-         in do
-          vals <- getallvals sensets
-          let blah = thressend sendftn drumlist (map snd vals)
-              print = mkniceprint (map snd vals)
-              multay = mkmulti [blah, print]
-           in              
-            repetay sensets multay [] 
--}
-
-{-
-main = 
- do
-   putStrLn "keyosc v1.0"
-   fd1 <- spiOpen "/dev/spidev0.0" 0 bitsperword speed
-   fd2 <- spiOpen "/dev/spidev0.1" 0 bitsperword speed
-   let fdlst = [fd1, fd2]
-    in do
-     vals <- getallvals fdlst 
-     repete fdlst (map snd vals)
--}
 
