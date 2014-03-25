@@ -5,6 +5,7 @@ import System.Environment
 -- import GHC.IO.Device
 import Spidev
 import Text.Printf
+import Text.Show.Pretty
 import Sound.OSC.FD
 
 import qualified Data.ByteString.Char8 as S
@@ -266,7 +267,7 @@ main =
     if (not gotPrefs)
       then do 
         putStrLn "keyosc.prefs not found; creating default file."
-        writeFile "keyosc.prefs" (show defaultAppSettings)
+        writeFile "keyosc.prefs" (ppShow defaultAppSettings)
       else do
         prefs <- (readFile prefsfile)
         nowgo ((read prefs) :: AppSettings)

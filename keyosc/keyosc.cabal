@@ -21,7 +21,7 @@ executable keyosc
   main-is:            keyosc.hs
   hs-source-dirs:     src
   other-modules:      Spidev 
-  -- extra-lib-dirs:      /home/bburdette/code/cyclophone/keyosc/C
+  --extra-lib-dirs:      /home/bburdette/code/cyclophone/keyosc/C
   extra-lib-dirs:      /home/ccrma/cyclophone/keyosc/C
   extra-libraries:     spidevice
   -- other-extensions:    
@@ -30,5 +30,6 @@ executable keyosc
                        ioctl,
                        unix,
                        bytestring,
-                       directory
+                       directory,
+                       pretty-show
   default-language:    Haskell2010
