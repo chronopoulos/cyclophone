@@ -16,6 +16,7 @@ import Foreign.C.Types
 import Foreign.C.String
 
 import Control.Concurrent
+import System.Directory
 
 -- mode = SPI_MODE_0 ;
 -- bitsPerWord = 8;
@@ -28,24 +29,81 @@ import Control.Concurrent
 
 bitsperword = 8
 
+data AppSettings = AppSettings {
+  adcSettings :: AdcSettings,
+  printSensorsValues :: Bool,
+  diffFormat :: Bool,
+  targetIP :: String,
+  targetPort :: Int
+  }
+  deriving (Show, Read)
+
+data AdcSettings = AdcSettings { 
+  adcs :: [Adc],
+  spiSpeed :: CInt,
+  spiDelay :: CInt
+  }
+  deriving (Show, Read)
+
+data Adc = Adc {
+  devname :: String,
+  inputPins :: [CUChar]
+  }
+  deriving (Show, Read)
+
+ 
+defaultAppSettings = 
+ AppSettings (AdcSettings 
+                [(Adc "/dev/spidev0.0" [2..13]),
+                 (Adc "/dev/spidev0.1" [2..13])]
+                4000000
+                0)
+    True 
+    True
+    "127.0.0.1"
+    8000
+
 data Sensor = Sensor {
   fd :: CInt,
-  devname :: String,
-  controlwords :: [(CUChar, CUChar)]
+  controlword :: (CUChar, CUChar)
   }
   deriving (Show)
 
 data SensorSets = SensorSets {
   sensors :: [Sensor],
-  spiSpeed :: CInt
+  speed :: CInt,
+  delay :: CInt
   }
   deriving (Show)
 
+{-
 makeDefaultSets speed = 
  SensorSets [Sensor (-1) "/dev/spidev0.0" (map setupcontrolword [2..13]),
              Sensor (-1) "/dev/spidev0.1" (map setupcontrolword [2..13])]
             speed
+-}
 
+-- makeSensorSets :: AdcSettings -> IO SensorSets
+makeSensorSets adcSettings = 
+  do
+    blah <- sequence (map (\adc -> makeAdcSensors adc (spiSpeed adcSettings)) 
+                 (adcs adcSettings))
+    let sensors = concat blah
+     in 
+     return (SensorSets sensors (spiSpeed adcSettings) (spiDelay adcSettings))
+ 
+makeAdcSensors :: Adc -> CInt -> IO [Sensor]
+makeAdcSensors adc speed = 
+  do
+    sensorfd <- spiOpen (devname adc) 0 bitsperword speed
+    return (map (\i -> makeSensor sensorfd i) (inputPins adc))
+    
+makeSensor :: CInt -> CUChar -> Sensor
+makeSensor sensorfd pin = 
+  (Sensor sensorfd (setupcontrolword pin))
+
+
+{-
 updateFd :: Sensor -> CInt -> Sensor
 updateFd sensor newfd = 
   sensor { fd = newfd }
@@ -61,9 +119,11 @@ addRealFd sensor speed =
 addRealFds :: SensorSets -> IO SensorSets
 addRealFds sensets = 
  do 
-  added <- sequence (map (\s -> addRealFd s (spiSpeed sensets)) (sensors sensets))
+  added <- sequence (map (\s -> addRealFd s (speed sensets)) (sensors sensets))
   return (sensets { sensors = added })
- 
+-}
+
+
 {-
     // --------------- set up the control word -------------
     //            |              indicates manual mode.
@@ -142,10 +202,20 @@ spiOpen devname mode bitsperword speed =
   (\bdevname -> do
     c_spiOpen bdevname mode bitsperword speed)
 
+getval :: Sensor -> CInt -> IO (Int,Int)
+getval sensor speed = 
+ poll (fd sensor) speed (controlword sensor) 
+
+getsetvals :: SensorSets -> IO [(Int,Int)]
+getsetvals sensets = sequence (map (\s -> getval s (speed sensets)) (sensors sensets)) 
+
+{-
 getvallist :: CInt -> CInt -> [(CUChar, CUChar)] -> IO [(Int,Int)]
 getvallist fd speed controlwords = 
   sequence (map (\x -> poll fd speed x) controlwords)
+-}
 
+{-
 getallvals :: SensorSets -> IO [(Int,Int)]
 getallvals sensets = getallvalz sensets 0 0
 
@@ -154,15 +224,14 @@ getallvalz sensets sindex offset =
   if (sindex < (length (sensors sensets)))
     then 
       let sensor = ((sensors sensets) !! sindex) 
-          addoff (a,b) = (a + offset, b)
       in do 
-        a <- getvallist (fd sensor) (spiSpeed sensets) (controlwords sensor)
+        a <- getvallist (fd sensor) (speed sensets) (controlword sensor)
         b <- getallvalz sensets (sindex + 1) 
-                (offset + (length (controlwords sensor)))
-        return ((map addoff a) ++ b)
+                (offset + (length (controlword sensor)))
+        return (a ++ b)
     else
       return []
-
+ 
 repete :: SensorSets -> [Int] -> IO ()
 repete sensets baselines = 
  do 
@@ -171,11 +240,12 @@ repete sensets baselines =
   -- putStrLn (show (zipWith (-) (map snd newvals) baselines))
   niceprint (zipWith (-) (map snd newvals) baselines)
   repete sensets baselines
+-}
 
 repetay :: SensorSets -> ([(Int,Int)] -> [Int] -> IO [Int]) -> [Int] -> IO ()
 repetay sensets theftn onlist =  
  do 
-  newvals <- (getallvals sensets)
+  newvals <- (getsetvals sensets)
   onlist <- theftn newvals onlist
   repetay sensets theftn onlist
 
@@ -259,8 +329,36 @@ getspeed args =
     then (read (args !! 2)) :: CInt 
     else 4000000
 
+prefsfile = "keyosc.prefs"
+
 main = 
   do
+    gotPrefs <- doesFileExist prefsfile
+    if (not gotPrefs)
+      then do 
+        putStrLn "keyosc.prefs not found; creating default file."
+        writeFile "keyosc.prefs" (show defaultAppSettings)
+      else do
+        prefs <- (readFile prefsfile)
+        nowgo ((read prefs) :: AppSettings)
+
+
+nowgo appsettings = 
+ do 
+  t <- openUDP (targetIP appsettings) (targetPort appsettings)
+  sensets <- makeSensorSets (adcSettings appsettings)
+  let sendftn msg = sendOSC t (Message msg [Int32 1])
+   in do
+    vals <- getsetvals sensets   -- get initial sensor values for baselines.
+    let blah = thressend sendftn drumlist (map snd vals)
+        print = mkniceprint (map snd vals)
+        multay = mkmulti [blah, print]
+     in              
+      repetay sensets multay [] 
+
+{-
+main = 
+  do        
     args <- getArgs
     if (length args) < 2
       then do
@@ -278,7 +376,7 @@ main =
               multay = mkmulti [blah, print]
            in              
             repetay sensets multay [] 
-
+-}
 
 {-
 main = 
