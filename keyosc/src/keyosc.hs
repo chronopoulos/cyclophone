@@ -280,10 +280,13 @@ nowgo appsettings =
   let sendftn msg = sendOSC t (Message msg [Int32 1])
    in do
     vals <- getsetvals sensets   -- get initial sensor values for baselines.
-    let blah = thressend sendftn drumlist (map snd vals)
-        print = mkniceprint (map snd vals)
-        multay = mkmulti [blah, print]
-     in              
-      repetay sensets multay [] 
+    if (printSensorsValues appsettings)
+      then let blah = thressend sendftn drumlist (map snd vals)
+               print = mkniceprint (map snd vals)
+               multay = mkmulti [blah, print]
+       in              
+        repetay sensets multay [] 
+      else 
+        repetay sensets (thressend sendftn drumlist (map snd vals)) [] 
 
 
