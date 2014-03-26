@@ -42,7 +42,8 @@ data AppSettings = AppSettings {
 data AdcSettings = AdcSettings { 
   adcs :: [Adc],
   spiSpeed :: CInt,
-  spiDelay :: Int
+  spiDelay :: Int,
+  keythreshold :: Int
   }
   deriving (Show, Read)
 
@@ -52,13 +53,13 @@ data Adc = Adc {
   }
   deriving (Show, Read)
 
- 
 defaultAppSettings = 
  AppSettings (AdcSettings 
                 [(Adc "/dev/spidev0.0" [2..13]),
                  (Adc "/dev/spidev0.1" [2..13])]
                 4000000
-                0)
+                0
+                (-25))
     True 
     True
     "127.0.0.1"
@@ -190,8 +191,6 @@ repetay sensets theftn onlist =
   onlist <- theftn newvals onlist
   repetay sensets theftn onlist
 
-thres = -50
-
 drumlist = ["/arduino/drums/tr909/0",
             "/arduino/drums/tr909/1",
             "/arduino/drums/tr909/2",
@@ -226,9 +225,9 @@ niceprint lst =
   niceprint (tail lst)
 
 -- makes a ftn which contains its own sendfun, msglist, and baselines.
-thressend :: (String -> IO ()) -> [String] -> [Int] -> ([(Int, Int)] -> [Int] -> IO [Int])
-thressend sendfun msglist baselines = (\newvals onlist ->
- let indexeson = map fst (filter (\(x,y) -> y < -50) (zip [0..] (zipWith (\(i,v) b -> v-b) newvals baselines)))
+thressend :: (String -> IO ()) -> Int -> [String] -> [Int] -> ([(Int, Int)] -> [Int] -> IO [Int])
+thressend sendfun thres msglist baselines = (\newvals onlist ->
+ let indexeson = map fst (filter (\(x,y) -> y < thres) (zip [0..] (zipWith (\(i,v) b -> v-b) newvals baselines)))
      sendlist = filter (\i -> not (elem i onlist)) indexeson
   in do
    sequence_ (map (\i -> sendfun (msglist !! i)) sendlist)
@@ -279,15 +278,16 @@ nowgo appsettings =
   t <- openUDP (targetIP appsettings) (targetPort appsettings)
   sensets <- makeSensorSets (adcSettings appsettings)
   let sendftn msg = sendOSC t (Message msg [Int32 1])
+      thres = (keythreshold (adcSettings appsettings)) 
    in do
     vals <- getsetvals sensets   -- get initial sensor values for baselines.
     if (printSensorsValues appsettings)
-      then let blah = thressend sendftn drumlist (map snd vals)
+      then let blah = thressend sendftn thres drumlist (map snd vals)
                print = mkniceprint (map snd vals)
                multay = mkmulti [blah, print]
        in              
         repetay sensets multay [] 
       else 
-        repetay sensets (thressend sendftn drumlist (map snd vals)) [] 
+        repetay sensets (thressend sendftn thres drumlist (map snd vals)) [] 
 
 
