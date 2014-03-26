@@ -1,16 +1,11 @@
 -- module Main where
 import System.Environment
--- import System.Posix.IOCtl
--- import System.Posix.IO
--- import GHC.IO.Device
 import Spidev
 import Text.Printf
 import Text.Show.Pretty
 import Sound.OSC.FD
 
 import qualified Data.ByteString.Char8 as S
--- import qualified Data.ByteString.Unsafe   as S
--- import qualified Data.ByteString.Internal as S
 
 import Data.Bits
 import Foreign.C.Types
@@ -23,10 +18,6 @@ import System.Directory
 -- bitsPerWord = 8;
 -- speed = 1000000;
 -- spifd = -1;
-
--- speed = 2000000
--- sensors = map setupcontrolword [2..13]
--- sensorcount = length sensors
 
 bitsperword = 8
 
@@ -66,6 +57,7 @@ defaultAppSettings =
     8000
 
 data Sensor = Sensor {
+  pin :: CUChar,
   fd :: CInt,
   controlword :: (CUChar, CUChar)
   }
@@ -95,9 +87,7 @@ makeAdcSensors adc speed =
     
 makeSensor :: CInt -> CUChar -> Sensor
 makeSensor sensorfd pin = 
-  (Sensor sensorfd (setupcontrolword pin))
-
-
+  (Sensor pin sensorfd (setupcontrolword pin))
 
 {-
     // --------------- set up the control word -------------
@@ -143,10 +133,6 @@ decodedata b1 b2 =
                  (shift (i2 .&. 0xFA) (-2))
   in (adcindex, adcvalue)
 
-
--- map setupcontrolword [2..12]
-
-  
 -- int spiWriteRead( int fd,
 --                   unsigned char *data,
 --                   int length,
@@ -243,6 +229,13 @@ mkniceprint baselines = (\newvals onlist ->
    return onlist
  )
 
+-- ftn that subtracts the baselines and prints.
+printsensors :: [Sensor] -> IO ()
+printsensors sensors = 
+ do
+  niceprint ((map (\x -> fromIntegral (fd x)) sensors) :: [Int])
+  niceprint ((map (\x -> fromIntegral (pin x)) sensors) :: [Int])
+
 -- ftn that calls multiple ftns.
 -- 'onlist' is updated by the first ftn, the rest are ignored.
 mkmulti :: [([(Int, Int)] -> [Int] -> IO [Int])] -> ([(Int, Int)] -> [Int] -> IO [Int])
@@ -271,12 +264,12 @@ main =
         prefs <- (readFile prefsfile)
         nowgo ((read prefs) :: AppSettings)
 
-
 nowgo appsettings = 
  do 
   putStrLn "keyosc v1.0"
   t <- openUDP (targetIP appsettings) (targetPort appsettings)
   sensets <- makeSensorSets (adcSettings appsettings)
+  printsensors (sensors sensets)
   let sendftn msg = sendOSC t (Message msg [Int32 1])
       thres = (keythreshold (adcSettings appsettings)) 
    in do
