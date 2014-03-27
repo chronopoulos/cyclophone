@@ -230,6 +230,14 @@ mkniceprint baselines = (\newvals onlist ->
  )
 
 -- ftn that subtracts the baselines and prints.
+printindexes :: [(Int, Int)] -> [Int] -> IO [Int]
+printindexes vals onlist = 
+ do 
+  niceprint (map fst vals)
+  return onlist
+ 
+
+-- ftn that subtracts the baselines and prints.
 printsensors :: [Sensor] -> IO ()
 printsensors sensors = 
  do
@@ -277,7 +285,7 @@ nowgo appsettings =
     if (printSensorsValues appsettings)
       then let blah = thressend sendftn thres drumlist (map snd vals)
                print = mkniceprint (map snd vals)
-               multay = mkmulti [blah, print]
+               multay = mkmulti [blah, printindexes, print]
        in              
         repetay sensets multay [] 
       else 
