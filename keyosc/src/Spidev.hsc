@@ -5,7 +5,6 @@ module Spidev where
 import Foreign
 import Foreign.C.Types
 import Foreign.C.String
-import System.Posix.IOCtl
 import System.Posix.IO
 import GHC.IO.Device
 

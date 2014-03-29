@@ -31,5 +31,7 @@ executable keyosc
                        unix,
                        bytestring,
                        directory,
-                       pretty-show
+                       pretty-show,
+                       time
   default-language:    Haskell2010
+  ghc-options:         -O
