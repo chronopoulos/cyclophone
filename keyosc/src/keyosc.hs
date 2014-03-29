@@ -13,6 +13,7 @@ import Foreign.C.String
 
 import Control.Concurrent
 import System.Directory
+import Data.Time.Clock
 
 -- mode = SPI_MODE_0 ;
 -- bitsPerWord = 8;
@@ -144,7 +145,7 @@ poll fd speed delay (b1,b2) =
  do 
   S.useAsCStringLen (S.pack [castCUCharToChar b1,castCUCharToChar b2]) 
    (\sendbytes -> do
-    threadDelay delay 
+    -- threadDelay delay 
     c_spiWriteRead fd (fst sendbytes) 2 bitsperword speed
     bs <- S.packCStringLen sendbytes
     return (decodedata (castCharToCUChar (S.index bs 0)) (castCharToCUChar (S.index bs 1)))
@@ -170,12 +171,21 @@ getval sensor speed delay =
 getsetvals :: SensorSets -> IO [(Int,Int)]
 getsetvals sensets = sequence (map (\s -> getval s (speed sensets) (delay sensets)) (sensors sensets)) 
 
-repetay :: SensorSets -> ([(Int,Int)] -> [Int] -> IO [Int]) -> [Int] -> IO ()
-repetay sensets theftn onlist =  
- do 
+repetay_count = 100
+
+repetay :: SensorSets -> ([(Int,Int)] -> [Int] -> IO [Int]) -> [Int] -> Int -> UTCTime -> IO ()
+repetay sensets theftn onlist count lasttime =  
+ do
   newvals <- (getsetvals sensets)
   onlist <- theftn newvals onlist
-  repetay sensets theftn onlist
+  if (count <= 0)
+    then do
+      now <- getCurrentTime
+      putStr "samples/sec: "
+      putStrLn (show ((fromIntegral repetay_count) / (realToFrac (diffUTCTime now lasttime))))
+      repetay sensets theftn onlist repetay_count now
+    else 
+      repetay sensets theftn onlist (count - 1) lasttime
 
 drumlist = ["/arduino/drums/tr909/0",
             "/arduino/drums/tr909/1",
@@ -235,7 +245,6 @@ printindexes vals onlist =
  do 
   niceprint (map fst vals)
   return onlist
- 
 
 -- ftn that subtracts the baselines and prints.
 printsensors :: [Sensor] -> IO ()
@@ -282,13 +291,16 @@ nowgo appsettings =
       thres = (keythreshold (adcSettings appsettings)) 
    in do
     vals <- getsetvals sensets   -- get initial sensor values for baselines.
+    now <- getCurrentTime
     if (printSensorsValues appsettings)
       then let blah = thressend sendftn thres drumlist (map snd vals)
                print = mkniceprint (map snd vals)
-               multay = mkmulti [blah, printindexes, print]
+               -- multay = mkmulti [blah, printindexes, print]
+               multay = mkmulti [blah, print]
        in              
-        repetay sensets multay [] 
+        repetay sensets multay [] repetay_count now 
       else 
-        repetay sensets (thressend sendftn thres drumlist (map snd vals)) [] 
+        repetay sensets (thressend sendftn thres drumlist (map snd vals)) [] repetay_count now
+
 
 
