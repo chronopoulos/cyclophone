@@ -162,8 +162,8 @@ int main(int argc, const char *args[])
 
   // lo_address pd = lo_address_new(NULL, "8000");
 
-  spidevice lSpi0("/dev/spidev0.0", SPI_MODE_0, 4000000, 8);
-  spidevice lSpi1("/dev/spidev0.1", SPI_MODE_0, 4000000, 8);
+  spidevice lSpi0("/dev/spidev0.0", SPI_MODE_0, 20000000, 8);
+  spidevice lSpi1("/dev/spidev0.1", SPI_MODE_0, 20000000, 8);
  
   IRSensor lIrsSpi0Sensors[] = 
     {
@@ -229,17 +229,34 @@ int main(int argc, const char *args[])
 
   cout << setw(4) << setfill('0');
 
+
+  clock_t l_last = clock();
+  int start = 1000;
+
   while (true)
   {
-    UpdateSensors(lSpi0, lUi0Count, lIrsSpi0Sensors, lIrsSpi0ByPin);
-    UpdateSensors(lSpi1, lUi1Count, lIrsSpi1Sensors, lIrsSpi1ByPin);
+    for (int count = start; count > 0; --count)
+    {
+      UpdateSensors(lSpi0, lUi0Count, lIrsSpi0Sensors, lIrsSpi0ByPin);
+      UpdateSensors(lSpi1, lUi1Count, lIrsSpi1Sensors, lIrsSpi1ByPin);
+    }
 
-    printDiffs(lUi0Count, lIrsSpi0Sensors);
-    printDiffs(lUi1Count, lIrsSpi1Sensors);
+    clock_t l_now = clock();
+
+    double lD = start;
+    lD /= l_now - l_last; 
+    lD *= CLOCKS_PER_SEC;
+
+    l_last = l_now;
+
+    cout << "framerate for: " << start << ": " << lD << endl;
+
+    // printDiffs(lUi0Count, lIrsSpi0Sensors);
+    // printDiffs(lUi1Count, lIrsSpi1Sensors);
 
     cout << endl;
 
-    sleep(0.03);
+    // sleep(0.03);
   }
 
   return 0;

@@ -171,7 +171,7 @@ getval sensor speed delay =
 getsetvals :: SensorSets -> IO [(Int,Int)]
 getsetvals sensets = sequence (map (\s -> getval s (speed sensets) (delay sensets)) (sensors sensets)) 
 
-repetay_count = 100
+repetay_count = 1000
 
 repetay :: SensorSets -> ([(Int,Int)] -> [Int] -> IO [Int]) -> [Int] -> Int -> UTCTime -> IO ()
 repetay sensets theftn onlist count lasttime =  
