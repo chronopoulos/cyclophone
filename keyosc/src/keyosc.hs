@@ -14,6 +14,7 @@ import Foreign.C.String
 import Control.Concurrent
 import System.Directory
 import Data.Time.Clock
+import Data.List
 
 -- mode = SPI_MODE_0 ;
 -- bitsPerWord = 8;
@@ -171,12 +172,39 @@ getval sensor speed delay =
 getsetvals :: SensorSets -> IO [(Int,Int)]
 getsetvals sensets = sequence (map (\s -> getval s (speed sensets) (delay sensets)) (sensors sensets)) 
 
+{- a purely functional implementation of if-then-else -}
+if' :: Bool -> a -> a -> a
+if' True  x _ = x
+if' False _ y = y
+
+getsvmulti :: SensorSets -> Int -> IO [[(Int,Int)]]
+getsvmulti sensets count =
+ if' (count < 0) (return []) $
+ if' (count == 0) (do 
+    vals <- getsetvals sensets 
+    return $ (map (\a -> [a]) vals)) $
+  do 
+    vals <- getsetvals sensets 
+    moarvals <- getsvmulti sensets (count - 1)
+    return $ vals : moarvals 
+
+-- not-really-median.  
+-- for a real median you average the two middle elts in the case
+-- of an even length.  
+meadian :: (Ord a) => [a] -> a
+meadian (a:b) = (sort (a:b)) !! (quot (length (a:b)) 2)
+
+meadvals :: [[(Int,Int)]] -> [Int]
+meadvals lst = 
+  map meadian $ sort $ transpose (map (\l -> map (\(i,v) -> v) l) lst)
+
+
 repetay_count = 1000
 
 repetay :: SensorSets -> ([(Int,Int)] -> [Int] -> IO [Int]) -> [Int] -> Int -> UTCTime -> IO ()
 repetay sensets theftn onlist count lasttime =  
  do
-  newvals <- (getsetvals sensets)
+  newvals <- getsetvals sensets
   onlist <- theftn newvals onlist
   if (count <= 0)
     then do
@@ -186,6 +214,9 @@ repetay sensets theftn onlist count lasttime =
       repetay sensets theftn onlist repetay_count now
     else 
       repetay sensets theftn onlist (count - 1) lasttime
+
+
+
 
 drumlist = ["/arduino/drums/tr909/0",
             "/arduino/drums/tr909/1",
@@ -290,17 +321,19 @@ nowgo appsettings =
   let sendftn msg = sendOSC t (Message msg [Int32 1])
       thres = (keythreshold (adcSettings appsettings)) 
    in do
-    vals <- getsetvals sensets   -- get initial sensor values for baselines.
+    vals <- getsvmulti sensets 20  -- get initial sensor values for baselines.
     now <- getCurrentTime
-    if (printSensorsValues appsettings)
-      then let blah = thressend sendftn thres drumlist (map snd vals)
-               print = mkniceprint (map snd vals)
+    let medvals = meadvals vals 
+     in 
+     if (printSensorsValues appsettings)
+      then let blah = thressend sendftn thres drumlist medvals
+               print = mkniceprint medvals 
                -- multay = mkmulti [blah, printindexes, print]
                multay = mkmulti [blah, print]
        in              
         repetay sensets multay [] repetay_count now 
       else 
-        repetay sensets (thressend sendftn thres drumlist (map snd vals)) [] repetay_count now
+        repetay sensets (thressend sendftn thres drumlist medvals) [] repetay_count now
 
 
 
