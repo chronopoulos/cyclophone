@@ -75,8 +75,8 @@ data SensorSets = SensorSets {
 -- makeSensorSets :: AdcSettings -> IO SensorSets
 makeSensorSets adcSettings = 
   do
-    blah <- sequence (map (\adc -> makeAdcSensors adc (spiSpeed adcSettings)) 
-                 (adcs adcSettings))
+    blah <- mapM (\adc -> makeAdcSensors adc (spiSpeed adcSettings)) 
+                 (adcs adcSettings)
     let sensors = concat blah
      in 
      return (SensorSets sensors (spiSpeed adcSettings) (spiDelay adcSettings))
@@ -177,15 +177,13 @@ if' :: Bool -> a -> a -> a
 if' True  x _ = x
 if' False _ y = y
 
-getsvmulti :: SensorSets -> Int -> IO [[(Int,Int)]]
-getsvmulti sensets count =
- if' (count < 0) (return []) $
- if' (count == 0) (do 
-    vals <- getsetvals sensets 
-    return $ (map (\a -> [a]) vals)) $
+getsvmulti :: SensorSets -> Int -> Int -> IO [[(Int,Int)]]
+getsvmulti sensets count delay =
+ if' (count <= 0) (return []) $
   do 
-    vals <- getsetvals sensets 
-    moarvals <- getsvmulti sensets (count - 1)
+    vals <- getsetvals sensets
+    threadDelay delay
+    moarvals <- getsvmulti sensets (count - 1) delay
     return $ vals : moarvals 
 
 -- not-really-median.  
@@ -196,8 +194,7 @@ meadian (a:b) = (sort (a:b)) !! (quot (length (a:b)) 2)
 
 meadvals :: [[(Int,Int)]] -> [Int]
 meadvals lst = 
-  map meadian $ sort $ transpose (map (\l -> map (\(i,v) -> v) l) lst)
-
+  map meadian $ transpose (map (\l -> map (\(i,v) -> v) l) lst)
 
 repetay_count = 1000
 
@@ -214,9 +211,6 @@ repetay sensets theftn onlist count lasttime =
       repetay sensets theftn onlist repetay_count now
     else 
       repetay sensets theftn onlist (count - 1) lasttime
-
-
-
 
 drumlist = ["/arduino/drums/tr909/0",
             "/arduino/drums/tr909/1",
@@ -270,7 +264,12 @@ mkniceprint baselines = (\newvals onlist ->
    return onlist
  )
 
--- ftn that subtracts the baselines and prints.
+printvalues :: [(Int, Int)] -> [Int] -> IO [Int]
+printvalues vals onlist = 
+ do 
+  niceprint (map snd vals)
+  return onlist
+
 printindexes :: [(Int, Int)] -> [Int] -> IO [Int]
 printindexes vals onlist = 
  do 
@@ -318,22 +317,28 @@ nowgo appsettings =
   t <- openUDP (targetIP appsettings) (targetPort appsettings)
   sensets <- makeSensorSets (adcSettings appsettings)
   printsensors (sensors sensets)
-  let sendftn msg = sendOSC t (Message msg [Int32 1])
+  -- let sendftn msg = sendOSC t (Message msg [Int32 1])
+  let sendftn msg = putStrLn msg 
       thres = (keythreshold (adcSettings appsettings)) 
    in do
-    vals <- getsvmulti sensets 20  -- get initial sensor values for baselines.
+    -- get initial sensor values for baselines.
+    vals <- getsvmulti sensets 20 (spiDelay (adcSettings appsettings))
+    mapM niceprint (map (\vs -> (map (\(i,v) -> v) vs)) vals)
     now <- getCurrentTime
+    -- let medvals = map snd $ head vals
     let medvals = meadvals vals 
      in 
      if (printSensorsValues appsettings)
       then let blah = thressend sendftn thres drumlist medvals
                print = mkniceprint medvals 
+               multay = mkmulti [blah, printvalues, print]
                -- multay = mkmulti [blah, printindexes, print]
-               multay = mkmulti [blah, print]
-       in              
+               -- multay = mkmulti [blah, print]
+       in do            
+        putStrLn (show vals)
+        niceprint medvals
+        niceprint (map snd (head vals))
         repetay sensets multay [] repetay_count now 
       else 
         repetay sensets (thressend sendftn thres drumlist medvals) [] repetay_count now
-
-
 
