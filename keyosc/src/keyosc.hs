@@ -27,7 +27,7 @@ data AppSettings = AppSettings {
   adcSettings :: AdcSettings,
   printSensorsValues :: Bool,
   diffFormat :: Bool,
-  sendOSC :: Bool,
+  sendKeyMsgs :: Bool,
   printKeyMsgs :: Bool,
   targetIP :: String,
   targetPort :: Int
@@ -56,6 +56,8 @@ defaultAppSettings =
                 0
                 (-25))
     True 
+    True
+    True
     True
     "127.0.0.1"
     8000
@@ -314,7 +316,7 @@ main =
         nowgo ((read prefs) :: AppSettings)
 
 makeSendFtn appsettings sendftn printftn = 
- case ((printKeyMsgs appsettings), (sendOSC appsettings)) of
+ case ((printKeyMsgs appsettings), (sendKeyMsgs appsettings)) of
   (True,True) -> (\msg -> do {sendftn msg; printftn msg})
   (True,False) -> printftn
   (False,True) -> sendftn
