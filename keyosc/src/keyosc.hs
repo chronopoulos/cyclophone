@@ -344,9 +344,9 @@ nowgo appsettings =
      if (printSensorsValues appsettings)
       then let blah = thressend sendftn thres drumlist medvals
                print = mkniceprint medvals 
-               multay = mkmulti [blah, printvalues, print]
+               -- multay = mkmulti [blah, printvalues, print]
                -- multay = mkmulti [blah, printindexes, print]
-               -- multay = mkmulti [blah, print]
+               multay = mkmulti [blah, print]
        in do            
         -- putStrLn (show vals)
         -- niceprint medvals
