@@ -27,6 +27,8 @@ data AppSettings = AppSettings {
   adcSettings :: AdcSettings,
   printSensorsValues :: Bool,
   diffFormat :: Bool,
+  sendOSC :: Bool,
+  printKeyMsgs :: Bool,
   targetIP :: String,
   targetPort :: Int
   }
@@ -311,14 +313,23 @@ main =
         prefs <- (readFile prefsfile)
         nowgo ((read prefs) :: AppSettings)
 
+makeSendFtn appsettings sendftn printftn = 
+ case ((printKeyMsgs appsettings), (sendOSC appsettings)) of
+  (True,True) -> (\msg -> do {sendftn msg; printftn msg})
+  (True,False) -> printftn
+  (False,True) -> sendftn
+  (False,False) -> (\msg -> return ())
+
+
 nowgo appsettings = 
  do 
   putStrLn "keyosc v1.0"
   t <- openUDP (targetIP appsettings) (targetPort appsettings)
   sensets <- makeSensorSets (adcSettings appsettings)
   printsensors (sensors sensets)
-  -- let sendftn msg = sendOSC t (Message msg [Int32 1])
-  let sendftn msg = putStrLn msg 
+  let sendo msg = sendOSC t (Message msg [Int32 1])
+      printo msg = putStrLn msg 
+      sendftn = makeSendFtn appsettings sendo printo
       thres = (keythreshold (adcSettings appsettings)) 
    in do
     -- get initial sensor values for baselines.
@@ -335,9 +346,9 @@ nowgo appsettings =
                -- multay = mkmulti [blah, printindexes, print]
                -- multay = mkmulti [blah, print]
        in do            
-        putStrLn (show vals)
-        niceprint medvals
-        niceprint (map snd (head vals))
+        -- putStrLn (show vals)
+        -- niceprint medvals
+        -- niceprint (map snd (head vals))
         repetay sensets multay [] repetay_count now 
       else 
         repetay sensets (thressend sendftn thres drumlist medvals) [] repetay_count now
