@@ -44,14 +44,15 @@ data AdcSettings = AdcSettings {
 
 data Adc = Adc {
   devname :: String,
-  inputPins :: [CUChar]
+  inputPins :: [CUChar],
+  ignorePins :: [CUChar]
   }
   deriving (Show, Read)
 
 defaultAppSettings = 
  AppSettings (AdcSettings 
-                [(Adc "/dev/spidev0.0" [2..13]),
-                 (Adc "/dev/spidev0.1" [2..13])]
+                [(Adc "/dev/spidev0.0" [2..13] []),
+                 (Adc "/dev/spidev0.1" [2..13] [])]
                 4000000
                 0
                 (-25))
@@ -65,6 +66,7 @@ defaultAppSettings =
 data Sensor = Sensor {
   pin :: CUChar,
   fd :: CInt,
+  ignore :: Bool,
   controlword :: (CUChar, CUChar)
   }
   deriving (Show)
@@ -89,11 +91,12 @@ makeAdcSensors :: Adc -> CInt -> IO [Sensor]
 makeAdcSensors adc speed = 
   do
     sensorfd <- spiOpen (devname adc) 0 bitsperword speed
-    return (map (\i -> makeSensor sensorfd i) (inputPins adc))
+    return (map (\(index,ignore) -> makeSensor sensorfd index ignore) 
+                (zip (inputPins adc) (map (\i -> elem i (ignorePins adc)) (inputPins adc))))
     
-makeSensor :: CInt -> CUChar -> Sensor
-makeSensor sensorfd pin = 
-  (Sensor pin sensorfd (setupcontrolword pin))
+makeSensor :: CInt -> CUChar -> Bool -> Sensor
+makeSensor sensorfd pin ignore = 
+  (Sensor pin sensorfd ignore (setupcontrolword pin))
 
 {-
     // --------------- set up the control word -------------
@@ -250,10 +253,10 @@ niceprint lst =
   niceprint (tail lst)
 
 -- makes a ftn which contains its own sendfun, msglist, and baselines.
-thressend :: (String -> IO ()) -> Int -> [String] -> [Int] -> ([(Int, Int)] -> [Int] -> IO [Int])
-thressend sendfun thres msglist baselines = (\newvals onlist ->
+thressend :: (String -> IO ()) -> Int -> [String] -> [Int] -> [Int] -> ([(Int, Int)] -> [Int] -> IO [Int])
+thressend sendfun thres msglist ignorelist baselines = (\newvals onlist ->
  let indexeson = map fst (filter (\(x,y) -> y < thres) (zip [0..] (zipWith (\(i,v) b -> v-b) newvals baselines)))
-     sendlist = filter (\i -> not (elem i onlist)) indexeson
+     sendlist = filter (\i -> (not (elem i onlist)) && (not (elem i ignorelist))) indexeson
   in do
    sequence_ (map (\i -> sendfun (msglist !! i)) sendlist)
    return (sendlist ++ (filter (\i -> (elem i indexeson)) onlist))
@@ -322,6 +325,8 @@ makeSendFtn appsettings sendftn printftn =
   (False,True) -> sendftn
   (False,False) -> (\msg -> return ())
 
+calcignorelist sensors = 
+ map snd $ filter (\(s,i) -> ignore s) (zip sensors [0..])
 
 nowgo appsettings = 
  do 
@@ -332,7 +337,8 @@ nowgo appsettings =
   let sendo msg = sendOSC t (Message msg [Int32 1])
       printo msg = putStrLn msg 
       sendftn = makeSendFtn appsettings sendo printo
-      thres = (keythreshold (adcSettings appsettings)) 
+      thres = (keythreshold (adcSettings appsettings))
+      ignorelist = (calcignorelist (sensors sensets)) 
    in do
     -- get initial sensor values for baselines.
     vals <- getsvmulti sensets 20 (spiDelay (adcSettings appsettings))
@@ -342,7 +348,7 @@ nowgo appsettings =
     let medvals = meadvals vals 
      in 
      if (printSensorsValues appsettings)
-      then let blah = thressend sendftn thres drumlist medvals
+      then let blah = thressend sendftn thres drumlist ignorelist medvals
                print = mkniceprint medvals 
                -- multay = mkmulti [blah, printvalues, print]
                -- multay = mkmulti [blah, printindexes, print]
@@ -353,5 +359,5 @@ nowgo appsettings =
         -- niceprint (map snd (head vals))
         repetay sensets multay [] repetay_count now 
       else 
-        repetay sensets (thressend sendftn thres drumlist medvals) [] repetay_count now
+        repetay sensets (thressend sendftn thres drumlist ignorelist medvals) [] repetay_count now
 
