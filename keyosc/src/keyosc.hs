@@ -23,9 +23,6 @@ import Data.List
 
 bitsperword = 8
 
-------------------------------------------------------------
--- settings data types.  
-------------------------------------------------------------
 data AppSettings = AppSettings {
   adcSettings :: AdcSettings,
   printSensorsValues :: Bool,
@@ -66,19 +63,16 @@ defaultAppSettings =
     "127.0.0.1"
     8000
 
-------------------------------------------------------------
--- runtime data types for sensors.  build using settings. 
-------------------------------------------------------------
-
-data SensorAdc = SensorAdc {
+data Sensor = Sensor {
+  pin :: CUChar,
   fd :: CInt,
-  adcWord :: S.ByteString,
-  pins :: [CUChar]
+  ignore :: Bool,
+  controlword :: (CUChar, CUChar)
   }
   deriving (Show)
 
 data SensorSets = SensorSets {
-  sensorAdcs :: [SensorAdc],
+  sensors :: [Sensor],
   speed :: CInt,
   delay :: Int
   }
@@ -87,22 +81,22 @@ data SensorSets = SensorSets {
 -- makeSensorSets :: AdcSettings -> IO SensorSets
 makeSensorSets adcSettings = 
   do
-    adcs <- mapM (\adc -> makeSensorAdc adc (spiSpeed adcSettings)) 
+    blah <- mapM (\adc -> makeAdcSensors adc (spiSpeed adcSettings)) 
                  (adcs adcSettings)
-    return (SensorSets adcs (spiSpeed adcSettings) (spiDelay adcSettings))
+    let sensors = concat blah
+     in 
+     return (SensorSets sensors (spiSpeed adcSettings) (spiDelay adcSettings))
  
-makeSensorAdc :: Adc -> CInt -> IO SensorAdc
-makeSensorAdc adc speed = 
+makeAdcSensors :: Adc -> CInt -> IO [Sensor]
+makeAdcSensors adc speed = 
   do
     sensorfd <- spiOpen (devname adc) 0 bitsperword speed
-    return $ SensorAdc sensorfd (makeBigWord adc) (inputPins adc)
- 
--- makeSensorAdc :: CInt -> S.ByteString -> SensorAdc
--- makeSensorAdc fd adcword = SensorAdc fd adcword
-
--- makeSensor :: CInt -> CUChar -> Bool -> Sensor
--- makeSensor sensorfd pin ignore = 
---   (Sensor pin sensorfd ignore (setupcontrolword pin))
+    return (map (\(index,ignore) -> makeSensor sensorfd index ignore) 
+                (zip (inputPins adc) (map (\i -> elem i (ignorePins adc)) (inputPins adc))))
+    
+makeSensor :: CInt -> CUChar -> Bool -> Sensor
+makeSensor sensorfd pin ignore = 
+  (Sensor pin sensorfd ignore (setupcontrolword pin))
 
 {-
     // --------------- set up the control word -------------
@@ -165,29 +159,6 @@ poll fd speed delay (b1,b2) =
     return (decodedata (castCharToCUChar (S.index bs 0)) (castCharToCUChar (S.index bs 1)))
     )
 
-grupe count list = grupel count list (length list)
-
-grupel count list len =
- if (len < count)
-  then if (len == 0)
-    then []
-    else [list]
-  else (take count list) : (grupel count (drop count list) (len - count))
-
-pollall :: CInt -> CInt -> S.ByteString -> IO [(Int,Int)]
-pollall fd speed bigword = 
- do 
-  S.useAsCStringLen bigword 
-   (\sendbytes -> do
-    c_spiWriteRead fd (fst sendbytes) (fromIntegral (S.length bigword)) bitsperword speed
-    bs <- S.packCStringLen sendbytes
-    return (map (\i -> (decodedata (castCharToCUChar (S.index bs i)) (castCharToCUChar (S.index bs (i + 1)))))
-                [0,2..(S.length bigword)])
-    )
-
-polladc s_adc speed = 
- pollall (fd s_adc) speed (adcWord s_adc) 
-  
 printsensorval :: Show a => IO (a1, a) -> IO ()
 printsensorval x = 
  do 
@@ -201,32 +172,12 @@ spiOpen devname mode bitsperword speed =
   (\bdevname -> do
     c_spiOpen bdevname mode bitsperword speed)
 
--- getval :: Sensor -> CInt -> Int -> IO (Int,Int)
--- getval sensor speed delay = 
---  poll (fd sensor) speed delay (controlword sensor) 
+getval :: Sensor -> CInt -> Int -> IO (Int,Int)
+getval sensor speed delay = 
+ poll (fd sensor) speed delay (controlword sensor) 
 
 getsetvals :: SensorSets -> IO [(Int,Int)]
-getsetvals sensets = 
- do 
-  vals <- sequence (map (\s -> polladc s (speed sensets)) (sensorAdcs sensets)) 
-  return $ concat vals
-
---getsetvals :: SensorSets -> IO [(Int,Int)]
---getsetvals sensets = sequence (map (\s -> getval s (speed sensets) (delay sensets)) (sensors sensets)) 
-
--- instead of individual calls to c_spiWriteRead, put all the calls into one long word.
--- use one bigword per Adc.
-
-makeBigWord :: Adc -> S.ByteString
-makeBigWord adc = 
- let cws = (map setupcontrolword (inputPins adc)) ++ [setupcontrolword (head (inputPins adc))]
-  in S.concat (map (\(b1,b2) -> S.pack([castCUCharToChar b1,castCUCharToChar b2])) cws)
-
-{-
-getsvmw :: SensorSets -> IO [(Int,Int)]
-let bigword = (concat (map ( [castCUCharToChar b1,castCUCharToChar b2])
-getsvmw sensets = sequence (map (\s -> getval s (speed sensets) (delay sensets)) (sensors sensets)) 
--}
+getsetvals sensets = sequence (map (\s -> getval s (speed sensets) (delay sensets)) (sensors sensets)) 
 
 {- a purely functional implementation of if-then-else -}
 if' :: Bool -> a -> a -> a
@@ -302,10 +253,10 @@ niceprint lst =
   niceprint (tail lst)
 
 -- makes a ftn which contains its own sendfun, msglist, and baselines.
-thressend :: (String -> IO ()) -> Int -> [String] -> [Int] -> ([(Int, Int)] -> [Int] -> IO [Int])
-thressend sendfun thres msglist baselines = (\newvals onlist ->
+thressend :: (String -> IO ()) -> Int -> [String] -> [Int] -> [Int] -> ([(Int, Int)] -> [Int] -> IO [Int])
+thressend sendfun thres msglist ignorelist baselines = (\newvals onlist ->
  let indexeson = map fst (filter (\(x,y) -> y < thres) (zip [0..] (zipWith (\(i,v) b -> v-b) newvals baselines)))
-     sendlist = filter (\i -> (not (elem i onlist))) indexeson
+     sendlist = filter (\i -> (not (elem i onlist)) && (not (elem i ignorelist))) indexeson
   in do
    sequence_ (map (\i -> sendfun (msglist !! i)) sendlist)
    return (sendlist ++ (filter (\i -> (elem i indexeson)) onlist))
@@ -333,13 +284,11 @@ printindexes vals onlist =
   return onlist
 
 -- ftn that subtracts the baselines and prints.
-{-
 printsensors :: [Sensor] -> IO ()
 printsensors sensors = 
  do
   niceprint ((map (\x -> fromIntegral (fd x)) sensors) :: [Int])
   niceprint ((map (\x -> fromIntegral (pin x)) sensors) :: [Int])
--}
 
 -- ftn that calls multiple ftns.
 -- 'onlist' is updated by the first ftn, the rest are ignored.
@@ -376,20 +325,20 @@ makeSendFtn appsettings sendftn printftn =
   (False,True) -> sendftn
   (False,False) -> (\msg -> return ())
 
--- calcignorelist sensors = 
---  map snd $ filter (\(s,i) -> ignore s) (zip sensors [0..])
+calcignorelist sensors = 
+ map snd $ filter (\(s,i) -> ignore s) (zip sensors [0..])
 
 nowgo appsettings = 
  do 
   putStrLn "keyosc v1.0"
   t <- openUDP (targetIP appsettings) (targetPort appsettings)
   sensets <- makeSensorSets (adcSettings appsettings)
-  -- printsensors (sensors sensets)
+  printsensors (sensors sensets)
   let sendo msg = sendOSC t (Message msg [Int32 1])
       printo msg = putStrLn msg 
       sendftn = makeSendFtn appsettings sendo printo
       thres = (keythreshold (adcSettings appsettings))
-      -- ignorelist = (calcignorelist (sensors sensets)) 
+      ignorelist = (calcignorelist (sensors sensets)) 
    in do
     -- get initial sensor values for baselines.
     vals <- getsvmulti sensets 20 (spiDelay (adcSettings appsettings))
@@ -399,7 +348,7 @@ nowgo appsettings =
     let medvals = meadvals vals 
      in 
      if (printSensorsValues appsettings)
-      then let blah = thressend sendftn thres drumlist medvals
+      then let blah = thressend sendftn thres drumlist ignorelist medvals
                print = mkniceprint medvals 
                -- multay = mkmulti [blah, printvalues, print]
                -- multay = mkmulti [blah, printindexes, print]
@@ -410,5 +359,5 @@ nowgo appsettings =
         -- niceprint (map snd (head vals))
         repetay sensets multay [] repetay_count now 
       else 
-        repetay sensets (thressend sendftn thres drumlist medvals) [] repetay_count now
+        repetay sensets (thressend sendftn thres drumlist ignorelist medvals) [] repetay_count now
 
