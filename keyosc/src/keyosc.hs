@@ -182,7 +182,7 @@ pollall fd speed bigword =
     c_spiWriteRead fd (fst sendbytes) (fromIntegral (S.length bigword)) bitsperword speed
     bs <- S.packCStringLen sendbytes
     return (map (\i -> (decodedata (castCharToCUChar (S.index bs i)) (castCharToCUChar (S.index bs (i + 1)))))
-                [0,2..((S.length bigword) - 1)])
+                [0,2..(S.length bigword)])
     )
 
 polladc s_adc speed = 
@@ -403,7 +403,7 @@ nowgo appsettings =
                print = mkniceprint medvals 
                -- multay = mkmulti [blah, printvalues, print]
                -- multay = mkmulti [blah, printindexes, print]
-               multay = mkmulti [printvalues]
+               multay = mkmulti [blah, print]
        in do            
         -- putStrLn (show vals)
         -- niceprint medvals
