@@ -1,9 +1,66 @@
 ----------------------------------------------
 
+calibration.
+
+1) key assignment.  
+2) key range.  
+
+then, can scale key readings according to range, into a 0->1 float or something.
+
+procedure:
+
+press each key in sequence, to full range.
+
+range update procedure?  live range determination?
+
+----------------------------------------------
+
+key press algorithms.
+
+velocity threshold
+ - calc instantaneous velocity.  if over thres, then key press.
+
+key position threshold, with velocity.
+ - if key thres exceeded, calc velocity and send.
+
+multi point velocity??
+ - linear regression?
+
+continuous position updating.
+
+continuous updates, over threshold.
+
+----------------------------------------------
+
+ncurses app for mode changes and so forth
+
+----------------------------------------------
+
+try running with 2nd pi.
+
+HLint
+
+NICTA course.  rec'd by simple energy guy.
+
+----------------------------------------------
+
+rearchitect things?
+ok kind of tending to an architecture with:
+  - list of ftns.
+  - ftns can modify state.
+  - state:
+    - onlist
+    - list of ftns.
+    - ???
+    - other stuff needed for other ftns?
+
+----------------------------------------------
+completed
+----------------------------------------------
+
 Ok basically want to duplicate the SPI stuff in spidevice.cpp, .h. 
 
 already is an ioctl lib.
-
 
 basic functionality is 
  - open device (devname, mode, speed, bitsperword)
@@ -17,4 +74,29 @@ one option: make an spidevice lib and use that.
 
 could make the C interface very simple and specific to ads7957.  maybe a good place to start!
 
+improve performance!
+ - precomputing control words?
+ - not printing sensor vals helps a lot.
+
+
+test printindex ftn showing 
+
 ----------------------------------------------
+
+problem with baseline values for first sensor
+ - actually is sensor 12?
+ - also similar issue with first of second group of sensors.
+basically problem is different value for median gathering than for regular
+acquisition.
+ - is it a timing problem, data rate is different for regular vs not?
+
+one thing to try: put a 'baseline' ftn into the regular ftn list.  
+ when its done, remove it from the list.  
+  - problems: 
+    - how to know when its done?
+
+problem 'solved' - basically have to put a delay after each read, so its similar 
+to the normal read.  10000 microseconds did the trick.
+
+----------------------------------------------
+
