@@ -1,0 +1,137 @@
+EESchema Schematic File Version 2
+LIBS:power
+LIBS:device
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:special
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:cyclophone
+LIBS:cyclosensor-opamp-cache
+EELAYER 27 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date "2 apr 2014"
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L RJ14 J?
+U 1 1 532FB864
+P 8150 1550
+F 0 "J?" H 8350 2050 60  0000 C CNN
+F 1 "RJ14" H 8000 2050 60  0000 C CNN
+F 2 "~" H 8150 1550 60  0000 C CNN
+F 3 "~" H 8150 1550 60  0000 C CNN
+	1    8150 1550
+	1    0    0    -1  
+$EndComp
+$Comp
+L TCRT5000 U?
+U 1 1 532FB873
+P 8150 4950
+F 0 "U?" H 8150 4400 60  0000 C CNN
+F 1 "TCRT5000" H 8150 5400 60  0000 C CNN
+F 2 "~" H 8150 4950 60  0000 C CNN
+F 3 "~" H 8150 4950 60  0000 C CNN
+	1    8150 4950
+	1    0    0    -1  
+$EndComp
+$Comp
+L POT RV?
+U 1 1 533B80C0
+P 6350 3750
+F 0 "RV?" H 6350 3650 50  0000 C CNN
+F 1 "POT" H 6350 3750 50  0000 C CNN
+F 2 "~" H 6350 3750 60  0000 C CNN
+F 3 "~" H 6350 3750 60  0000 C CNN
+	1    6350 3750
+	1    0    0    -1  
+$EndComp
+$Comp
+L POT RV?
+U 1 1 533B80CF
+P 6350 4350
+F 0 "RV?" H 6350 4250 50  0000 C CNN
+F 1 "POT" H 6350 4350 50  0000 C CNN
+F 2 "~" H 6350 4350 60  0000 C CNN
+F 3 "~" H 6350 4350 60  0000 C CNN
+	1    6350 4350
+	1    0    0    -1  
+$EndComp
+Text GLabel 8150 2250 3    60   Input ~ 0
+5V
+Text GLabel 8000 2250 3    60   Input ~ 0
+ADC
+$Comp
+L GND #PWR?
+U 1 1 533B827E
+P 8500 2300
+F 0 "#PWR?" H 8500 2300 30  0001 C CNN
+F 1 "GND" H 8500 2230 30  0001 C CNN
+F 2 "" H 8500 2300 60  0000 C CNN
+F 3 "" H 8500 2300 60  0000 C CNN
+	1    8500 2300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8350 2000 8350 2150
+Wire Wire Line
+	8350 2150 8500 2150
+Wire Wire Line
+	8500 2150 8500 2300
+Text GLabel 7150 2750 1    60   Input ~ 0
+5V
+$Comp
+L GND #PWR?
+U 1 1 533B8353
+P 7150 3750
+F 0 "#PWR?" H 7150 3750 30  0001 C CNN
+F 1 "GND" H 7150 3680 30  0001 C CNN
+F 2 "" H 7150 3750 60  0000 C CNN
+F 3 "" H 7150 3750 60  0000 C CNN
+	1    7150 3750
+	1    0    0    -1  
+$EndComp
+$Comp
+L LM358 U?
+U 1 1 533B83FF
+P 5650 3000
+F 0 "U?" H 5600 3200 60  0000 L CNN
+F 1 "LM358" H 5600 2750 60  0000 L CNN
+F 2 "" H 5650 3000 60  0000 C CNN
+F 3 "" H 5650 3000 60  0000 C CNN
+	1    5650 3000
+	1    0    0    -1  
+$EndComp
+$EndSCHEMATC

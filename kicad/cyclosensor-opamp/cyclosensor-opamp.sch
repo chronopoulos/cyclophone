@@ -1,0 +1,311 @@
+EESchema Schematic File Version 2
+LIBS:power
+LIBS:device
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:special
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:cyclophone
+LIBS:cyclosensor-opamp-cache
+EELAYER 27 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date "2 apr 2014"
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L RJ14 J1
+U 1 1 532FB864
+P 8150 1550
+F 0 "J1" H 8350 2050 60  0000 C CNN
+F 1 "RJ14" H 8000 2050 60  0000 C CNN
+F 2 "~" H 8150 1550 60  0000 C CNN
+F 3 "~" H 8150 1550 60  0000 C CNN
+	1    8150 1550
+	1    0    0    -1  
+$EndComp
+$Comp
+L TCRT5000 U2
+U 1 1 532FB873
+P 8300 3650
+F 0 "U2" H 8300 3100 60  0000 C CNN
+F 1 "TCRT5000" H 8300 4100 60  0000 C CNN
+F 2 "~" H 8300 3650 60  0000 C CNN
+F 3 "~" H 8300 3650 60  0000 C CNN
+	1    8300 3650
+	1    0    0    -1  
+$EndComp
+$Comp
+L POT RV1
+U 1 1 533B80C0
+P 5650 4900
+F 0 "RV1" H 5650 4800 50  0000 C CNN
+F 1 "POT" H 5650 4900 50  0000 C CNN
+F 2 "~" H 5650 4900 60  0000 C CNN
+F 3 "~" H 5650 4900 60  0000 C CNN
+	1    5650 4900
+	1    0    0    -1  
+$EndComp
+$Comp
+L POT RV2
+U 1 1 533B80CF
+P 6600 5000
+F 0 "RV2" H 6600 4900 50  0000 C CNN
+F 1 "POT" H 6600 5000 50  0000 C CNN
+F 2 "~" H 6600 5000 60  0000 C CNN
+F 3 "~" H 6600 5000 60  0000 C CNN
+	1    6600 5000
+	1    0    0    -1  
+$EndComp
+Text GLabel 8200 2300 3    60   Input ~ 0
+5V
+Text GLabel 8050 2300 3    60   Input ~ 0
+ADC
+$Comp
+L GND #PWR01
+U 1 1 533B827E
+P 8500 2300
+F 0 "#PWR01" H 8500 2300 30  0001 C CNN
+F 1 "GND" H 8500 2230 30  0001 C CNN
+F 2 "" H 8500 2300 60  0000 C CNN
+F 3 "" H 8500 2300 60  0000 C CNN
+	1    8500 2300
+	1    0    0    -1  
+$EndComp
+Text GLabel 6150 2450 1    60   Input ~ 0
+5V
+$Comp
+L GND #PWR02
+U 1 1 533B8353
+P 6150 3450
+F 0 "#PWR02" H 6150 3450 30  0001 C CNN
+F 1 "GND" H 6150 3380 30  0001 C CNN
+F 2 "" H 6150 3450 60  0000 C CNN
+F 3 "" H 6150 3450 60  0000 C CNN
+	1    6150 3450
+	1    0    0    -1  
+$EndComp
+$Comp
+L LM358 U1
+U 1 1 533B83FF
+P 6250 2950
+F 0 "U1" H 6200 3150 60  0000 L CNN
+F 1 "LM358" H 6200 2700 60  0000 L CNN
+F 2 "" H 6250 2950 60  0000 C CNN
+F 3 "" H 6250 2950 60  0000 C CNN
+	1    6250 2950
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R2
+U 1 1 533B9B03
+P 5250 2850
+F 0 "R2" V 5330 2850 40  0000 C CNN
+F 1 "1K" V 5257 2851 40  0000 C CNN
+F 2 "~" V 5180 2850 30  0000 C CNN
+F 3 "~" H 5250 2850 30  0000 C CNN
+	1    5250 2850
+	0    1    1    0   
+$EndComp
+Text GLabel 6950 2950 2    60   Input ~ 0
+ADC
+$Comp
+L R R3
+U 1 1 533B9B66
+P 5650 3400
+F 0 "R3" V 5730 3400 40  0000 C CNN
+F 1 "1K" V 5657 3401 40  0000 C CNN
+F 2 "~" V 5580 3400 30  0000 C CNN
+F 3 "~" H 5650 3400 30  0000 C CNN
+	1    5650 3400
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R1
+U 1 1 533B9B87
+P 4900 3250
+F 0 "R1" V 4980 3250 40  0000 C CNN
+F 1 "1K" V 4907 3251 40  0000 C CNN
+F 2 "~" V 4830 3250 30  0000 C CNN
+F 3 "~" H 4900 3250 30  0000 C CNN
+	1    4900 3250
+	1    0    0    -1  
+$EndComp
+Text GLabel 7000 2100 2    60   Input ~ 0
+5V
+Text GLabel 8900 3600 2    60   Input ~ 0
+5V
+$Comp
+L GND #PWR03
+U 1 1 533B9C11
+P 4900 3650
+F 0 "#PWR03" H 4900 3650 30  0001 C CNN
+F 1 "GND" H 4900 3580 30  0001 C CNN
+F 2 "" H 4900 3650 60  0000 C CNN
+F 3 "" H 4900 3650 60  0000 C CNN
+	1    4900 3650
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR04
+U 1 1 533B9C20
+P 5650 3800
+F 0 "#PWR04" H 5650 3800 30  0001 C CNN
+F 1 "GND" H 5650 3730 30  0001 C CNN
+F 2 "" H 5650 3800 60  0000 C CNN
+F 3 "" H 5650 3800 60  0000 C CNN
+	1    5650 3800
+	1    0    0    -1  
+$EndComp
+Text GLabel 7700 3500 0    60   Input ~ 0
+X
+Text GLabel 4800 2850 0    60   Input ~ 0
+X
+Text GLabel 7300 3750 0    60   Input ~ 0
+5V
+$Comp
+L GND #PWR05
+U 1 1 533B9F2F
+P 8900 3950
+F 0 "#PWR05" H 8900 3950 30  0001 C CNN
+F 1 "GND" H 8900 3880 30  0001 C CNN
+F 2 "" H 8900 3950 60  0000 C CNN
+F 3 "" H 8900 3950 60  0000 C CNN
+	1    8900 3950
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R5
+U 1 1 533B9FB6
+P 7550 3750
+F 0 "R5" V 7630 3750 40  0000 C CNN
+F 1 "R" V 7557 3751 40  0000 C CNN
+F 2 "~" V 7480 3750 30  0000 C CNN
+F 3 "~" H 7550 3750 30  0000 C CNN
+	1    7550 3750
+	0    1    1    0   
+$EndComp
+NoConn ~ 7950 2000
+NoConn ~ 8450 2000
+NoConn ~ 8250 2000
+Wire Wire Line
+	8350 2000 8350 2150
+Wire Wire Line
+	8350 2150 8500 2150
+Wire Wire Line
+	5750 1950 5750 2850
+Wire Wire Line
+	5750 2850 5500 2850
+Wire Wire Line
+	4800 2850 5000 2850
+Wire Wire Line
+	4900 2850 4900 3000
+Connection ~ 4900 2850
+Wire Wire Line
+	7700 3500 7800 3500
+Wire Wire Line
+	8900 3600 8800 3600
+Wire Wire Line
+	6750 2950 6950 2950
+Wire Wire Line
+	5300 3050 5750 3050
+Wire Wire Line
+	5650 3050 5650 3150
+Wire Wire Line
+	5650 3650 5650 3800
+Wire Wire Line
+	4900 3500 4900 3650
+Wire Wire Line
+	6750 2950 6750 2100
+Connection ~ 6750 2100
+Wire Wire Line
+	6150 2450 6150 2550
+Wire Wire Line
+	8150 2000 8150 2200
+Wire Wire Line
+	8150 2200 8200 2200
+Wire Wire Line
+	8200 2200 8200 2300
+Wire Wire Line
+	8050 2000 8050 2300
+Wire Wire Line
+	8800 3850 8900 3850
+Wire Wire Line
+	8900 3850 8900 3950
+$Comp
+L POT GAIN1
+U 1 1 533BA0C7
+P 6150 1950
+F 0 "GAIN1" H 6150 1850 50  0000 C CNN
+F 1 "1M" H 6150 1950 50  0000 C CNN
+F 2 "~" H 6150 1950 60  0000 C CNN
+F 3 "~" H 6150 1950 60  0000 C CNN
+	1    6150 1950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5750 1950 5900 1950
+Wire Wire Line
+	6150 1800 6500 1800
+Wire Wire Line
+	6500 1800 6500 2100
+Connection ~ 6500 2100
+NoConn ~ 6400 1950
+Wire Wire Line
+	6500 2100 7000 2100
+$Comp
+L POT OFFSET1
+U 1 1 533BA12C
+P 5300 3400
+F 0 "OFFSET1" H 5300 3300 50  0000 C CNN
+F 1 "20K" H 5300 3400 50  0000 C CNN
+F 2 "~" H 5300 3400 60  0000 C CNN
+F 3 "~" H 5300 3400 60  0000 C CNN
+	1    5300 3400
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	5300 3050 5300 3150
+Connection ~ 5650 3050
+Text GLabel 5450 3700 3    60   Input ~ 0
+5V
+Wire Wire Line
+	5450 3400 5450 3700
+NoConn ~ 5300 3650
+Wire Wire Line
+	6150 3350 6150 3450
+Wire Wire Line
+	8500 2150 8500 2300
+$EndSCHEMATC

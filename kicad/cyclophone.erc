@@ -1,0 +1,16 @@
+ERC report (Wed 12 Mar 2014 12:43:26 PM MDT)
+
+***** Sheet /
+ErrType(3): Pin connected to some others pins but no pin to drive it
+    @ (3.0000 ",3.4500 "): Pin 7 (input) of component ADS-0 is not driven (Net 63).
+ErrType(3): Pin connected to some others pins but no pin to drive it
+    @ (6.9000 ",3.4500 "): Pin 7 (input) of component ADS-1 is not driven (Net 59).
+ErrType(5): Conflict problem between pins. Severity: error
+    @ (4.8000 ",3.2500 "): Pin 34 (output) of component ADS-0 is connected to 
+    @ (8.7000 ",3.2500 "): pin 34 (output) of component ADS-1 (net 23).
+ErrType(2): Pin not connected (and no connect symbol found on this pin)
+    @ (11.8000 ",3.2500 "): Pin 4 (passive) of component Raspberry1 is unconnected.
+ErrType(2): Pin not connected (and no connect symbol found on this pin)
+    @ (11.8000 ",3.1500 "): Pin 2 (passive) of component Raspberry1 is unconnected.
+
+ >> Errors ERC: 0

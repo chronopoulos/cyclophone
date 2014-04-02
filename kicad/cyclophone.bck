@@ -1,0 +1,8 @@
+EESchema-DOCLIB  Version 2.0  Date: Sun 23 Mar 2014 10:13:36 PM MDT
+#
+$CMP ADS7957
+D Texas Instruments ADS7957
+K ADC
+$ENDCMP
+#
+#End Doc Library

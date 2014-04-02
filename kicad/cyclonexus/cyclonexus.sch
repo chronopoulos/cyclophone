@@ -1,0 +1,797 @@
+EESchema Schematic File Version 2
+LIBS:power
+LIBS:device
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:special
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:cyclophone-cache
+LIBS:cyclonexus-cache
+EELAYER 27 0
+EELAYER END
+$Descr USLedger 17000 11000
+encoding utf-8
+Sheet 1 1
+Title ""
+Date "31 mar 2014"
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L ADCLEFTPINS U1
+U 1 1 5327640A
+P 6800 4450
+F 0 "U1" H 6750 2950 60  0000 C CNN
+F 1 "ADCLEFTPINS" H 6800 5450 60  0000 C CNN
+F 2 "" H 6800 4450 60  0001 C CNN
+F 3 "" H 6800 4450 60  0001 C CNN
+	1    6800 4450
+	0    1    1    0   
+$EndComp
+$Comp
+L RJ14 J1
+U 1 1 532FA6C6
+P 1050 1500
+F 0 "J1" H 1250 2000 60  0000 C CNN
+F 1 "RJ14" H 900 2000 60  0000 C CNN
+F 2 "" H 1050 1500 60  0000 C CNN
+F 3 "" H 1050 1500 60  0000 C CNN
+	1    1050 1500
+	1    0    0    -1  
+$EndComp
+$Comp
+L USB_1 J17
+U 1 1 532FA7D3
+P 11750 4050
+F 0 "J17" H 11600 4450 60  0000 C CNN
+F 1 "USB_1" H 11725 3450 60  0001 C CNN
+F 2 "" H 11750 4050 60  0000 C CNN
+F 3 "" H 11750 4050 60  0000 C CNN
+	1    11750 4050
+	1    0    0    -1  
+$EndComp
+Text GLabel 1000 2250 3    60   Input ~ 0
+A0
+Text GLabel 850  2150 3    60   Input ~ 0
+LED+5V
+Text GLabel 1300 2150 3    60   Input ~ 0
+LEDGND
+Text GLabel 1150 2250 3    60   Input ~ 0
+GND
+NoConn ~ 1350 1950
+NoConn ~ 850  1950
+$Comp
+L RJ14 J2
+U 1 1 532FAA82
+P 1750 1500
+F 0 "J2" H 1950 2000 60  0000 C CNN
+F 1 "RJ14" H 1600 2000 60  0000 C CNN
+F 2 "" H 1750 1500 60  0000 C CNN
+F 3 "" H 1750 1500 60  0000 C CNN
+	1    1750 1500
+	1    0    0    -1  
+$EndComp
+Text GLabel 1700 2250 3    60   Input ~ 0
+A1
+Text GLabel 1550 2150 3    60   Input ~ 0
+LED+5V
+Text GLabel 2000 2150 3    60   Input ~ 0
+LEDGND
+Text GLabel 1850 2250 3    60   Input ~ 0
+GND
+NoConn ~ 2050 1950
+NoConn ~ 1550 1950
+$Comp
+L RJ14 J3
+U 1 1 532FAA98
+P 2450 1500
+F 0 "J3" H 2650 2000 60  0000 C CNN
+F 1 "RJ14" H 2300 2000 60  0000 C CNN
+F 2 "" H 2450 1500 60  0000 C CNN
+F 3 "" H 2450 1500 60  0000 C CNN
+	1    2450 1500
+	1    0    0    -1  
+$EndComp
+Text GLabel 2400 2250 3    60   Input ~ 0
+A2
+Text GLabel 2250 2150 3    60   Input ~ 0
+LED+5V
+Text GLabel 2700 2150 3    60   Input ~ 0
+LEDGND
+Text GLabel 2550 2250 3    60   Input ~ 0
+GND
+NoConn ~ 2750 1950
+NoConn ~ 2250 1950
+$Comp
+L RJ14 J4
+U 1 1 532FAAAE
+P 3150 1500
+F 0 "J4" H 3350 2000 60  0000 C CNN
+F 1 "RJ14" H 3000 2000 60  0000 C CNN
+F 2 "" H 3150 1500 60  0000 C CNN
+F 3 "" H 3150 1500 60  0000 C CNN
+	1    3150 1500
+	1    0    0    -1  
+$EndComp
+Text GLabel 3100 2250 3    60   Input ~ 0
+A3
+Text GLabel 2950 2150 3    60   Input ~ 0
+LED+5V
+Text GLabel 3400 2150 3    60   Input ~ 0
+LEDGND
+Text GLabel 3250 2250 3    60   Input ~ 0
+GND
+NoConn ~ 3450 1950
+NoConn ~ 2950 1950
+$Comp
+L RJ14 J5
+U 1 1 532FAB1C
+P 3850 1500
+F 0 "J5" H 4050 2000 60  0000 C CNN
+F 1 "RJ14" H 3700 2000 60  0000 C CNN
+F 2 "" H 3850 1500 60  0000 C CNN
+F 3 "" H 3850 1500 60  0000 C CNN
+	1    3850 1500
+	1    0    0    -1  
+$EndComp
+Text GLabel 3800 2250 3    60   Input ~ 0
+A4
+Text GLabel 3650 2150 3    60   Input ~ 0
+LED+5V
+Text GLabel 4100 2150 3    60   Input ~ 0
+LEDGND
+Text GLabel 3950 2250 3    60   Input ~ 0
+GND
+NoConn ~ 4150 1950
+NoConn ~ 3650 1950
+$Comp
+L RJ14 J6
+U 1 1 532FAB32
+P 4550 1500
+F 0 "J6" H 4750 2000 60  0000 C CNN
+F 1 "RJ14" H 4400 2000 60  0000 C CNN
+F 2 "" H 4550 1500 60  0000 C CNN
+F 3 "" H 4550 1500 60  0000 C CNN
+	1    4550 1500
+	1    0    0    -1  
+$EndComp
+Text GLabel 4500 2250 3    60   Input ~ 0
+A5
+Text GLabel 4350 2150 3    60   Input ~ 0
+LED+5V
+Text GLabel 4800 2150 3    60   Input ~ 0
+LEDGND
+Text GLabel 4650 2250 3    60   Input ~ 0
+GND
+NoConn ~ 4850 1950
+NoConn ~ 4350 1950
+$Comp
+L RJ14 J7
+U 1 1 532FAB48
+P 5250 1500
+F 0 "J7" H 5450 2000 60  0000 C CNN
+F 1 "RJ14" H 5100 2000 60  0000 C CNN
+F 2 "" H 5250 1500 60  0000 C CNN
+F 3 "" H 5250 1500 60  0000 C CNN
+	1    5250 1500
+	1    0    0    -1  
+$EndComp
+Text GLabel 5200 2250 3    60   Input ~ 0
+A6
+Text GLabel 5050 2150 3    60   Input ~ 0
+LED+5V
+Text GLabel 5500 2150 3    60   Input ~ 0
+LEDGND
+Text GLabel 5350 2250 3    60   Input ~ 0
+GND
+NoConn ~ 5550 1950
+NoConn ~ 5050 1950
+$Comp
+L RJ14 J8
+U 1 1 532FAB5E
+P 5950 1500
+F 0 "J8" H 6150 2000 60  0000 C CNN
+F 1 "RJ14" H 5800 2000 60  0000 C CNN
+F 2 "" H 5950 1500 60  0000 C CNN
+F 3 "" H 5950 1500 60  0000 C CNN
+	1    5950 1500
+	1    0    0    -1  
+$EndComp
+Text GLabel 5900 2250 3    60   Input ~ 0
+A7
+Text GLabel 5750 2150 3    60   Input ~ 0
+LED+5V
+Text GLabel 6200 2150 3    60   Input ~ 0
+LEDGND
+Text GLabel 6050 2250 3    60   Input ~ 0
+GND
+NoConn ~ 6250 1950
+NoConn ~ 5750 1950
+$Comp
+L RJ14 J9
+U 1 1 532FAB74
+P 6650 1500
+F 0 "J9" H 6850 2000 60  0000 C CNN
+F 1 "RJ14" H 6500 2000 60  0000 C CNN
+F 2 "" H 6650 1500 60  0000 C CNN
+F 3 "" H 6650 1500 60  0000 C CNN
+	1    6650 1500
+	1    0    0    -1  
+$EndComp
+Text GLabel 6600 2250 3    60   Input ~ 0
+A8
+Text GLabel 6450 2150 3    60   Input ~ 0
+LED+5V
+Text GLabel 6900 2150 3    60   Input ~ 0
+LEDGND
+Text GLabel 6750 2250 3    60   Input ~ 0
+GND
+NoConn ~ 6950 1950
+NoConn ~ 6450 1950
+$Comp
+L RJ14 J10
+U 1 1 532FAB8A
+P 7350 1500
+F 0 "J10" H 7550 2000 60  0000 C CNN
+F 1 "RJ14" H 7200 2000 60  0000 C CNN
+F 2 "" H 7350 1500 60  0000 C CNN
+F 3 "" H 7350 1500 60  0000 C CNN
+	1    7350 1500
+	1    0    0    -1  
+$EndComp
+Text GLabel 7300 2250 3    60   Input ~ 0
+A9
+Text GLabel 7150 2150 3    60   Input ~ 0
+LED+5V
+Text GLabel 7600 2150 3    60   Input ~ 0
+LEDGND
+Text GLabel 7450 2250 3    60   Input ~ 0
+GND
+NoConn ~ 7650 1950
+NoConn ~ 7150 1950
+$Comp
+L RJ14 J11
+U 1 1 532FABA0
+P 8050 1500
+F 0 "J11" H 8250 2000 60  0000 C CNN
+F 1 "RJ14" H 7900 2000 60  0000 C CNN
+F 2 "" H 8050 1500 60  0000 C CNN
+F 3 "" H 8050 1500 60  0000 C CNN
+	1    8050 1500
+	1    0    0    -1  
+$EndComp
+Text GLabel 8000 2250 3    60   Input ~ 0
+A10
+Text GLabel 7850 2150 3    60   Input ~ 0
+LED+5V
+Text GLabel 8300 2150 3    60   Input ~ 0
+LEDGND
+Text GLabel 8150 2250 3    60   Input ~ 0
+GND
+NoConn ~ 8350 1950
+NoConn ~ 7850 1950
+$Comp
+L RJ14 J12
+U 1 1 532FABB6
+P 8750 1500
+F 0 "J12" H 8950 2000 60  0000 C CNN
+F 1 "RJ14" H 8600 2000 60  0000 C CNN
+F 2 "" H 8750 1500 60  0000 C CNN
+F 3 "" H 8750 1500 60  0000 C CNN
+	1    8750 1500
+	1    0    0    -1  
+$EndComp
+Text GLabel 8700 2250 3    60   Input ~ 0
+A11
+Text GLabel 8550 2150 3    60   Input ~ 0
+LED+5V
+Text GLabel 9000 2150 3    60   Input ~ 0
+LEDGND
+Text GLabel 8850 2250 3    60   Input ~ 0
+GND
+NoConn ~ 9050 1950
+NoConn ~ 8550 1950
+$Comp
+L RJ14 J13
+U 1 1 532FABCC
+P 9450 1500
+F 0 "J13" H 9650 2000 60  0000 C CNN
+F 1 "RJ14" H 9300 2000 60  0000 C CNN
+F 2 "" H 9450 1500 60  0000 C CNN
+F 3 "" H 9450 1500 60  0000 C CNN
+	1    9450 1500
+	1    0    0    -1  
+$EndComp
+Text GLabel 9400 2250 3    60   Input ~ 0
+A12
+Text GLabel 9250 2150 3    60   Input ~ 0
+LED+5V
+Text GLabel 9700 2150 3    60   Input ~ 0
+LEDGND
+Text GLabel 9550 2250 3    60   Input ~ 0
+GND
+NoConn ~ 9750 1950
+NoConn ~ 9250 1950
+$Comp
+L RJ14 J14
+U 1 1 532FABE2
+P 10150 1500
+F 0 "J14" H 10350 2000 60  0000 C CNN
+F 1 "RJ14" H 10000 2000 60  0000 C CNN
+F 2 "" H 10150 1500 60  0000 C CNN
+F 3 "" H 10150 1500 60  0000 C CNN
+	1    10150 1500
+	1    0    0    -1  
+$EndComp
+Text GLabel 10100 2250 3    60   Input ~ 0
+A13
+Text GLabel 9950 2150 3    60   Input ~ 0
+LED+5V
+Text GLabel 10400 2150 3    60   Input ~ 0
+LEDGND
+Text GLabel 10250 2250 3    60   Input ~ 0
+GND
+NoConn ~ 10450 1950
+NoConn ~ 9950 1950
+$Comp
+L RJ14 J15
+U 1 1 532FABF8
+P 10850 1500
+F 0 "J15" H 11050 2000 60  0000 C CNN
+F 1 "RJ14" H 10700 2000 60  0000 C CNN
+F 2 "" H 10850 1500 60  0000 C CNN
+F 3 "" H 10850 1500 60  0000 C CNN
+	1    10850 1500
+	1    0    0    -1  
+$EndComp
+Text GLabel 10800 2250 3    60   Input ~ 0
+A14
+Text GLabel 10650 2150 3    60   Input ~ 0
+LED+5V
+Text GLabel 11100 2150 3    60   Input ~ 0
+LEDGND
+Text GLabel 10950 2250 3    60   Input ~ 0
+GND
+NoConn ~ 11150 1950
+NoConn ~ 10650 1950
+$Comp
+L RJ14 J16
+U 1 1 532FAC0E
+P 11550 1500
+F 0 "J16" H 11750 2000 60  0000 C CNN
+F 1 "RJ14" H 11400 2000 60  0000 C CNN
+F 2 "" H 11550 1500 60  0000 C CNN
+F 3 "" H 11550 1500 60  0000 C CNN
+	1    11550 1500
+	1    0    0    -1  
+$EndComp
+Text GLabel 11500 2250 3    60   Input ~ 0
+A15
+Text GLabel 11350 2150 3    60   Input ~ 0
+LED+5V
+Text GLabel 11800 2150 3    60   Input ~ 0
+LEDGND
+Text GLabel 11650 2250 3    60   Input ~ 0
+GND
+NoConn ~ 11850 1950
+NoConn ~ 11350 1950
+Text GLabel 7200 4000 1    60   Input ~ 0
+A0
+Text GLabel 7100 4000 1    60   Input ~ 0
+A1
+Text GLabel 7000 4000 1    60   Input ~ 0
+A2
+Text GLabel 6900 4000 1    60   Input ~ 0
+A3
+Text GLabel 6800 4000 1    60   Input ~ 0
+A4
+Text GLabel 6700 4000 1    60   Input ~ 0
+A5
+Text GLabel 6600 4000 1    60   Input ~ 0
+A6
+Text GLabel 6500 4000 1    60   Input ~ 0
+A7
+Text GLabel 6400 4000 1    47   Input ~ 0
+A8
+Text GLabel 6300 4000 1    47   Input ~ 0
+A9
+Text GLabel 6200 4000 1    47   Input ~ 0
+A10
+Text GLabel 6100 4000 1    47   Input ~ 0
+A11
+Text GLabel 6000 4000 1    47   Input ~ 0
+A12
+Text GLabel 5900 4000 1    47   Input ~ 0
+A13
+Text GLabel 5800 4000 1    47   Input ~ 0
+A14
+Text GLabel 5700 4000 1    47   Input ~ 0
+A15
+Text GLabel 5500 4000 1    47   Input ~ 0
+GND
+Text GLabel 11100 4400 0    60   Input ~ 0
+LEDGND
+NoConn ~ 12100 4250
+NoConn ~ 12100 4400
+NoConn ~ 12100 4500
+NoConn ~ 11350 4500
+Text GLabel 11100 4250 0    60   Input ~ 0
+LED+5V
+Wire Wire Line
+	850  2150 850  2050
+Wire Wire Line
+	850  2050 950  2050
+Wire Wire Line
+	950  2050 950  1950
+Wire Wire Line
+	1150 2250 1150 1950
+Wire Wire Line
+	1000 2250 1000 2100
+Wire Wire Line
+	1000 2100 1050 2100
+Wire Wire Line
+	1050 2100 1050 1950
+Wire Wire Line
+	1300 2150 1300 2050
+Wire Wire Line
+	1300 2050 1250 2050
+Wire Wire Line
+	1250 2050 1250 1950
+Wire Wire Line
+	1550 2150 1550 2050
+Wire Wire Line
+	1550 2050 1650 2050
+Wire Wire Line
+	1650 2050 1650 1950
+Wire Wire Line
+	1850 2250 1850 1950
+Wire Wire Line
+	1700 2250 1700 2100
+Wire Wire Line
+	1700 2100 1750 2100
+Wire Wire Line
+	1750 2100 1750 1950
+Wire Wire Line
+	2000 2150 2000 2050
+Wire Wire Line
+	2000 2050 1950 2050
+Wire Wire Line
+	1950 2050 1950 1950
+Wire Wire Line
+	2250 2150 2250 2050
+Wire Wire Line
+	2250 2050 2350 2050
+Wire Wire Line
+	2350 2050 2350 1950
+Wire Wire Line
+	2550 2250 2550 1950
+Wire Wire Line
+	2400 2250 2400 2100
+Wire Wire Line
+	2400 2100 2450 2100
+Wire Wire Line
+	2450 2100 2450 1950
+Wire Wire Line
+	2700 2150 2700 2050
+Wire Wire Line
+	2700 2050 2650 2050
+Wire Wire Line
+	2650 2050 2650 1950
+Wire Wire Line
+	2950 2150 2950 2050
+Wire Wire Line
+	2950 2050 3050 2050
+Wire Wire Line
+	3050 2050 3050 1950
+Wire Wire Line
+	3250 2250 3250 1950
+Wire Wire Line
+	3100 2250 3100 2100
+Wire Wire Line
+	3100 2100 3150 2100
+Wire Wire Line
+	3150 2100 3150 1950
+Wire Wire Line
+	3400 2150 3400 2050
+Wire Wire Line
+	3400 2050 3350 2050
+Wire Wire Line
+	3350 2050 3350 1950
+Wire Wire Line
+	3650 2150 3650 2050
+Wire Wire Line
+	3650 2050 3750 2050
+Wire Wire Line
+	3750 2050 3750 1950
+Wire Wire Line
+	3950 2250 3950 1950
+Wire Wire Line
+	3800 2250 3800 2100
+Wire Wire Line
+	3800 2100 3850 2100
+Wire Wire Line
+	3850 2100 3850 1950
+Wire Wire Line
+	4100 2150 4100 2050
+Wire Wire Line
+	4100 2050 4050 2050
+Wire Wire Line
+	4050 2050 4050 1950
+Wire Wire Line
+	4350 2150 4350 2050
+Wire Wire Line
+	4350 2050 4450 2050
+Wire Wire Line
+	4450 2050 4450 1950
+Wire Wire Line
+	4650 2250 4650 1950
+Wire Wire Line
+	4500 2250 4500 2100
+Wire Wire Line
+	4500 2100 4550 2100
+Wire Wire Line
+	4550 2100 4550 1950
+Wire Wire Line
+	4800 2150 4800 2050
+Wire Wire Line
+	4800 2050 4750 2050
+Wire Wire Line
+	4750 2050 4750 1950
+Wire Wire Line
+	5050 2150 5050 2050
+Wire Wire Line
+	5050 2050 5150 2050
+Wire Wire Line
+	5150 2050 5150 1950
+Wire Wire Line
+	5350 2250 5350 1950
+Wire Wire Line
+	5200 2250 5200 2100
+Wire Wire Line
+	5200 2100 5250 2100
+Wire Wire Line
+	5250 2100 5250 1950
+Wire Wire Line
+	5500 2150 5500 2050
+Wire Wire Line
+	5500 2050 5450 2050
+Wire Wire Line
+	5450 2050 5450 1950
+Wire Wire Line
+	5750 2150 5750 2050
+Wire Wire Line
+	5750 2050 5850 2050
+Wire Wire Line
+	5850 2050 5850 1950
+Wire Wire Line
+	6050 2250 6050 1950
+Wire Wire Line
+	5900 2250 5900 2100
+Wire Wire Line
+	5900 2100 5950 2100
+Wire Wire Line
+	5950 2100 5950 1950
+Wire Wire Line
+	6200 2150 6200 2050
+Wire Wire Line
+	6200 2050 6150 2050
+Wire Wire Line
+	6150 2050 6150 1950
+Wire Wire Line
+	6450 2150 6450 2050
+Wire Wire Line
+	6450 2050 6550 2050
+Wire Wire Line
+	6550 2050 6550 1950
+Wire Wire Line
+	6750 2250 6750 1950
+Wire Wire Line
+	6600 2250 6600 2100
+Wire Wire Line
+	6600 2100 6650 2100
+Wire Wire Line
+	6650 2100 6650 1950
+Wire Wire Line
+	6900 2150 6900 2050
+Wire Wire Line
+	6900 2050 6850 2050
+Wire Wire Line
+	6850 2050 6850 1950
+Wire Wire Line
+	7150 2150 7150 2050
+Wire Wire Line
+	7150 2050 7250 2050
+Wire Wire Line
+	7250 2050 7250 1950
+Wire Wire Line
+	7450 2250 7450 1950
+Wire Wire Line
+	7300 2250 7300 2100
+Wire Wire Line
+	7300 2100 7350 2100
+Wire Wire Line
+	7350 2100 7350 1950
+Wire Wire Line
+	7600 2150 7600 2050
+Wire Wire Line
+	7600 2050 7550 2050
+Wire Wire Line
+	7550 2050 7550 1950
+Wire Wire Line
+	7850 2150 7850 2050
+Wire Wire Line
+	7850 2050 7950 2050
+Wire Wire Line
+	7950 2050 7950 1950
+Wire Wire Line
+	8150 2250 8150 1950
+Wire Wire Line
+	8000 2250 8000 2100
+Wire Wire Line
+	8000 2100 8050 2100
+Wire Wire Line
+	8050 2100 8050 1950
+Wire Wire Line
+	8300 2150 8300 2050
+Wire Wire Line
+	8300 2050 8250 2050
+Wire Wire Line
+	8250 2050 8250 1950
+Wire Wire Line
+	8550 2150 8550 2050
+Wire Wire Line
+	8550 2050 8650 2050
+Wire Wire Line
+	8650 2050 8650 1950
+Wire Wire Line
+	8850 2250 8850 1950
+Wire Wire Line
+	8700 2250 8700 2100
+Wire Wire Line
+	8700 2100 8750 2100
+Wire Wire Line
+	8750 2100 8750 1950
+Wire Wire Line
+	9000 2150 9000 2050
+Wire Wire Line
+	9000 2050 8950 2050
+Wire Wire Line
+	8950 2050 8950 1950
+Wire Wire Line
+	9250 2150 9250 2050
+Wire Wire Line
+	9250 2050 9350 2050
+Wire Wire Line
+	9350 2050 9350 1950
+Wire Wire Line
+	9550 2250 9550 1950
+Wire Wire Line
+	9400 2250 9400 2100
+Wire Wire Line
+	9400 2100 9450 2100
+Wire Wire Line
+	9450 2100 9450 1950
+Wire Wire Line
+	9700 2150 9700 2050
+Wire Wire Line
+	9700 2050 9650 2050
+Wire Wire Line
+	9650 2050 9650 1950
+Wire Wire Line
+	9950 2150 9950 2050
+Wire Wire Line
+	9950 2050 10050 2050
+Wire Wire Line
+	10050 2050 10050 1950
+Wire Wire Line
+	10250 2250 10250 1950
+Wire Wire Line
+	10100 2250 10100 2100
+Wire Wire Line
+	10100 2100 10150 2100
+Wire Wire Line
+	10150 2100 10150 1950
+Wire Wire Line
+	10400 2150 10400 2050
+Wire Wire Line
+	10400 2050 10350 2050
+Wire Wire Line
+	10350 2050 10350 1950
+Wire Wire Line
+	10650 2150 10650 2050
+Wire Wire Line
+	10650 2050 10750 2050
+Wire Wire Line
+	10750 2050 10750 1950
+Wire Wire Line
+	10950 2250 10950 1950
+Wire Wire Line
+	10800 2250 10800 2100
+Wire Wire Line
+	10800 2100 10850 2100
+Wire Wire Line
+	10850 2100 10850 1950
+Wire Wire Line
+	11100 2150 11100 2050
+Wire Wire Line
+	11100 2050 11050 2050
+Wire Wire Line
+	11050 2050 11050 1950
+Wire Wire Line
+	11350 2150 11350 2050
+Wire Wire Line
+	11350 2050 11450 2050
+Wire Wire Line
+	11450 2050 11450 1950
+Wire Wire Line
+	11650 2250 11650 1950
+Wire Wire Line
+	11500 2250 11500 2100
+Wire Wire Line
+	11500 2100 11550 2100
+Wire Wire Line
+	11550 2100 11550 1950
+Wire Wire Line
+	11800 2150 11800 2050
+Wire Wire Line
+	11800 2050 11750 2050
+Wire Wire Line
+	11750 2050 11750 1950
+Wire Wire Line
+	11100 4250 11350 4250
+Wire Wire Line
+	11350 4400 11100 4400
+Text GLabel 11100 5100 0    60   Input ~ 0
+LEDGND
+Text GLabel 11100 4900 0    60   Input ~ 0
+LED+5V
+$Comp
+L CONN_2 P1
+U 1 1 532FAFB6
+P 11850 5000
+F 0 "P1" V 11800 5000 40  0000 C CNN
+F 1 "CONN_2" V 11900 5000 40  0000 C CNN
+F 2 "" H 11850 5000 60  0000 C CNN
+F 3 "" H 11850 5000 60  0000 C CNN
+	1    11850 5000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	11500 5100 11100 5100
+Wire Wire Line
+	11500 4900 11100 4900
+NoConn ~ 7300 4000
+NoConn ~ 7400 4000
+NoConn ~ 7500 4000
+NoConn ~ 7600 4000
+Text Notes 5650 3550 0    60   ~ 0
+AREF needed here?  
+$EndSCHEMATC
