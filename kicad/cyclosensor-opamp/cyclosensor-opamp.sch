@@ -37,7 +37,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "5 apr 2014"
+Date "6 apr 2014"
 Rev ""
 Comp ""
 Comment1 ""
@@ -286,4 +286,10 @@ Wire Wire Line
 NoConn ~ 7100 3500
 Wire Wire Line
 	6800 3800 6800 3500
+Text Notes 6200 4200 0    60   ~ 0
+Ok to have 5V without 'pair' here?  
+Text Notes 3200 5550 0    60   ~ 0
+offset from which side?  zero or 5v/1024?
+Text Notes 4100 3150 0    60   ~ 0
+1M ok for tuning, not too sensitive?
 $EndSCHEMATC

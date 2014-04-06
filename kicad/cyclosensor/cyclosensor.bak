@@ -1,4 +1,34 @@
 EESchema Schematic File Version 2
+LIBS:power
+LIBS:device
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:special
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
 LIBS:cyclophone
 LIBS:cyclosensor-cache
 EELAYER 27 0
@@ -7,7 +37,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "31 mar 2014"
+Date "6 apr 2014"
 Rev ""
 Comp ""
 Comment1 ""
@@ -16,84 +46,34 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L RJ14 J?
+L RJ14 J1
 U 1 1 532FB492
-P 4800 3150
-F 0 "J?" H 5000 3650 60  0000 C CNN
-F 1 "RJ14" H 4650 3650 60  0000 C CNN
-F 2 "~" H 4800 3150 60  0000 C CNN
-F 3 "~" H 4800 3150 60  0000 C CNN
-	1    4800 3150
+P 4800 2950
+F 0 "J1" H 5000 3450 60  0000 C CNN
+F 1 "RJ14" H 4650 3450 60  0000 C CNN
+F 2 "~" H 4800 2950 60  0000 C CNN
+F 3 "~" H 4800 2950 60  0000 C CNN
+	1    4800 2950
 	1    0    0    -1  
 $EndComp
 $Comp
-L TCRT5000 U?
+L TCRT5000 U1
 U 1 1 532FB498
-P 4850 4950
-F 0 "U?" H 4850 4400 60  0000 C CNN
-F 1 "TCRT5000" H 4850 5400 60  0000 C CNN
-F 2 "" H 4850 4950 60  0000 C CNN
-F 3 "" H 4850 4950 60  0000 C CNN
-	1    4850 4950
+P 4850 5350
+F 0 "U1" H 4850 4800 60  0000 C CNN
+F 1 "TCRT5000" H 4850 5800 60  0000 C CNN
+F 2 "" H 4850 5350 60  0000 C CNN
+F 3 "" H 4850 5350 60  0000 C CNN
+	1    4850 5350
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	5350 5150 5350 5400
-Wire Wire Line
-	5350 5400 4150 5400
-Wire Wire Line
-	4150 5400 4150 3750
-Wire Wire Line
-	4150 3750 4700 3750
-Wire Wire Line
-	4700 3750 4700 3600
-Wire Wire Line
-	4350 4800 4350 3950
-Wire Wire Line
-	4350 3950 4800 3950
-Wire Wire Line
-	4800 3600 4800 4050
-Wire Wire Line
-	4900 3600 4900 4100
-Wire Wire Line
-	4900 3950 5350 3950
-Wire Wire Line
-	5350 3950 5350 4900
-Wire Wire Line
-	4350 5050 4350 5650
-Wire Wire Line
-	4350 5650 5600 5650
-Wire Wire Line
-	5600 5650 5600 3750
-Wire Wire Line
-	5600 3750 5000 3750
-Wire Wire Line
-	5000 3750 5000 3600
-Text Notes 5000 2150 0    60   ~ 0
+Text Notes 3600 1900 0    60   ~ 0
 To do:\n1) verify correct sensor pins\n2) verify potentiometer location.\n3) verify potentiometer function with disconnected pin.
 $Comp
-L POT RV?
-U 1 1 5330B579
-P 4900 4250
-F 0 "RV?" H 4900 4150 50  0000 C CNN
-F 1 "POT" H 4900 4250 50  0000 C CNN
-F 2 "" H 4900 4250 60  0000 C CNN
-F 3 "" H 4900 4250 60  0000 C CNN
-	1    4900 4250
-	1    0    0    -1  
-$EndComp
-NoConn ~ 5150 4250
-Wire Wire Line
-	4800 4050 4650 4050
-Wire Wire Line
-	4650 4050 4650 4250
-Connection ~ 4800 3950
-Connection ~ 4900 3950
-$Comp
-L RJ14 J?
+L RJ14 J2
 U 1 1 5338F808
 P 7600 3200
-F 0 "J?" H 7800 3700 60  0000 C CNN
+F 0 "J2" H 7800 3700 60  0000 C CNN
 F 1 "RJ14" H 7450 3700 60  0000 C CNN
 F 2 "~" H 7600 3200 60  0000 C CNN
 F 3 "~" H 7600 3200 60  0000 C CNN
@@ -101,15 +81,56 @@ F 3 "~" H 7600 3200 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L TCRT5000 U?
+L TCRT5000 U2
 U 1 1 5338F80E
 P 7650 5000
-F 0 "U?" H 7650 4450 60  0000 C CNN
+F 0 "U2" H 7650 4450 60  0000 C CNN
 F 1 "TCRT5000" H 7650 5450 60  0000 C CNN
 F 2 "" H 7650 5000 60  0000 C CNN
 F 3 "" H 7650 5000 60  0000 C CNN
 	1    7650 5000
 	1    0    0    -1  
+$EndComp
+Text GLabel 4650 3650 3    60   Input ~ 0
+5V
+Text GLabel 4800 3650 3    60   Input ~ 0
+ADC
+$Comp
+L GND #PWR?
+U 1 1 534162D0
+P 4950 3650
+F 0 "#PWR?" H 4950 3650 30  0001 C CNN
+F 1 "GND" H 4950 3580 30  0001 C CNN
+F 2 "" H 4950 3650 60  0000 C CNN
+F 3 "" H 4950 3650 60  0000 C CNN
+	1    4950 3650
+	1    0    0    -1  
+$EndComp
+Text GLabel 3650 5450 0    60   Input ~ 0
+5V
+Text GLabel 5700 5300 2    60   Input ~ 0
+ADC
+$Comp
+L GND #PWR?
+U 1 1 534163B6
+P 5600 5650
+F 0 "#PWR?" H 5600 5650 30  0001 C CNN
+F 1 "GND" H 5600 5580 30  0001 C CNN
+F 2 "" H 5600 5650 60  0000 C CNN
+F 3 "" H 5600 5650 60  0000 C CNN
+	1    5600 5650
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R?
+U 1 1 534163EA
+P 4000 5450
+F 0 "R?" V 4080 5450 40  0000 C CNN
+F 1 "R" V 4007 5451 40  0000 C CNN
+F 2 "~" V 3930 5450 30  0000 C CNN
+F 3 "~" H 4000 5450 30  0000 C CNN
+	1    4000 5450
+	0    -1   -1   0   
 $EndComp
 Wire Wire Line
 	8150 5200 8150 5450
@@ -124,14 +145,6 @@ Wire Wire Line
 Wire Wire Line
 	7150 4850 7150 4000
 Wire Wire Line
-	7150 4000 7600 4000
-Wire Wire Line
-	7600 3650 7600 4100
-Wire Wire Line
-	7700 3650 7700 4150
-Wire Wire Line
-	7700 4000 8150 4000
-Wire Wire Line
 	8150 4000 8150 4950
 Wire Wire Line
 	7150 5100 7150 5700
@@ -143,22 +156,80 @@ Wire Wire Line
 	8400 3800 7800 3800
 Wire Wire Line
 	7800 3800 7800 3650
+Wire Wire Line
+	7700 3650 7700 4000
+Wire Wire Line
+	7700 4000 8150 4000
+Wire Wire Line
+	7150 4000 7600 4000
+Wire Wire Line
+	7600 4000 7600 3650
+Wire Wire Line
+	4700 3400 4700 3550
+Wire Wire Line
+	4700 3550 4650 3550
+Wire Wire Line
+	4650 3550 4650 3650
+Wire Wire Line
+	4800 3400 4800 3650
+Wire Wire Line
+	4900 3400 4900 3550
+Wire Wire Line
+	4900 3550 4950 3550
+Wire Wire Line
+	4950 3550 4950 3650
+Wire Wire Line
+	5350 5550 5600 5550
+Wire Wire Line
+	5600 5550 5600 5650
+Wire Wire Line
+	4250 5450 4350 5450
+Wire Wire Line
+	3650 5450 3750 5450
 $Comp
-L POT RV?
-U 1 1 5338F824
-P 7700 4300
-F 0 "RV?" H 7700 4200 50  0000 C CNN
-F 1 "POT" H 7700 4300 50  0000 C CNN
-F 2 "" H 7700 4300 60  0000 C CNN
-F 3 "" H 7700 4300 60  0000 C CNN
-	1    7700 4300
+L POT 30K
+U 1 1 5341646B
+P 4850 4600
+F 0 "30K" H 4850 4500 50  0000 C CNN
+F 1 "POT" H 4850 4600 50  0000 C CNN
+F 2 "~" H 4850 4600 60  0000 C CNN
+F 3 "~" H 4850 4600 60  0000 C CNN
+	1    4850 4600
 	1    0    0    -1  
 $EndComp
-NoConn ~ 7950 4300
+$Comp
+L GND #PWR?
+U 1 1 53416487
+P 4050 4900
+F 0 "#PWR?" H 4050 4900 30  0001 C CNN
+F 1 "GND" H 4050 4830 30  0001 C CNN
+F 2 "" H 4050 4900 60  0000 C CNN
+F 3 "" H 4050 4900 60  0000 C CNN
+	1    4050 4900
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
-	7600 4100 7450 4100
+	4350 4600 4350 4800
 Wire Wire Line
-	7450 4100 7450 4300
-Connection ~ 7600 4000
-Connection ~ 7700 4000
+	4350 4800 4350 5200
+Wire Wire Line
+	4350 4600 4600 4600
+Connection ~ 4350 4800
+Wire Wire Line
+	4850 4450 5500 4450
+Wire Wire Line
+	5500 4450 5500 5300
+Wire Wire Line
+	5350 5300 5500 5300
+Wire Wire Line
+	5500 5300 5700 5300
+Connection ~ 5500 5300
+Wire Wire Line
+	4050 4900 4050 4800
+Wire Wire Line
+	4050 4800 4350 4800
+NoConn ~ 5100 4600
+NoConn ~ 4600 3400
+NoConn ~ 5000 3400
+NoConn ~ 5100 3400
 $EndSCHEMATC
