@@ -37,7 +37,7 @@ $Descr User 17000 11000
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "31 mar 2014"
+Date "5 apr 2014"
 Rev ""
 Comp ""
 Comment1 ""
@@ -1421,4 +1421,10 @@ Identical pinouts for both.  \nShould face opposite directions on layout,\n to a
 Wire Wire Line
 	11800 3150 12000 3150
 NoConn ~ 11800 3250
+Text Notes 13200 5050 0    60   ~ 0
+Add voltage regulator gadget for 2.5v reference!
+Text Notes 13200 5350 0    60   ~ 0
+Q: is AREF 2.5v or 5v?
+Text Notes 3200 5350 0    60   ~ 0
+Maybe do this on cyclo-nexus board.
 $EndSCHEMATC
