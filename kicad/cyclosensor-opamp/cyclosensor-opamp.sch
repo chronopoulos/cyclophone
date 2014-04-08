@@ -189,7 +189,7 @@ L R R5
 U 1 1 533B9FB6
 P 6300 5250
 F 0 "R5" V 6380 5250 40  0000 C CNN
-F 1 "R" V 6307 5251 40  0000 C CNN
+F 1 "220" V 6307 5251 40  0000 C CNN
 F 2 "~" V 6230 5250 30  0000 C CNN
 F 3 "~" H 6300 5250 30  0000 C CNN
 	1    6300 5250
@@ -292,4 +292,6 @@ Text Notes 3200 5550 0    60   ~ 0
 offset from which side?  zero or 5v/1024?
 Text Notes 4100 3150 0    60   ~ 0
 1M ok for tuning, not too sensitive?
+Text Notes 6650 4600 0    60   ~ 0
+coll/emitter +/-??
 $EndSCHEMATC

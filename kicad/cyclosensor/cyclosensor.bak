@@ -69,28 +69,6 @@ F 3 "" H 4850 5350 60  0000 C CNN
 $EndComp
 Text Notes 3600 1900 0    60   ~ 0
 To do:\n1) verify correct sensor pins\n2) verify potentiometer location.\n3) verify potentiometer function with disconnected pin.
-$Comp
-L RJ14 J2
-U 1 1 5338F808
-P 7600 3200
-F 0 "J2" H 7800 3700 60  0000 C CNN
-F 1 "RJ14" H 7450 3700 60  0000 C CNN
-F 2 "~" H 7600 3200 60  0000 C CNN
-F 3 "~" H 7600 3200 60  0000 C CNN
-	1    7600 3200
-	1    0    0    -1  
-$EndComp
-$Comp
-L TCRT5000 U2
-U 1 1 5338F80E
-P 7650 5000
-F 0 "U2" H 7650 4450 60  0000 C CNN
-F 1 "TCRT5000" H 7650 5450 60  0000 C CNN
-F 2 "" H 7650 5000 60  0000 C CNN
-F 3 "" H 7650 5000 60  0000 C CNN
-	1    7650 5000
-	1    0    0    -1  
-$EndComp
 Text GLabel 4650 3650 3    60   Input ~ 0
 5V
 Text GLabel 4800 3650 3    60   Input ~ 0
@@ -126,44 +104,12 @@ L R R?
 U 1 1 534163EA
 P 4000 5450
 F 0 "R?" V 4080 5450 40  0000 C CNN
-F 1 "R" V 4007 5451 40  0000 C CNN
+F 1 "220" V 4007 5451 40  0000 C CNN
 F 2 "~" V 3930 5450 30  0000 C CNN
 F 3 "~" H 4000 5450 30  0000 C CNN
 	1    4000 5450
 	0    -1   -1   0   
 $EndComp
-Wire Wire Line
-	8150 5200 8150 5450
-Wire Wire Line
-	8150 5450 6950 5450
-Wire Wire Line
-	6950 5450 6950 3800
-Wire Wire Line
-	6950 3800 7500 3800
-Wire Wire Line
-	7500 3800 7500 3650
-Wire Wire Line
-	7150 4850 7150 4000
-Wire Wire Line
-	8150 4000 8150 4950
-Wire Wire Line
-	7150 5100 7150 5700
-Wire Wire Line
-	7150 5700 8400 5700
-Wire Wire Line
-	8400 5700 8400 3800
-Wire Wire Line
-	8400 3800 7800 3800
-Wire Wire Line
-	7800 3800 7800 3650
-Wire Wire Line
-	7700 3650 7700 4000
-Wire Wire Line
-	7700 4000 8150 4000
-Wire Wire Line
-	7150 4000 7600 4000
-Wire Wire Line
-	7600 4000 7600 3650
 Wire Wire Line
 	4700 3400 4700 3550
 Wire Wire Line

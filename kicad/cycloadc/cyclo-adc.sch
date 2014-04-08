@@ -37,7 +37,7 @@ $Descr User 17000 11000
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "5 apr 2014"
+Date "8 apr 2014"
 Rev ""
 Comp ""
 Comment1 ""
@@ -47,15 +47,15 @@ Comment4 ""
 $EndDescr
 Text GLabel 12000 8650 2    60   Input ~ 0
 +AREF
-Text GLabel 11700 8750 2    60   Input ~ 0
+Text GLabel 11750 8750 2    60   Input ~ 0
 GND
 Text GLabel 8800 8750 2    60   Input ~ 0
 GND
 $Comp
-L ADCLEFTPINS Left
+L ADCLEFTPINS Left1
 U 1 1 53274A2C
 P 7900 7450
-F 0 "Left" H 7850 5950 60  0000 C CNN
+F 0 "Left1" H 7850 5950 60  0000 C CNN
 F 1 "ADCLEFTPINS" H 7900 8450 60  0000 C CNN
 F 2 "" H 7900 7450 60  0001 C CNN
 F 3 "" H 7900 7450 60  0001 C CNN
@@ -63,10 +63,10 @@ F 3 "" H 7900 7450 60  0001 C CNN
 	-1   0    0    -1  
 $EndComp
 $Comp
-L ADCRIGHTPINS Right
+L ADCRIGHTPINS Right1
 U 1 1 53274980
 P 10800 7450
-F 0 "Right" H 10750 5950 60  0000 C CNN
+F 0 "Right1" H 10750 5950 60  0000 C CNN
 F 1 "ADCRIGHTPINS" H 10800 8450 60  0000 C CNN
 F 2 "" H 10800 7450 60  0001 C CNN
 F 3 "" H 10800 7450 60  0001 C CNN
@@ -155,30 +155,30 @@ Text GLabel 8800 7750 2    60   Input ~ 0
 CH7
 Text GLabel 9100 8650 2    60   Input ~ 0
 +AREF
-Text GLabel 10850 3900 0    60   Input ~ 0
+Text GLabel 11200 1850 0    60   Input ~ 0
 3.3V
-Text GLabel 12000 3150 2    60   Input ~ 0
+Text GLabel 12350 1100 2    60   Input ~ 0
 5V
-NoConn ~ 11800 3450
-NoConn ~ 11800 3550
-NoConn ~ 11800 3650
-NoConn ~ 11800 3850
-NoConn ~ 11800 3950
-NoConn ~ 11800 4150
-Text GLabel 10850 4400 0    60   Input ~ 0
+NoConn ~ 12150 1400
+NoConn ~ 12150 1500
+NoConn ~ 12150 1600
+NoConn ~ 12150 1800
+NoConn ~ 12150 1900
+NoConn ~ 12150 2100
+Text GLabel 11200 2350 0    60   Input ~ 0
 GND
-Text GLabel 12000 4050 2    60   Input ~ 0
+Text GLabel 12350 2000 2    60   Input ~ 0
 GND
-Text GLabel 12000 3750 2    60   Input ~ 0
+Text GLabel 12350 1700 2    60   Input ~ 0
 GND
-Text GLabel 12000 3350 2    60   Input ~ 0
+Text GLabel 12350 1300 2    60   Input ~ 0
 GND
-NoConn ~ 11000 3850
-NoConn ~ 11000 3750
-NoConn ~ 11000 3650
-NoConn ~ 11000 3450
-NoConn ~ 11000 3350
-NoConn ~ 11000 3250
+NoConn ~ 11350 1800
+NoConn ~ 11350 1700
+NoConn ~ 11350 1600
+NoConn ~ 11350 1400
+NoConn ~ 11350 1300
+NoConn ~ 11350 1200
 $Comp
 L C C17
 U 1 1 53208F3E
@@ -445,7 +445,7 @@ F 3 "~" H 3900 8050 60  0000 C CNN
 $EndComp
 Text GLabel 3350 9450 2    60   Input ~ 0
 GND
-Text GLabel 10850 3150 0    60   Input ~ 0
+Text GLabel 11200 1100 0    60   Input ~ 0
 3.3V
 Text GLabel 9200 3050 2    60   Input ~ 0
 3.3V
@@ -467,37 +467,37 @@ Text GLabel 6100 3450 0    60   Input ~ 0
 GND
 Text GLabel 6700 4750 0    60   Input ~ 0
 GND
-Text GLabel 10850 3550 0    60   Input ~ 0
+Text GLabel 11200 1500 0    60   Input ~ 0
 GND
-Text GLabel 11550 2300 2    60   Input ~ 0
+Text GLabel 13900 5500 2    60   Input ~ 0
 CS0
-Text GLabel 11550 2450 2    60   Input ~ 0
+Text GLabel 13900 5650 2    60   Input ~ 0
 CS1
-Text GLabel 11550 2150 2    60   Input ~ 0
+Text GLabel 13900 5350 2    60   Input ~ 0
 SCLK
-Text GLabel 11550 2000 2    60   Input ~ 0
+Text GLabel 13900 5200 2    60   Input ~ 0
 SDI
-Text GLabel 11550 1850 2    60   Input ~ 0
+Text GLabel 13900 5050 2    60   Input ~ 0
 SDO
-Text GLabel 11300 2300 0    60   Input ~ 0
+Text GLabel 13650 5500 0    60   Input ~ 0
 CE0
-Text GLabel 11300 2450 0    60   Input ~ 0
+Text GLabel 13650 5650 0    60   Input ~ 0
 CE1
-Text GLabel 11300 1850 0    60   Input ~ 0
+Text GLabel 13650 5050 0    60   Input ~ 0
 MOSI
-Text GLabel 11300 2000 0    60   Input ~ 0
+Text GLabel 13650 5200 0    60   Input ~ 0
 MISO
-Text GLabel 11300 2150 0    60   Input ~ 0
+Text GLabel 13650 5350 0    60   Input ~ 0
 SCLK
-Text GLabel 12150 4350 2    60   Input ~ 0
+Text GLabel 12500 2300 2    60   Input ~ 0
 CE1
-Text GLabel 11900 4250 2    60   Input ~ 0
+Text GLabel 12250 2200 2    60   Input ~ 0
 CE0
-Text GLabel 10850 4250 0    60   Input ~ 0
+Text GLabel 11200 2200 0    60   Input ~ 0
 SCLK
-Text GLabel 10550 4150 0    60   Input ~ 0
+Text GLabel 10900 2100 0    60   Input ~ 0
 MISO
-Text GLabel 10850 4050 0    60   Input ~ 0
+Text GLabel 11200 2000 0    60   Input ~ 0
 MOSI
 Text GLabel 9100 2850 2    60   Input ~ 0
 DIO5
@@ -582,12 +582,12 @@ CH31
 $Comp
 L CONN_13X2 Raspberry1
 U 1 1 531F8E51
-P 11400 3750
-F 0 "Raspberry1" H 11400 4450 60  0000 C CNN
-F 1 "CONN_13X2" V 11400 3750 50  0000 C CNN
-F 2 "" H 11400 3750 60  0001 C CNN
-F 3 "" H 11400 3750 60  0001 C CNN
-	1    11400 3750
+P 11750 1700
+F 0 "Raspberry1" H 11750 2400 60  0000 C CNN
+F 1 "CONN_13X2" V 11750 1700 50  0000 C CNN
+F 2 "" H 11750 1700 60  0001 C CNN
+F 3 "" H 11750 1700 60  0001 C CNN
+	1    11750 1700
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -885,32 +885,166 @@ CE0
 Text GLabel 13500 3800 0    60   Input ~ 0
 5V
 $Comp
-L CONN_8 P?
+L CONN_8 P1
 U 1 1 53390A45
 P 14300 3950
-F 0 "P?" V 14250 3950 60  0000 C CNN
+F 0 "P1" V 14250 3950 60  0000 C CNN
 F 1 "CONN_8" V 14350 3950 60  0000 C CNN
 F 2 "" H 14300 3950 60  0000 C CNN
 F 3 "" H 14300 3950 60  0000 C CNN
 	1    14300 3950
 	1    0    0    -1  
 $EndComp
+Text Notes 12900 3300 0    60   ~ 0
+Maybe go with generic 8 pin connector rather than PI pins.\n
+Text Notes 13400 4700 0    60   ~ 0
+Different names for\nthe same things.
+Text Notes 3400 5600 0    60   ~ 0
+All analog inputs connected \nto capacitors.  necessary?
+Text Notes 9050 5950 0    60   ~ 0
+Identical pinouts for both.  \nShould face opposite directions on layout,\n to allow using two of the same daughtercard, \none for each set of pins.\n
+NoConn ~ 12150 1200
+Text Notes 13200 1100 0    60   ~ 0
+Add voltage regulator gadget for 2.5v reference!
+Text Notes 3200 5350 0    60   ~ 0
+Maybe do this on cyclo-nexus board.
+$Comp
+L LM317T U2
+U 1 1 5341C926
+P 13850 1500
+F 0 "U2" H 13650 1700 40  0000 C CNN
+F 1 "LM317T" H 13850 1700 40  0000 L CNN
+F 2 "TO-220" H 13850 1600 30  0000 C CIN
+F 3 "" H 13850 1500 60  0000 C CNN
+	1    13850 1500
+	1    0    0    -1  
+$EndComp
+$Comp
+L C 4.7
+U 1 1 5341D36B
+P 14700 1750
+F 0 "4.7" H 14700 1850 40  0000 L CNN
+F 1 "C" H 14706 1665 40  0000 L CNN
+F 2 "~" H 14738 1600 30  0000 C CNN
+F 3 "~" H 14700 1750 60  0000 C CNN
+	1    14700 1750
+	1    0    0    -1  
+$EndComp
+$Comp
+L POT RV1
+U 1 1 5341D3A9
+P 13850 2150
+F 0 "RV1" H 13850 2050 50  0000 C CNN
+F 1 "POT" H 13850 2150 50  0000 C CNN
+F 2 "~" H 13850 2150 60  0000 C CNN
+F 3 "~" H 13850 2150 60  0000 C CNN
+	1    13850 2150
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR2
+U 1 1 5341D4E7
+P 13450 2250
+F 0 "#PWR2" H 13450 2250 30  0001 C CNN
+F 1 "GND" H 13450 2180 30  0001 C CNN
+F 2 "" H 13450 2250 60  0000 C CNN
+F 3 "" H 13450 2250 60  0000 C CNN
+	1    13450 2250
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR3
+U 1 1 5341D80F
+P 14700 2150
+F 0 "#PWR3" H 14700 2150 30  0001 C CNN
+F 1 "GND" H 14700 2080 30  0001 C CNN
+F 2 "" H 14700 2150 60  0000 C CNN
+F 3 "" H 14700 2150 60  0000 C CNN
+	1    14700 2150
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R2
+U 1 1 5341DA54
+P 14200 1850
+F 0 "R2" V 14300 1850 40  0000 C CNN
+F 1 "220" V 14207 1851 40  0000 C CNN
+F 2 "~" V 14130 1850 30  0000 C CNN
+F 3 "~" H 14200 1850 30  0000 C CNN
+	1    14200 1850
+	0    -1   -1   0   
+$EndComp
+NoConn ~ 14100 2150
+Text GLabel 13350 1450 0    60   Input ~ 0
+5V
+Text GLabel 15000 1450 2    60   Input ~ 0
++AREF
+Text Notes 14400 1250 0    60   ~ 0
+Actually not used right now!!
+$Comp
+L C .1
+U 1 1 5341E866
+P 13450 1850
+F 0 ".1" H 13000 1850 40  0000 L CNN
+F 1 "C" H 13456 1765 40  0000 L CNN
+F 2 "~" H 13488 1700 30  0000 C CNN
+F 3 "~" H 13450 1850 60  0000 C CNN
+	1    13450 1850
+	1    0    0    -1  
+$EndComp
+$Comp
+L TL431LP U1
+U 1 1 5341EFA8
+P 11300 4600
+F 0 "U1" V 11550 4850 70  0000 C CNN
+F 1 "TL431LP" V 11050 4600 70  0000 C CNN
+F 2 "" H 11300 4600 60  0000 C CNN
+F 3 "" H 11300 4600 60  0000 C CNN
+	1    11300 4600
+	0    -1   -1   0   
+$EndComp
+Text GLabel 10100 4600 0    60   Input ~ 0
+5V
+$Comp
+L R R1
+U 1 1 5341F690
+P 10450 4600
+F 0 "R1" V 10530 4600 40  0000 C CNN
+F 1 "2K" V 10457 4601 40  0000 C CNN
+F 2 "~" V 10380 4600 30  0000 C CNN
+F 3 "~" H 10450 4600 30  0000 C CNN
+	1    10450 4600
+	0    -1   -1   0   
+$EndComp
+Text GLabel 11300 4100 1    60   Input ~ 0
+2.5V
+$Comp
+L GND #PWR1
+U 1 1 534472D8
+P 12000 4700
+F 0 "#PWR1" H 12000 4700 30  0001 C CNN
+F 1 "GND" H 12000 4630 30  0001 C CNN
+F 2 "" H 12000 4700 60  0000 C CNN
+F 3 "" H 12000 4700 60  0000 C CNN
+	1    12000 4700
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
 	11250 8650 12000 8650
 Wire Wire Line
-	11700 8750 11250 8750
+	11750 8750 11250 8750
 Wire Wire Line
 	8800 8750 8350 8750
 Wire Wire Line
-	11000 3950 10900 3950
+	11350 1900 11250 1900
 Wire Wire Line
-	10900 3950 10900 3900
+	11250 1900 11250 1850
 Wire Wire Line
-	10900 3900 10850 3900
+	11250 1850 11200 1850
 Wire Wire Line
-	11800 4050 12000 4050
+	12150 2000 12350 2000
 Wire Wire Line
-	11800 3350 12000 3350
+	12150 1300 12350 1300
 Wire Wire Line
 	6900 3550 6800 3550
 Wire Wire Line
@@ -918,9 +1052,11 @@ Wire Wire Line
 Wire Wire Line
 	6800 3450 6900 3450
 Wire Wire Line
-	10850 3150 11000 3150
+	11200 1100 11350 1100
 Wire Wire Line
-	5450 3150 5450 3650
+	5450 3150 5450 3250
+Wire Wire Line
+	5450 3250 5450 3650
 Wire Wire Line
 	5450 3650 4800 3650
 Wire Wire Line
@@ -932,15 +1068,15 @@ Wire Wire Line
 Wire Wire Line
 	6800 4750 6700 4750
 Wire Wire Line
-	11550 2450 11300 2450
+	13900 5650 13650 5650
 Wire Wire Line
-	11550 2150 11300 2150
+	13900 5350 13650 5350
 Wire Wire Line
-	11300 1850 11550 1850
+	13650 5050 13900 5050
 Wire Wire Line
-	11000 4050 10850 4050
+	11350 2000 11200 2000
 Wire Wire Line
-	12150 4350 11800 4350
+	12500 2300 12150 2300
 Wire Wire Line
 	3000 2850 2600 2850
 Wire Wire Line
@@ -1034,7 +1170,69 @@ Wire Wire Line
 	3200 7050 3700 7050
 Connection ~ 3200 7500
 Wire Wire Line
-	3200 6050 3200 9450
+	3200 6050 3200 6150
+Wire Wire Line
+	3200 6150 3200 6250
+Wire Wire Line
+	3200 6250 3200 6350
+Wire Wire Line
+	3200 6350 3200 6450
+Wire Wire Line
+	3200 6450 3200 6550
+Wire Wire Line
+	3200 6550 3200 6650
+Wire Wire Line
+	3200 6650 3200 6750
+Wire Wire Line
+	3200 6750 3200 6850
+Wire Wire Line
+	3200 6850 3200 6950
+Wire Wire Line
+	3200 6950 3200 7050
+Wire Wire Line
+	3200 7050 3200 7150
+Wire Wire Line
+	3200 7150 3200 7250
+Wire Wire Line
+	3200 7250 3200 7350
+Wire Wire Line
+	3200 7350 3200 7500
+Wire Wire Line
+	3200 7500 3200 7550
+Wire Wire Line
+	3200 7550 3200 7650
+Wire Wire Line
+	3200 7650 3200 7750
+Wire Wire Line
+	3200 7750 3200 7850
+Wire Wire Line
+	3200 7850 3200 7950
+Wire Wire Line
+	3200 7950 3200 8050
+Wire Wire Line
+	3200 8050 3200 8150
+Wire Wire Line
+	3200 8150 3200 8250
+Wire Wire Line
+	3200 8250 3200 8350
+Wire Wire Line
+	3200 8350 3200 8450
+Wire Wire Line
+	3200 8450 3200 8550
+Wire Wire Line
+	3200 8550 3200 8650
+Wire Wire Line
+	3200 8650 3200 8750
+Wire Wire Line
+	3200 8750 3200 8850
+Wire Wire Line
+	3200 8850 3200 8950
+Wire Wire Line
+	3200 8950 3200 9050
+Wire Wire Line
+	3200 9050 3200 9150
+Wire Wire Line
+	3200 9150 3200 9450
 Wire Wire Line
 	3200 7450 3700 7450
 Connection ~ 3200 7850
@@ -1143,7 +1341,9 @@ Wire Wire Line
 	4800 4650 4900 4650
 Connection ~ 2500 3650
 Wire Wire Line
-	2500 3350 2500 3750
+	2500 3350 2500 3650
+Wire Wire Line
+	2500 3650 2500 3750
 Wire Wire Line
 	2500 3750 3000 3750
 Wire Wire Line
@@ -1156,11 +1356,6 @@ Wire Wire Line
 	2900 3550 2900 3450
 Wire Wire Line
 	2900 3450 3000 3450
-Connection ~ 2850 3250
-Wire Wire Line
-	2850 3250 2850 3150
-Wire Wire Line
-	2850 3150 3000 3150
 Wire Wire Line
 	2750 3250 3000 3250
 Wire Wire Line
@@ -1170,7 +1365,9 @@ Wire Wire Line
 Wire Wire Line
 	4900 4650 4900 4750
 Wire Wire Line
-	2300 3350 3000 3350
+	2300 3350 2500 3350
+Wire Wire Line
+	2500 3350 3000 3350
 Wire Wire Line
 	4800 3750 4850 3750
 Wire Wire Line
@@ -1178,7 +1375,9 @@ Wire Wire Line
 Wire Wire Line
 	3000 3050 2300 3050
 Wire Wire Line
-	2300 3050 2300 3450
+	2300 3050 2300 3350
+Wire Wire Line
+	2300 3350 2300 3450
 Connection ~ 2300 3350
 Wire Wire Line
 	4850 3450 4800 3450
@@ -1234,7 +1433,9 @@ Wire Wire Line
 	6900 3650 6400 3650
 Connection ~ 6200 3350
 Wire Wire Line
-	6200 3050 6200 3450
+	6200 3050 6200 3350
+Wire Wire Line
+	6200 3350 6200 3450
 Wire Wire Line
 	6200 3050 6900 3050
 Wire Wire Line
@@ -1242,20 +1443,19 @@ Wire Wire Line
 Wire Wire Line
 	8700 3750 8800 3750
 Wire Wire Line
-	6200 3350 6900 3350
+	6200 3350 6400 3350
+Wire Wire Line
+	6400 3350 6900 3350
 Wire Wire Line
 	8800 4650 8800 4750
 Wire Wire Line
 	6650 3250 6900 3250
 Wire Wire Line
-	6900 3150 6750 3150
-Wire Wire Line
-	6750 3150 6750 3250
-Connection ~ 6750 3250
-Wire Wire Line
 	6400 3750 6900 3750
 Wire Wire Line
-	6400 3350 6400 3750
+	6400 3350 6400 3650
+Wire Wire Line
+	6400 3650 6400 3750
 Connection ~ 6400 3650
 Wire Wire Line
 	8800 4650 8700 4650
@@ -1351,17 +1551,17 @@ Wire Wire Line
 Wire Wire Line
 	4800 2850 5150 2850
 Wire Wire Line
-	11800 4250 11900 4250
+	12150 2200 12250 2200
 Wire Wire Line
-	11000 4250 10850 4250
+	11350 2200 11200 2200
 Wire Wire Line
-	11000 4150 10550 4150
+	11350 2100 10900 2100
 Wire Wire Line
-	11300 2000 11550 2000
+	13650 5200 13900 5200
 Wire Wire Line
-	11300 2300 11550 2300
+	13650 5500 13900 5500
 Wire Wire Line
-	10850 3550 11000 3550
+	11200 1500 11350 1500
 Wire Wire Line
 	8800 4750 8900 4750
 Wire Wire Line
@@ -1379,19 +1579,21 @@ Wire Wire Line
 Wire Wire Line
 	9350 3650 8700 3650
 Wire Wire Line
-	9350 3150 9350 3650
+	9350 3150 9350 3250
+Wire Wire Line
+	9350 3250 9350 3650
 Wire Wire Line
 	3200 9450 3350 9450
 Wire Wire Line
 	4900 3250 4800 3250
 Wire Wire Line
-	11800 3750 12000 3750
+	12150 1700 12350 1700
 Wire Wire Line
-	10850 4400 10900 4400
+	11200 2350 11250 2350
 Wire Wire Line
-	10900 4400 10900 4350
+	11250 2350 11250 2300
 Wire Wire Line
-	10900 4350 11000 4350
+	11250 2300 11350 2300
 Wire Wire Line
 	8350 8650 9100 8650
 Wire Wire Line
@@ -1410,21 +1612,78 @@ Wire Wire Line
 	13800 3700 13950 3700
 Wire Wire Line
 	13950 3800 13500 3800
-Text Notes 12900 3300 0    60   ~ 0
-Maybe go with generic 8 pin connector rather than PI pins.\n
-Text Notes 11050 1500 0    60   ~ 0
-Different names for\nthe same things.
-Text Notes 3400 5600 0    60   ~ 0
-All analog inputs connected \nto capacitors.  necessary?
-Text Notes 9050 5950 0    60   ~ 0
-Identical pinouts for both.  \nShould face opposite directions on layout,\n to allow using two of the same daughtercard, \none for each set of pins.\n
 Wire Wire Line
-	11800 3150 12000 3150
-NoConn ~ 11800 3250
-Text Notes 13200 5050 0    60   ~ 0
-Add voltage regulator gadget for 2.5v reference!
-Text Notes 13200 5350 0    60   ~ 0
-Q: is AREF 2.5v or 5v?
-Text Notes 3200 5350 0    60   ~ 0
-Maybe do this on cyclo-nexus board.
+	12150 1100 12350 1100
+Wire Wire Line
+	14700 2150 14700 1950
+Wire Wire Line
+	14700 1450 14700 1550
+Wire Wire Line
+	14250 1450 14550 1450
+Wire Wire Line
+	14550 1450 14700 1450
+Wire Wire Line
+	14700 1450 15000 1450
+Wire Wire Line
+	13850 1750 13850 1850
+Wire Wire Line
+	13850 1850 13850 2000
+Connection ~ 13850 1850
+Wire Wire Line
+	14550 1450 14550 1850
+Wire Wire Line
+	14550 1850 14450 1850
+Connection ~ 14550 1450
+Wire Wire Line
+	13850 1850 13950 1850
+Wire Wire Line
+	13350 1450 13450 1450
+Connection ~ 14700 1450
+Wire Wire Line
+	13450 1450 13450 1650
+Wire Wire Line
+	13450 2050 13450 2150
+Wire Wire Line
+	13450 2150 13450 2250
+Connection ~ 13450 2150
+Wire Wire Line
+	13600 2150 13450 2150
+Wire Wire Line
+	10100 4600 10200 4600
+Wire Wire Line
+	10700 4600 10800 4600
+Wire Wire Line
+	11300 4100 11300 4200
+Wire Wire Line
+	11800 4600 12000 4600
+Wire Wire Line
+	12000 4600 12000 4700
+Text GLabel 12250 3700 2    60   Input ~ 0
+2.5V
+Wire Wire Line
+	12000 3700 12250 3700
+Text GLabel 6600 3100 0    49   Input ~ 0
+REFP
+Wire Wire Line
+	6600 3100 6750 3100
+Wire Wire Line
+	6750 3100 6750 3150
+Wire Wire Line
+	6750 3150 6900 3150
+Text GLabel 2700 3100 0    49   Input ~ 0
+REFP
+Wire Wire Line
+	2700 3100 2850 3100
+Wire Wire Line
+	2850 3100 2850 3150
+Wire Wire Line
+	2850 3150 3000 3150
+Text GLabel 12000 3700 0    60   Input ~ 0
+REFP
+Text GLabel 12000 3450 0    60   Input ~ 0
+AREF
+Text GLabel 12250 3450 2    60   Input ~ 0
+5V
+Wire Wire Line
+	12000 3450 12250 3450
 $EndSCHEMATC
