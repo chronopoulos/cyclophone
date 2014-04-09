@@ -37,7 +37,7 @@ $Descr USLedger 17000 11000
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "6 apr 2014"
+Date "9 apr 2014"
 Rev ""
 Comp ""
 Comment1 ""
@@ -702,7 +702,7 @@ L C C?
 U 1 1 534031B8
 P 8700 5400
 F 0 "C?" H 8700 5500 40  0000 L CNN
-F 1 "10mf" H 8706 5315 40  0000 L CNN
+F 1 "10uf" H 8706 5315 40  0000 L CNN
 F 2 "~" H 8738 5250 30  0000 C CNN
 F 3 "~" H 8700 5400 60  0000 C CNN
 	1    8700 5400
@@ -710,10 +710,8 @@ F 3 "~" H 8700 5400 60  0000 C CNN
 $EndComp
 Wire Wire Line
 	8350 5400 8500 5400
-Text Notes 8400 5050 0    60   ~ 0
-10mf enough?
-Text Notes 6650 4500 0    60   ~ 0
-.1 mf between all power and gnd?  or op-amp circuit makes unecessary?
+Text Notes 8250 5150 0    60   ~ 0
+put 2500uf if anything.
 $Comp
 L BARREL_JACK CON?
 U 1 1 53403D81

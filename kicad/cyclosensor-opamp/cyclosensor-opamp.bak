@@ -37,7 +37,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "6 apr 2014"
+Date "9 apr 2014"
 Rev ""
 Comp ""
 Comment1 ""
@@ -292,4 +292,66 @@ Text Notes 3200 5550 0    60   ~ 0
 offset from which side?  zero or 5v/1024?
 Text Notes 4100 3150 0    60   ~ 0
 1M ok for tuning, not too sensitive?
+Text Notes 6650 4600 0    60   ~ 0
+coll/emitter +/-??
+$Comp
+L C C?
+U 1 1 53449FBF
+P 8050 3800
+F 0 "C?" H 8050 3900 40  0000 L CNN
+F 1 ".01uf" H 8056 3715 40  0000 L CNN
+F 2 "~" H 8088 3650 30  0000 C CNN
+F 3 "~" H 8050 3800 60  0000 C CNN
+	1    8050 3800
+	1    0    0    -1  
+$EndComp
+Text GLabel 8050 3450 1    60   Input ~ 0
+5V
+$Comp
+L GND #PWR?
+U 1 1 53449FDD
+P 8050 4100
+F 0 "#PWR?" H 8050 4100 30  0001 C CNN
+F 1 "GND" H 8050 4030 30  0001 C CNN
+F 2 "" H 8050 4100 60  0000 C CNN
+F 3 "" H 8050 4100 60  0000 C CNN
+	1    8050 4100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8050 4000 8050 4100
+Wire Wire Line
+	8050 3450 8050 3600
+Text Notes 7800 3200 0    60   ~ 0
+Put near pin 8 on op-amp!
+$Comp
+L C C?
+U 1 1 5344A0AE
+P 8400 3800
+F 0 "C?" H 8400 3900 40  0000 L CNN
+F 1 "10uf" H 8406 3715 40  0000 L CNN
+F 2 "~" H 8438 3650 30  0000 C CNN
+F 3 "~" H 8400 3800 60  0000 C CNN
+	1    8400 3800
+	1    0    0    -1  
+$EndComp
+Text GLabel 8400 3450 1    60   Input ~ 0
+5V
+$Comp
+L GND #PWR?
+U 1 1 5344A0B5
+P 8400 4100
+F 0 "#PWR?" H 8400 4100 30  0001 C CNN
+F 1 "GND" H 8400 4030 30  0001 C CNN
+F 2 "" H 8400 4100 60  0000 C CNN
+F 3 "" H 8400 4100 60  0000 C CNN
+	1    8400 4100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8400 4000 8400 4100
+Wire Wire Line
+	8400 3450 8400 3600
+Text Notes 8050 4350 0    60   ~ 0
+option of two caps \nfor different freq\nfiltering on each
 $EndSCHEMATC

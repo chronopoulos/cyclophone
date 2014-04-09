@@ -37,7 +37,7 @@ $Descr User 17000 11000
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "8 apr 2014"
+Date "9 apr 2014"
 Rev ""
 Comp ""
 Comment1 ""
@@ -1054,9 +1054,7 @@ Wire Wire Line
 Wire Wire Line
 	11200 1100 11350 1100
 Wire Wire Line
-	5450 3150 5450 3250
-Wire Wire Line
-	5450 3250 5450 3650
+	5450 3150 5450 3650
 Wire Wire Line
 	5450 3650 4800 3650
 Wire Wire Line
@@ -1170,69 +1168,7 @@ Wire Wire Line
 	3200 7050 3700 7050
 Connection ~ 3200 7500
 Wire Wire Line
-	3200 6050 3200 6150
-Wire Wire Line
-	3200 6150 3200 6250
-Wire Wire Line
-	3200 6250 3200 6350
-Wire Wire Line
-	3200 6350 3200 6450
-Wire Wire Line
-	3200 6450 3200 6550
-Wire Wire Line
-	3200 6550 3200 6650
-Wire Wire Line
-	3200 6650 3200 6750
-Wire Wire Line
-	3200 6750 3200 6850
-Wire Wire Line
-	3200 6850 3200 6950
-Wire Wire Line
-	3200 6950 3200 7050
-Wire Wire Line
-	3200 7050 3200 7150
-Wire Wire Line
-	3200 7150 3200 7250
-Wire Wire Line
-	3200 7250 3200 7350
-Wire Wire Line
-	3200 7350 3200 7500
-Wire Wire Line
-	3200 7500 3200 7550
-Wire Wire Line
-	3200 7550 3200 7650
-Wire Wire Line
-	3200 7650 3200 7750
-Wire Wire Line
-	3200 7750 3200 7850
-Wire Wire Line
-	3200 7850 3200 7950
-Wire Wire Line
-	3200 7950 3200 8050
-Wire Wire Line
-	3200 8050 3200 8150
-Wire Wire Line
-	3200 8150 3200 8250
-Wire Wire Line
-	3200 8250 3200 8350
-Wire Wire Line
-	3200 8350 3200 8450
-Wire Wire Line
-	3200 8450 3200 8550
-Wire Wire Line
-	3200 8550 3200 8650
-Wire Wire Line
-	3200 8650 3200 8750
-Wire Wire Line
-	3200 8750 3200 8850
-Wire Wire Line
-	3200 8850 3200 8950
-Wire Wire Line
-	3200 8950 3200 9050
-Wire Wire Line
-	3200 9050 3200 9150
-Wire Wire Line
-	3200 9150 3200 9450
+	3200 6050 3200 9450
 Wire Wire Line
 	3200 7450 3700 7450
 Connection ~ 3200 7850
@@ -1341,9 +1277,7 @@ Wire Wire Line
 	4800 4650 4900 4650
 Connection ~ 2500 3650
 Wire Wire Line
-	2500 3350 2500 3650
-Wire Wire Line
-	2500 3650 2500 3750
+	2500 3350 2500 3750
 Wire Wire Line
 	2500 3750 3000 3750
 Wire Wire Line
@@ -1365,9 +1299,7 @@ Wire Wire Line
 Wire Wire Line
 	4900 4650 4900 4750
 Wire Wire Line
-	2300 3350 2500 3350
-Wire Wire Line
-	2500 3350 3000 3350
+	2300 3350 3000 3350
 Wire Wire Line
 	4800 3750 4850 3750
 Wire Wire Line
@@ -1375,9 +1307,7 @@ Wire Wire Line
 Wire Wire Line
 	3000 3050 2300 3050
 Wire Wire Line
-	2300 3050 2300 3350
-Wire Wire Line
-	2300 3350 2300 3450
+	2300 3050 2300 3450
 Connection ~ 2300 3350
 Wire Wire Line
 	4850 3450 4800 3450
@@ -1433,9 +1363,7 @@ Wire Wire Line
 	6900 3650 6400 3650
 Connection ~ 6200 3350
 Wire Wire Line
-	6200 3050 6200 3350
-Wire Wire Line
-	6200 3350 6200 3450
+	6200 3050 6200 3450
 Wire Wire Line
 	6200 3050 6900 3050
 Wire Wire Line
@@ -1443,9 +1371,7 @@ Wire Wire Line
 Wire Wire Line
 	8700 3750 8800 3750
 Wire Wire Line
-	6200 3350 6400 3350
-Wire Wire Line
-	6400 3350 6900 3350
+	6200 3350 6900 3350
 Wire Wire Line
 	8800 4650 8800 4750
 Wire Wire Line
@@ -1453,9 +1379,7 @@ Wire Wire Line
 Wire Wire Line
 	6400 3750 6900 3750
 Wire Wire Line
-	6400 3350 6400 3650
-Wire Wire Line
-	6400 3650 6400 3750
+	6400 3350 6400 3750
 Connection ~ 6400 3650
 Wire Wire Line
 	8800 4650 8700 4650
@@ -1579,9 +1503,7 @@ Wire Wire Line
 Wire Wire Line
 	9350 3650 8700 3650
 Wire Wire Line
-	9350 3150 9350 3250
-Wire Wire Line
-	9350 3250 9350 3650
+	9350 3150 9350 3650
 Wire Wire Line
 	3200 9450 3350 9450
 Wire Wire Line
@@ -1619,15 +1541,9 @@ Wire Wire Line
 Wire Wire Line
 	14700 1450 14700 1550
 Wire Wire Line
-	14250 1450 14550 1450
+	14250 1450 15000 1450
 Wire Wire Line
-	14550 1450 14700 1450
-Wire Wire Line
-	14700 1450 15000 1450
-Wire Wire Line
-	13850 1750 13850 1850
-Wire Wire Line
-	13850 1850 13850 2000
+	13850 1750 13850 2000
 Connection ~ 13850 1850
 Wire Wire Line
 	14550 1450 14550 1850
@@ -1642,9 +1558,7 @@ Connection ~ 14700 1450
 Wire Wire Line
 	13450 1450 13450 1650
 Wire Wire Line
-	13450 2050 13450 2150
-Wire Wire Line
-	13450 2150 13450 2250
+	13450 2050 13450 2250
 Connection ~ 13450 2150
 Wire Wire Line
 	13600 2150 13450 2150
@@ -1655,7 +1569,7 @@ Wire Wire Line
 Wire Wire Line
 	11300 4100 11300 4200
 Wire Wire Line
-	11800 4600 12000 4600
+	11800 4600 12350 4600
 Wire Wire Line
 	12000 4600 12000 4700
 Text GLabel 12250 3700 2    60   Input ~ 0
@@ -1686,4 +1600,33 @@ Text GLabel 12250 3450 2    60   Input ~ 0
 5V
 Wire Wire Line
 	12000 3450 12250 3450
+Text Notes 11700 4150 0    60   ~ 0
+bypass cap here?  2.5 to ground
+Wire Wire Line
+	10800 4200 12350 4200
+Wire Wire Line
+	10800 4600 10800 4200
+Text Notes 10500 4100 0    60   ~ 0
+Added re Dan
+$Comp
+L C C?
+U 1 1 53449C6F
+P 12350 4400
+F 0 "C?" H 12350 4500 40  0000 L CNN
+F 1 "C" H 12356 4315 40  0000 L CNN
+F 2 "~" H 12388 4250 30  0000 C CNN
+F 3 "~" H 12350 4400 60  0000 C CNN
+	1    12350 4400
+	1    0    0    -1  
+$EndComp
+Connection ~ 11300 4200
+Connection ~ 12000 4600
+Text Notes 11850 4900 0    60   ~ 0
+could leave cap empty
+Text Notes 6400 5600 0    60   ~ 0
+More general purpose:  jumper for + and - REFS
+Text Notes 13650 2850 0    60   ~ 0
+Bypass Caps for power\n
+Text Notes 9700 4850 0    60   ~ 0
+Change to 3.3?\nMight be ok - then allows \nchange of 5V input
 $EndSCHEMATC
