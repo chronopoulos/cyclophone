@@ -37,7 +37,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "9 apr 2014"
+Date "12 apr 2014"
 Rev ""
 Comp ""
 Comment1 ""
@@ -56,17 +56,6 @@ F 3 "~" H 6900 3050 60  0000 C CNN
 	1    6900 3050
 	1    0    0    -1  
 $EndComp
-$Comp
-L TCRT5000 U2
-U 1 1 532FB873
-P 7050 5150
-F 0 "U2" H 7050 4600 60  0000 C CNN
-F 1 "TCRT5000" H 7050 5600 60  0000 C CNN
-F 2 "~" H 7050 5150 60  0000 C CNN
-F 3 "~" H 7050 5150 60  0000 C CNN
-	1    7050 5150
-	1    0    0    -1  
-$EndComp
 Text GLabel 6800 3800 3    60   Input ~ 0
 5V
 Text GLabel 6950 3800 3    60   Input ~ 0
@@ -82,18 +71,18 @@ F 3 "" H 7150 3800 60  0000 C CNN
 	1    7150 3800
 	1    0    0    -1  
 $EndComp
-Text GLabel 4900 3950 1    60   Input ~ 0
+Text GLabel 4900 4950 3    60   Input ~ 0
 5V
 $Comp
 L GND #PWR02
 U 1 1 533B8353
-P 4900 4950
-F 0 "#PWR02" H 4900 4950 30  0001 C CNN
-F 1 "GND" H 4900 4880 30  0001 C CNN
-F 2 "" H 4900 4950 60  0000 C CNN
-F 3 "" H 4900 4950 60  0000 C CNN
-	1    4900 4950
-	1    0    0    -1  
+P 4900 3950
+F 0 "#PWR02" H 4900 3950 30  0001 C CNN
+F 1 "GND" H 4900 3880 30  0001 C CNN
+F 2 "" H 4900 3950 60  0000 C CNN
+F 3 "" H 4900 3950 60  0000 C CNN
+	1    4900 3950
+	-1   0    0    1   
 $EndComp
 $Comp
 L LM358 U1
@@ -104,14 +93,14 @@ F 1 "LM358" H 4950 4200 60  0000 L CNN
 F 2 "" H 5000 4450 60  0000 C CNN
 F 3 "" H 5000 4450 60  0000 C CNN
 	1    5000 4450
-	1    0    0    -1  
+	1    0    0    1   
 $EndComp
 $Comp
 L R R2
 U 1 1 533B9B03
 P 4000 4350
 F 0 "R2" V 4080 4350 40  0000 C CNN
-F 1 "1K" V 4007 4351 40  0000 C CNN
+F 1 "20k" V 4007 4351 40  0000 C CNN
 F 2 "~" V 3930 4350 30  0000 C CNN
 F 3 "~" H 4000 4350 30  0000 C CNN
 	1    4000 4350
@@ -120,172 +109,72 @@ $EndComp
 Text GLabel 5700 4450 2    60   Input ~ 0
 ADC
 $Comp
-L R R3
-U 1 1 533B9B66
-P 4400 4900
-F 0 "R3" V 4480 4900 40  0000 C CNN
-F 1 "1K" V 4407 4901 40  0000 C CNN
-F 2 "~" V 4330 4900 30  0000 C CNN
-F 3 "~" H 4400 4900 30  0000 C CNN
-	1    4400 4900
-	1    0    0    -1  
-$EndComp
-$Comp
 L R R1
 U 1 1 533B9B87
 P 3650 4750
 F 0 "R1" V 3730 4750 40  0000 C CNN
-F 1 "1K" V 3657 4751 40  0000 C CNN
+F 1 "20k" V 3657 4751 40  0000 C CNN
 F 2 "~" V 3580 4750 30  0000 C CNN
 F 3 "~" H 3650 4750 30  0000 C CNN
 	1    3650 4750
 	1    0    0    -1  
 $EndComp
-Text GLabel 5750 3600 2    60   Input ~ 0
-5V
-Text GLabel 7650 5100 2    60   Input ~ 0
-5V
-$Comp
-L GND #PWR03
-U 1 1 533B9C11
-P 3650 5150
-F 0 "#PWR03" H 3650 5150 30  0001 C CNN
-F 1 "GND" H 3650 5080 30  0001 C CNN
-F 2 "" H 3650 5150 60  0000 C CNN
-F 3 "" H 3650 5150 60  0000 C CNN
-	1    3650 5150
-	1    0    0    -1  
-$EndComp
-$Comp
-L GND #PWR04
-U 1 1 533B9C20
-P 4400 5300
-F 0 "#PWR04" H 4400 5300 30  0001 C CNN
-F 1 "GND" H 4400 5230 30  0001 C CNN
-F 2 "" H 4400 5300 60  0000 C CNN
-F 3 "" H 4400 5300 60  0000 C CNN
-	1    4400 5300
-	1    0    0    -1  
-$EndComp
-Text GLabel 6450 5000 0    60   Input ~ 0
+Text GLabel 2750 3750 0    60   Input ~ 0
 X
 Text GLabel 3550 4350 0    60   Input ~ 0
 X
-Text GLabel 6050 5250 0    60   Input ~ 0
+Text GLabel 2350 3500 0    60   Input ~ 0
 5V
 $Comp
 L GND #PWR05
 U 1 1 533B9F2F
-P 7650 5450
-F 0 "#PWR05" H 7650 5450 30  0001 C CNN
-F 1 "GND" H 7650 5380 30  0001 C CNN
-F 2 "" H 7650 5450 60  0000 C CNN
-F 3 "" H 7650 5450 60  0000 C CNN
-	1    7650 5450
+P 3950 3950
+F 0 "#PWR05" H 3950 3950 30  0001 C CNN
+F 1 "GND" H 3950 3880 30  0001 C CNN
+F 2 "" H 3950 3950 60  0000 C CNN
+F 3 "" H 3950 3950 60  0000 C CNN
+	1    3950 3950
 	1    0    0    -1  
 $EndComp
 $Comp
 L R R5
 U 1 1 533B9FB6
-P 6300 5250
-F 0 "R5" V 6380 5250 40  0000 C CNN
-F 1 "220" V 6307 5251 40  0000 C CNN
-F 2 "~" V 6230 5250 30  0000 C CNN
-F 3 "~" H 6300 5250 30  0000 C CNN
-	1    6300 5250
+P 2600 3500
+F 0 "R5" V 2680 3500 40  0000 C CNN
+F 1 "220" V 2607 3501 40  0000 C CNN
+F 2 "~" V 2530 3500 30  0000 C CNN
+F 3 "~" H 2600 3500 30  0000 C CNN
+	1    2600 3500
 	0    1    1    0   
 $EndComp
 NoConn ~ 6700 3500
 NoConn ~ 7200 3500
-Wire Wire Line
-	7000 3500 7000 3650
-Wire Wire Line
-	7000 3650 7150 3650
-Wire Wire Line
-	4500 3450 4500 4350
-Wire Wire Line
-	4500 4350 4250 4350
-Wire Wire Line
-	3550 4350 3750 4350
-Wire Wire Line
-	3650 4350 3650 4500
-Connection ~ 3650 4350
-Wire Wire Line
-	6450 5000 6550 5000
-Wire Wire Line
-	7650 5100 7550 5100
-Wire Wire Line
-	5500 4450 5700 4450
-Wire Wire Line
-	4050 4550 4500 4550
-Wire Wire Line
-	4400 4550 4400 4650
-Wire Wire Line
-	4400 5150 4400 5300
-Wire Wire Line
-	3650 5000 3650 5150
-Wire Wire Line
-	5500 4450 5500 3600
-Connection ~ 5500 3600
-Wire Wire Line
-	4900 3950 4900 4050
-Wire Wire Line
-	6900 3500 6900 3700
-Wire Wire Line
-	6900 3700 6950 3700
-Wire Wire Line
-	6950 3700 6950 3800
-Wire Wire Line
-	7550 5350 7650 5350
-Wire Wire Line
-	7650 5350 7650 5450
 $Comp
 L POT GAIN1
 U 1 1 533BA0C7
 P 4900 3450
 F 0 "GAIN1" H 4900 3350 50  0000 C CNN
-F 1 "1M" H 4900 3450 50  0000 C CNN
+F 1 "100k" H 4900 3450 50  0000 C CNN
 F 2 "~" H 4900 3450 60  0000 C CNN
 F 3 "~" H 4900 3450 60  0000 C CNN
 	1    4900 3450
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	4500 3450 4650 3450
-Wire Wire Line
-	4900 3300 5250 3300
-Wire Wire Line
-	5250 3300 5250 3600
-Connection ~ 5250 3600
 NoConn ~ 5150 3450
-Wire Wire Line
-	5250 3600 5750 3600
 $Comp
 L POT OFFSET1
 U 1 1 533BA12C
-P 4050 4900
-F 0 "OFFSET1" H 4050 4800 50  0000 C CNN
-F 1 "20K" H 4050 4900 50  0000 C CNN
-F 2 "~" H 4050 4900 60  0000 C CNN
-F 3 "~" H 4050 4900 60  0000 C CNN
-	1    4050 4900
+P 4200 4800
+F 0 "OFFSET1" H 4200 4700 50  0000 C CNN
+F 1 "20K" H 4200 4800 50  0000 C CNN
+F 2 "~" H 4200 4800 60  0000 C CNN
+F 3 "~" H 4200 4800 60  0000 C CNN
+	1    4200 4800
 	0    1    1    0   
 $EndComp
-Wire Wire Line
-	4050 4550 4050 4650
-Connection ~ 4400 4550
-Text GLabel 4200 5200 3    60   Input ~ 0
+Text GLabel 4050 4550 0    60   Input ~ 0
 5V
-Wire Wire Line
-	4200 4900 4200 5200
-NoConn ~ 4050 5150
-Wire Wire Line
-	4900 4850 4900 4950
-Wire Wire Line
-	7150 3650 7150 3800
 NoConn ~ 7100 3500
-Wire Wire Line
-	6800 3800 6800 3500
 Text Notes 6200 4200 0    60   ~ 0
 Ok to have 5V without 'pair' here?  \nYES
 Text Notes 3200 5550 0    60   ~ 0
@@ -318,10 +207,6 @@ F 3 "" H 8050 4100 60  0000 C CNN
 	1    8050 4100
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	8050 4000 8050 4100
-Wire Wire Line
-	8050 3450 8050 3600
 Text Notes 7800 3200 0    60   ~ 0
 Put near pin 8 on op-amp!
 $Comp
@@ -348,10 +233,141 @@ F 3 "" H 8400 4100 60  0000 C CNN
 	1    8400 4100
 	1    0    0    -1  
 $EndComp
+Text Notes 8050 4350 0    60   ~ 0
+option of two caps \nfor different freq\nfiltering on each
+$Comp
+L TCRT5000 U?
+U 1 1 53499E1E
+P 3350 3550
+F 0 "U?" H 3350 3000 60  0000 C CNN
+F 1 "TCRT5000" H 3350 4000 60  0000 C CNN
+F 2 "~" H 3350 3550 60  0000 C CNN
+F 3 "~" H 3350 3550 60  0000 C CNN
+	1    3350 3550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7000 3500 7000 3650
+Wire Wire Line
+	7000 3650 7150 3650
+Wire Wire Line
+	4500 3450 4500 4350
+Wire Wire Line
+	4500 4350 4250 4350
+Wire Wire Line
+	3550 4350 3750 4350
+Wire Wire Line
+	3650 4350 3650 4500
+Connection ~ 3650 4350
+Wire Wire Line
+	2750 3750 2850 3750
+Wire Wire Line
+	5500 4450 5700 4450
+Wire Wire Line
+	3650 5000 3650 5150
+Wire Wire Line
+	4900 3950 4900 4050
+Wire Wire Line
+	6900 3500 6900 3700
+Wire Wire Line
+	6900 3700 6950 3700
+Wire Wire Line
+	6950 3700 6950 3800
+Wire Wire Line
+	3850 3850 3950 3850
+Wire Wire Line
+	3950 3600 3950 3950
+Wire Wire Line
+	4500 3450 4650 3450
+Wire Wire Line
+	4900 4850 4900 4950
+Wire Wire Line
+	7150 3650 7150 3800
+Wire Wire Line
+	6800 3800 6800 3500
+Wire Wire Line
+	8050 4000 8050 4100
+Wire Wire Line
+	8050 3450 8050 3600
 Wire Wire Line
 	8400 4000 8400 4100
 Wire Wire Line
 	8400 3450 8400 3600
-Text Notes 8050 4350 0    60   ~ 0
-option of two caps \nfor different freq\nfiltering on each
+Wire Wire Line
+	4900 3300 5500 3300
+Wire Wire Line
+	5500 3300 5500 4450
+Wire Wire Line
+	3950 3600 3850 3600
+Connection ~ 3950 3850
+Text GLabel 3650 5150 3    60   Input ~ 0
+5V
+$Comp
+L R R?
+U 1 1 5349C83F
+P 2550 4850
+F 0 "R?" V 2630 4850 40  0000 C CNN
+F 1 "20k" V 2557 4851 40  0000 C CNN
+F 2 "~" V 2480 4850 30  0000 C CNN
+F 3 "~" H 2550 4850 30  0000 C CNN
+	1    2550 4850
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR?
+U 1 1 5349C845
+P 2550 5250
+F 0 "#PWR?" H 2550 5250 30  0001 C CNN
+F 1 "GND" H 2550 5180 30  0001 C CNN
+F 2 "" H 2550 5250 60  0000 C CNN
+F 3 "" H 2550 5250 60  0000 C CNN
+	1    2550 5250
+	1    0    0    -1  
+$EndComp
+$Comp
+L POT OFFSET?
+U 1 1 5349C84B
+P 2200 4850
+F 0 "OFFSET?" H 2200 4750 50  0000 C CNN
+F 1 "20K" H 2200 4850 50  0000 C CNN
+F 2 "~" H 2200 4850 60  0000 C CNN
+F 3 "~" H 2200 4850 60  0000 C CNN
+	1    2200 4850
+	0    1    1    0   
+$EndComp
+Text GLabel 2350 5150 3    60   Input ~ 0
+5V
+NoConn ~ 2200 5100
+Wire Wire Line
+	2200 4500 2650 4500
+Wire Wire Line
+	2550 4500 2550 4600
+Wire Wire Line
+	2550 5100 2550 5250
+Wire Wire Line
+	2200 4500 2200 4600
+Connection ~ 2550 4500
+Wire Wire Line
+	2350 4850 2350 5150
+$Comp
+L GND #PWR?
+U 1 1 5349C88D
+P 4200 5150
+F 0 "#PWR?" H 4200 5150 30  0001 C CNN
+F 1 "GND" H 4200 5080 30  0001 C CNN
+F 2 "" H 4200 5150 60  0000 C CNN
+F 3 "" H 4200 5150 60  0000 C CNN
+	1    4200 5150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4350 4800 4400 4800
+Wire Wire Line
+	4400 4800 4400 4550
+Wire Wire Line
+	4400 4550 4500 4550
+Wire Wire Line
+	4050 4550 4200 4550
+Wire Wire Line
+	4200 5150 4200 5050
 $EndSCHEMATC
