@@ -37,7 +37,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "12 apr 2014"
+Date "13 apr 2014"
 Rev ""
 Comp ""
 Comment1 ""
@@ -100,7 +100,7 @@ L R R2
 U 1 1 533B9B03
 P 4000 4350
 F 0 "R2" V 4080 4350 40  0000 C CNN
-F 1 "20k" V 4007 4351 40  0000 C CNN
+F 1 "15k" V 4007 4351 40  0000 C CNN
 F 2 "~" V 3930 4350 30  0000 C CNN
 F 3 "~" H 4000 4350 30  0000 C CNN
 	1    4000 4350
@@ -113,7 +113,7 @@ L R R1
 U 1 1 533B9B87
 P 3650 4750
 F 0 "R1" V 3730 4750 40  0000 C CNN
-F 1 "20k" V 3657 4751 40  0000 C CNN
+F 1 "15k" V 3657 4751 40  0000 C CNN
 F 2 "~" V 3580 4750 30  0000 C CNN
 F 3 "~" H 3650 4750 30  0000 C CNN
 	1    3650 4750
@@ -166,7 +166,7 @@ L POT OFFSET1
 U 1 1 533BA12C
 P 4200 4800
 F 0 "OFFSET1" H 4200 4700 50  0000 C CNN
-F 1 "20K" H 4200 4800 50  0000 C CNN
+F 1 "10k" H 4200 4800 50  0000 C CNN
 F 2 "~" H 4200 4800 60  0000 C CNN
 F 3 "~" H 4200 4800 60  0000 C CNN
 	1    4200 4800
@@ -181,59 +181,57 @@ Text Notes 3200 5550 0    60   ~ 0
 offset from which side?  zero or 5v/1024?
 Text Notes 4100 3150 0    60   ~ 0
 1M ok for tuning, not too sensitive?
-Text Notes 6600 5950 0    60   ~ 0
-coll/emitter +/-??
 $Comp
 L C C?
 U 1 1 53449FBF
-P 8050 3800
-F 0 "C?" H 8050 3900 40  0000 L CNN
-F 1 ".01uf" H 8056 3715 40  0000 L CNN
-F 2 "~" H 8088 3650 30  0000 C CNN
-F 3 "~" H 8050 3800 60  0000 C CNN
-	1    8050 3800
+P 6450 5250
+F 0 "C?" H 6450 5350 40  0000 L CNN
+F 1 ".01uf" H 6456 5165 40  0000 L CNN
+F 2 "~" H 6488 5100 30  0000 C CNN
+F 3 "~" H 6450 5250 60  0000 C CNN
+	1    6450 5250
 	1    0    0    -1  
 $EndComp
-Text GLabel 8050 3450 1    60   Input ~ 0
+Text GLabel 6450 4900 1    60   Input ~ 0
 5V
 $Comp
 L GND #PWR?
 U 1 1 53449FDD
-P 8050 4100
-F 0 "#PWR?" H 8050 4100 30  0001 C CNN
-F 1 "GND" H 8050 4030 30  0001 C CNN
-F 2 "" H 8050 4100 60  0000 C CNN
-F 3 "" H 8050 4100 60  0000 C CNN
-	1    8050 4100
+P 6450 5550
+F 0 "#PWR?" H 6450 5550 30  0001 C CNN
+F 1 "GND" H 6450 5480 30  0001 C CNN
+F 2 "" H 6450 5550 60  0000 C CNN
+F 3 "" H 6450 5550 60  0000 C CNN
+	1    6450 5550
 	1    0    0    -1  
 $EndComp
-Text Notes 7800 3200 0    60   ~ 0
+Text Notes 6200 4650 0    60   ~ 0
 Put near pin 8 on op-amp!
 $Comp
 L C C?
 U 1 1 5344A0AE
-P 8400 3800
-F 0 "C?" H 8400 3900 40  0000 L CNN
-F 1 "10uf" H 8406 3715 40  0000 L CNN
-F 2 "~" H 8438 3650 30  0000 C CNN
-F 3 "~" H 8400 3800 60  0000 C CNN
-	1    8400 3800
+P 6800 5250
+F 0 "C?" H 6800 5350 40  0000 L CNN
+F 1 "10uf" H 6806 5165 40  0000 L CNN
+F 2 "~" H 6838 5100 30  0000 C CNN
+F 3 "~" H 6800 5250 60  0000 C CNN
+	1    6800 5250
 	1    0    0    -1  
 $EndComp
-Text GLabel 8400 3450 1    60   Input ~ 0
+Text GLabel 6800 4900 1    60   Input ~ 0
 5V
 $Comp
 L GND #PWR?
 U 1 1 5344A0B5
-P 8400 4100
-F 0 "#PWR?" H 8400 4100 30  0001 C CNN
-F 1 "GND" H 8400 4030 30  0001 C CNN
-F 2 "" H 8400 4100 60  0000 C CNN
-F 3 "" H 8400 4100 60  0000 C CNN
-	1    8400 4100
+P 6800 5550
+F 0 "#PWR?" H 6800 5550 30  0001 C CNN
+F 1 "GND" H 6800 5480 30  0001 C CNN
+F 2 "" H 6800 5550 60  0000 C CNN
+F 3 "" H 6800 5550 60  0000 C CNN
+	1    6800 5550
 	1    0    0    -1  
 $EndComp
-Text Notes 8050 4350 0    60   ~ 0
+Text Notes 6450 5800 0    60   ~ 0
 option of two caps \nfor different freq\nfiltering on each
 $Comp
 L TCRT5000 U?
@@ -286,13 +284,13 @@ Wire Wire Line
 Wire Wire Line
 	6800 3800 6800 3500
 Wire Wire Line
-	8050 4000 8050 4100
+	6450 5450 6450 5550
 Wire Wire Line
-	8050 3450 8050 3600
+	6450 4900 6450 5050
 Wire Wire Line
-	8400 4000 8400 4100
+	6800 5450 6800 5550
 Wire Wire Line
-	8400 3450 8400 3600
+	6800 4900 6800 5050
 Wire Wire Line
 	4900 3300 5500 3300
 Wire Wire Line
@@ -370,4 +368,6 @@ Wire Wire Line
 	4050 4550 4200 4550
 Wire Wire Line
 	4200 5150 4200 5050
+Text Notes 1850 4350 0    60   ~ 0
+not used - change\nback to save on pots?
 $EndSCHEMATC
