@@ -1,4 +1,4 @@
-EESchema-LIBRARY Version 2.3  Date: Sun 06 Apr 2014 04:16:45 PM MDT
+EESchema-LIBRARY Version 2.3  Date: Sun 13 Apr 2014 09:43:00 AM MDT
 #encoding utf-8
 #
 # GND
@@ -84,11 +84,11 @@ F1 "TCRT5000" 0 450 60 H V C CNN
 F2 "~" 0 0 60 H V C CNN
 F3 "~" 0 0 60 H V C CNN
 DRAW
-S -200 300 200 -350 0 1 0 N
-X Coll 0 -500 150 300 R 50 50 1 1 I
-X Anode 1 -500 -100 300 R 50 50 1 1 I
-X Emitter 2 500 50 300 L 50 50 1 1 I
-X Cathode 3 500 -200 300 L 50 50 1 1 I
+P 7 0 1 0  -200 150  -50 300  50 300  200 150  200 -400  -200 -400  -200 150 N
+X Anode+ 0 -500 50 300 R 50 50 1 1 I
+X Cathode- 2 500 -50 300 L 50 50 1 1 I
+X Coll+ 2 -500 -200 300 R 50 50 1 1 I
+X Emitter- 3 500 -300 300 L 50 50 1 1 I
 ENDDRAW
 ENDDEF
 #

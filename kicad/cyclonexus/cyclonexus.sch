@@ -37,7 +37,7 @@ $Descr USLedger 17000 11000
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "9 apr 2014"
+Date "13 apr 2014"
 Rev ""
 Comp ""
 Comment1 ""
@@ -50,7 +50,7 @@ L ADCLEFTPINS U1
 U 1 1 5327640A
 P 6250 6000
 F 0 "U1" H 6200 4500 60  0000 C CNN
-F 1 "ADCLEFTPINS" H 6250 7000 60  0000 C CNN
+F 1 "ADCPINS" H 6250 7000 60  0000 C CNN
 F 2 "" H 6250 6000 60  0001 C CNN
 F 3 "" H 6250 6000 60  0001 C CNN
 	1    6250 6000
@@ -641,11 +641,7 @@ Wire Wire Line
 	10550 5800 10800 5800
 Wire Wire Line
 	10800 5950 10550 5950
-NoConn ~ 6750 5550
-NoConn ~ 6850 5550
-NoConn ~ 6950 5550
-NoConn ~ 7050 5550
-Text Notes 5700 5150 0    60   ~ 0
+Text Notes 4650 4950 0    60   ~ 0
 AREF needed here?  
 NoConn ~ 14050 3700
 NoConn ~ 13350 3700
@@ -664,10 +660,10 @@ NoConn ~ 4950 3700
 NoConn ~ 4250 3700
 NoConn ~ 3550 3700
 $Comp
-L BARREL_JACK CON?
+L BARREL_JACK CON1
 U 1 1 53402D91
 P 8550 6550
-F 0 "CON?" H 8550 6800 60  0000 C CNN
+F 0 "CON1" H 8550 6800 60  0000 C CNN
 F 1 "BARREL_JACK" H 8550 6350 60  0000 C CNN
 F 2 "" H 8550 6550 60  0000 C CNN
 F 3 "" H 8550 6550 60  0000 C CNN
@@ -687,8 +683,6 @@ Wire Wire Line
 Connection ~ 8950 6650
 Wire Wire Line
 	8850 6450 9000 6450
-Text Notes 9200 6150 2    60   ~ 0
-connect both to gnd?
 Text Notes 9750 5050 0    60   ~ 0
 usb power to pi - use square plug for micro-usb cable use
 Text GLabel 9050 5400 2    60   Input ~ 0
@@ -698,10 +692,10 @@ GND
 Wire Wire Line
 	8900 5400 9050 5400
 $Comp
-L C C?
+L C C1
 U 1 1 534031B8
 P 8700 5400
-F 0 "C?" H 8700 5500 40  0000 L CNN
+F 0 "C1" H 8700 5500 40  0000 L CNN
 F 1 "10uf" H 8706 5315 40  0000 L CNN
 F 2 "~" H 8738 5250 30  0000 C CNN
 F 3 "~" H 8700 5400 60  0000 C CNN
@@ -713,10 +707,10 @@ Wire Wire Line
 Text Notes 8250 5150 0    60   ~ 0
 put 2500uf if anything.
 $Comp
-L BARREL_JACK CON?
+L BARREL_JACK CON2
 U 1 1 53403D81
 P 8550 7500
-F 0 "CON?" H 8550 7750 60  0000 C CNN
+F 0 "CON2" H 8550 7750 60  0000 C CNN
 F 1 "BARREL_JACK" H 8550 7300 60  0000 C CNN
 F 2 "" H 8550 7500 60  0000 C CNN
 F 3 "" H 8550 7500 60  0000 C CNN
@@ -740,4 +734,41 @@ Wire Wire Line
 Wire Wire Line
 	8950 7500 8950 7600
 Connection ~ 8950 7600
+Text GLabel 5250 5100 2    47   Input ~ 0
++5V
+Text GLabel 7050 5550 1    43   Input ~ 0
+D0
+Text GLabel 6950 5550 1    43   Input ~ 0
+D1
+Text GLabel 6850 5550 1    43   Input ~ 0
+D2
+Text GLabel 6750 5550 1    43   Input ~ 0
+D3
+$Comp
+L CONN_4 P1
+U 1 1 534AB6FD
+P 5950 7400
+F 0 "P1" V 5900 7400 50  0000 C CNN
+F 1 "CONN_4" V 6000 7400 50  0000 C CNN
+F 2 "" H 5950 7400 60  0000 C CNN
+F 3 "" H 5950 7400 60  0000 C CNN
+	1    5950 7400
+	0    1    1    0   
+$EndComp
+Text GLabel 6100 7050 1    43   Input ~ 0
+D0
+Text GLabel 6000 7050 1    43   Input ~ 0
+D1
+Text GLabel 5900 7050 1    43   Input ~ 0
+D2
+Text GLabel 5800 7050 1    43   Input ~ 0
+D3
+Text GLabel 5050 5550 1    47   Input ~ 0
+AREF
+Text GLabel 4950 5100 0    47   Input ~ 0
+AREF
+Wire Wire Line
+	4950 5100 5250 5100
+Text Notes 5400 7700 0    60   ~ 0
+optional DIO pins.\nallow for screw terminals.
 $EndSCHEMATC

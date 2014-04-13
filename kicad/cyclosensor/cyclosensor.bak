@@ -178,4 +178,6 @@ NoConn ~ 5100 4600
 NoConn ~ 4600 3400
 NoConn ~ 5000 3400
 NoConn ~ 5100 3400
+Text Notes 4400 4300 0    60   ~ 0
+coll/emitter +/-??
 $EndSCHEMATC
