@@ -37,7 +37,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "13 apr 2014"
+Date "16 apr 2014"
 Rev ""
 Comp ""
 Comment1 ""
@@ -164,15 +164,15 @@ NoConn ~ 5150 3450
 $Comp
 L POT OFFSET1
 U 1 1 533BA12C
-P 4200 4800
-F 0 "OFFSET1" H 4200 4700 50  0000 C CNN
-F 1 "10k" H 4200 4800 50  0000 C CNN
-F 2 "~" H 4200 4800 60  0000 C CNN
-F 3 "~" H 4200 4800 60  0000 C CNN
-	1    4200 4800
-	0    1    1    0   
+P 4400 5000
+F 0 "OFFSET1" H 4400 4900 50  0000 C CNN
+F 1 "10k" H 4400 5000 50  0000 C CNN
+F 2 "~" H 4400 5000 60  0000 C CNN
+F 3 "~" H 4400 5000 60  0000 C CNN
+	1    4400 5000
+	1    0    0    -1  
 $EndComp
-Text GLabel 4050 4550 0    60   Input ~ 0
+Text GLabel 4150 5150 3    60   Input ~ 0
 5V
 NoConn ~ 7100 3500
 Text Notes 6200 4200 0    60   ~ 0
@@ -350,24 +350,22 @@ Wire Wire Line
 $Comp
 L GND #PWR?
 U 1 1 5349C88D
-P 4200 5150
-F 0 "#PWR?" H 4200 5150 30  0001 C CNN
-F 1 "GND" H 4200 5080 30  0001 C CNN
-F 2 "" H 4200 5150 60  0000 C CNN
-F 3 "" H 4200 5150 60  0000 C CNN
-	1    4200 5150
+P 4650 5200
+F 0 "#PWR?" H 4650 5200 30  0001 C CNN
+F 1 "GND" H 4650 5130 30  0001 C CNN
+F 2 "" H 4650 5200 60  0000 C CNN
+F 3 "" H 4650 5200 60  0000 C CNN
+	1    4650 5200
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	4350 4800 4400 4800
-Wire Wire Line
-	4400 4800 4400 4550
+	4400 4550 4400 4850
 Wire Wire Line
 	4400 4550 4500 4550
 Wire Wire Line
-	4050 4550 4200 4550
-Wire Wire Line
-	4200 5150 4200 5050
+	4150 5150 4150 5000
 Text Notes 1850 4350 0    60   ~ 0
 not used - change\nback to save on pots?
+Wire Wire Line
+	4650 5000 4650 5200
 $EndSCHEMATC
