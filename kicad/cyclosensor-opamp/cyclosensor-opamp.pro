@@ -1,11 +1,6 @@
-update=Sat 05 Apr 2014 12:31:57 PM MDT
+update=Fri 18 Apr 2014 02:41:59 PM MDT
 version=1
 last_client=eeschema
-[cvpcb]
-version=1
-NetIExt=net
-[cvpcb/libraries]
-EquName1=devcms
 [pcbnew]
 version=1
 LastNetListRead=
@@ -26,7 +21,6 @@ DrawSegmentWidth=0.200000000000
 BoardOutlineThickness=0.100000000000
 ModuleOutlineThickness=0.150000000000
 [pcbnew/libraries]
-LibDir=
 LibName1=sockets
 LibName2=connect
 LibName3=discret
@@ -43,8 +37,14 @@ LibName13=led
 LibName14=dip_sockets
 LibName15=pga_sockets
 LibName16=valves
+LibDir=../../kicad;/home/bburdette/kicad-library;/home/bburdette/kicad-library/modules;/home/bburdette/kicad-parts;/home/bburdette/kicad-parts/modules;/home/bburdette/kicad-library/library
 [general]
 version=1
+[cvpcb]
+version=1
+NetIExt=net
+[cvpcb/libraries]
+EquName1=devcms
 [eeschema]
 version=1
 LibDir=../../kicad;../../../../kicad-library/library
