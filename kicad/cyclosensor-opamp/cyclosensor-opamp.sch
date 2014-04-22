@@ -37,7 +37,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "16 apr 2014"
+Date "19 apr 2014"
 Rev ""
 Comp ""
 Comment1 ""
@@ -71,29 +71,18 @@ F 3 "" H 7150 3800 60  0000 C CNN
 	1    7150 3800
 	1    0    0    -1  
 $EndComp
-Text GLabel 4900 4950 3    60   Input ~ 0
+Text GLabel 4900 4050 1    60   Input ~ 0
 5V
 $Comp
 L GND #PWR02
 U 1 1 533B8353
-P 4900 3950
-F 0 "#PWR02" H 4900 3950 30  0001 C CNN
-F 1 "GND" H 4900 3880 30  0001 C CNN
-F 2 "" H 4900 3950 60  0000 C CNN
-F 3 "" H 4900 3950 60  0000 C CNN
-	1    4900 3950
-	-1   0    0    1   
-$EndComp
-$Comp
-L LM358 U1
-U 1 1 533B83FF
-P 5000 4450
-F 0 "U1" H 4950 4650 60  0000 L CNN
-F 1 "LM358" H 4950 4200 60  0000 L CNN
-F 2 "" H 5000 4450 60  0000 C CNN
-F 3 "" H 5000 4450 60  0000 C CNN
-	1    5000 4450
-	1    0    0    1   
+P 4900 4950
+F 0 "#PWR02" H 4900 4950 30  0001 C CNN
+F 1 "GND" H 4900 4880 30  0001 C CNN
+F 2 "" H 4900 4950 60  0000 C CNN
+F 3 "" H 4900 4950 60  0000 C CNN
+	1    4900 4950
+	1    0    0    -1  
 $EndComp
 $Comp
 L R R2
@@ -126,10 +115,10 @@ X
 Text GLabel 2350 3500 0    60   Input ~ 0
 5V
 $Comp
-L GND #PWR05
+L GND #PWR03
 U 1 1 533B9F2F
 P 3950 3950
-F 0 "#PWR05" H 3950 3950 30  0001 C CNN
+F 0 "#PWR03" H 3950 3950 30  0001 C CNN
 F 1 "GND" H 3950 3880 30  0001 C CNN
 F 2 "" H 3950 3950 60  0000 C CNN
 F 3 "" H 3950 3950 60  0000 C CNN
@@ -179,13 +168,11 @@ Text Notes 6200 4200 0    60   ~ 0
 Ok to have 5V without 'pair' here?  \nYES
 Text Notes 3200 5550 0    60   ~ 0
 offset from which side?  zero or 5v/1024?
-Text Notes 4100 3150 0    60   ~ 0
-1M ok for tuning, not too sensitive?
 $Comp
-L C C?
+L C C1
 U 1 1 53449FBF
 P 6450 5250
-F 0 "C?" H 6450 5350 40  0000 L CNN
+F 0 "C1" H 6450 5350 40  0000 L CNN
 F 1 ".01uf" H 6456 5165 40  0000 L CNN
 F 2 "~" H 6488 5100 30  0000 C CNN
 F 3 "~" H 6450 5250 60  0000 C CNN
@@ -195,10 +182,10 @@ $EndComp
 Text GLabel 6450 4900 1    60   Input ~ 0
 5V
 $Comp
-L GND #PWR?
+L GND #PWR04
 U 1 1 53449FDD
 P 6450 5550
-F 0 "#PWR?" H 6450 5550 30  0001 C CNN
+F 0 "#PWR04" H 6450 5550 30  0001 C CNN
 F 1 "GND" H 6450 5480 30  0001 C CNN
 F 2 "" H 6450 5550 60  0000 C CNN
 F 3 "" H 6450 5550 60  0000 C CNN
@@ -208,10 +195,10 @@ $EndComp
 Text Notes 6200 4650 0    60   ~ 0
 Put near pin 8 on op-amp!
 $Comp
-L C C?
+L C C2
 U 1 1 5344A0AE
 P 6800 5250
-F 0 "C?" H 6800 5350 40  0000 L CNN
+F 0 "C2" H 6800 5350 40  0000 L CNN
 F 1 "10uf" H 6806 5165 40  0000 L CNN
 F 2 "~" H 6838 5100 30  0000 C CNN
 F 3 "~" H 6800 5250 60  0000 C CNN
@@ -221,10 +208,10 @@ $EndComp
 Text GLabel 6800 4900 1    60   Input ~ 0
 5V
 $Comp
-L GND #PWR?
+L GND #PWR05
 U 1 1 5344A0B5
 P 6800 5550
-F 0 "#PWR?" H 6800 5550 30  0001 C CNN
+F 0 "#PWR05" H 6800 5550 30  0001 C CNN
 F 1 "GND" H 6800 5480 30  0001 C CNN
 F 2 "" H 6800 5550 60  0000 C CNN
 F 3 "" H 6800 5550 60  0000 C CNN
@@ -234,20 +221,16 @@ $EndComp
 Text Notes 6450 5800 0    60   ~ 0
 option of two caps \nfor different freq\nfiltering on each
 $Comp
-L TCRT5000 U?
+L TCRT5000 U1
 U 1 1 53499E1E
 P 3350 3550
-F 0 "U?" H 3350 3000 60  0000 C CNN
+F 0 "U1" H 3350 3000 60  0000 C CNN
 F 1 "TCRT5000" H 3350 4000 60  0000 C CNN
-F 2 "~" H 3350 3550 60  0000 C CNN
+F 2 "what" H 3350 3550 60  0000 C CNN
 F 3 "~" H 3350 3550 60  0000 C CNN
 	1    3350 3550
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	7000 3500 7000 3650
-Wire Wire Line
-	7000 3650 7150 3650
 Wire Wire Line
 	4500 3450 4500 4350
 Wire Wire Line
@@ -264,8 +247,6 @@ Wire Wire Line
 Wire Wire Line
 	3650 5000 3650 5150
 Wire Wire Line
-	4900 3950 4900 4050
-Wire Wire Line
 	6900 3500 6900 3700
 Wire Wire Line
 	6900 3700 6950 3700
@@ -277,10 +258,6 @@ Wire Wire Line
 	3950 3600 3950 3950
 Wire Wire Line
 	4500 3450 4650 3450
-Wire Wire Line
-	4900 4850 4900 4950
-Wire Wire Line
-	7150 3650 7150 3800
 Wire Wire Line
 	6800 3800 6800 3500
 Wire Wire Line
@@ -301,10 +278,10 @@ Connection ~ 3950 3850
 Text GLabel 3650 5150 3    60   Input ~ 0
 5V
 $Comp
-L R R?
+L R R3
 U 1 1 5349C83F
 P 2550 4850
-F 0 "R?" V 2630 4850 40  0000 C CNN
+F 0 "R3" V 2630 4850 40  0000 C CNN
 F 1 "20k" V 2557 4851 40  0000 C CNN
 F 2 "~" V 2480 4850 30  0000 C CNN
 F 3 "~" H 2550 4850 30  0000 C CNN
@@ -312,10 +289,10 @@ F 3 "~" H 2550 4850 30  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR?
+L GND #PWR06
 U 1 1 5349C845
 P 2550 5250
-F 0 "#PWR?" H 2550 5250 30  0001 C CNN
+F 0 "#PWR06" H 2550 5250 30  0001 C CNN
 F 1 "GND" H 2550 5180 30  0001 C CNN
 F 2 "" H 2550 5250 60  0000 C CNN
 F 3 "" H 2550 5250 60  0000 C CNN
@@ -323,10 +300,10 @@ F 3 "" H 2550 5250 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L POT OFFSET?
+L POT OFFSET2
 U 1 1 5349C84B
 P 2200 4850
-F 0 "OFFSET?" H 2200 4750 50  0000 C CNN
+F 0 "OFFSET2" H 2200 4750 50  0000 C CNN
 F 1 "20K" H 2200 4850 50  0000 C CNN
 F 2 "~" H 2200 4850 60  0000 C CNN
 F 3 "~" H 2200 4850 60  0000 C CNN
@@ -348,14 +325,14 @@ Connection ~ 2550 4500
 Wire Wire Line
 	2350 4850 2350 5150
 $Comp
-L GND #PWR?
+L GND #PWR07
 U 1 1 5349C88D
-P 4650 5200
-F 0 "#PWR?" H 4650 5200 30  0001 C CNN
-F 1 "GND" H 4650 5130 30  0001 C CNN
-F 2 "" H 4650 5200 60  0000 C CNN
-F 3 "" H 4650 5200 60  0000 C CNN
-	1    4650 5200
+P 4650 5150
+F 0 "#PWR07" H 4650 5150 30  0001 C CNN
+F 1 "GND" H 4650 5080 30  0001 C CNN
+F 2 "" H 4650 5150 60  0000 C CNN
+F 3 "" H 4650 5150 60  0000 C CNN
+	1    4650 5150
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
@@ -366,6 +343,29 @@ Wire Wire Line
 	4150 5150 4150 5000
 Text Notes 1850 4350 0    60   ~ 0
 not used - change\nback to save on pots?
+$Comp
+L MCP6001 U2
+U 1 1 53518B31
+P 5000 4450
+F 0 "U2" H 4950 4650 60  0000 L CNN
+F 1 "MCP6001" H 4950 4200 60  0000 L CNN
+F 2 "" H 5000 4450 60  0000 C CNN
+F 3 "" H 5000 4450 60  0000 C CNN
+	1    5000 4450
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
-	4650 5000 4650 5200
+	4900 4850 4900 4950
+Wire Wire Line
+	4650 5150 4650 5000
+Wire Wire Line
+	7000 3500 7000 3600
+Wire Wire Line
+	7000 3600 7150 3600
+Wire Wire Line
+	7150 3600 7150 3800
+Text Notes 5100 4900 0    60   ~ 0
+verify 5V/GND pins!  \nwas reversed.
+Text Notes 3200 5850 0    60   ~ 0
+make sure this works without a pot installed.  \nI guess through hole resistor??
 $EndSCHEMATC
