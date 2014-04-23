@@ -37,7 +37,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "18 apr 2014"
+Date "19 apr 2014"
 Rev ""
 Comp ""
 Comment1 ""
@@ -168,8 +168,6 @@ Text Notes 6200 4200 0    60   ~ 0
 Ok to have 5V without 'pair' here?  \nYES
 Text Notes 3200 5550 0    60   ~ 0
 offset from which side?  zero or 5v/1024?
-Text Notes 4100 3150 0    60   ~ 0
-1M ok for tuning, not too sensitive?
 $Comp
 L C C1
 U 1 1 53449FBF
@@ -366,4 +364,8 @@ Wire Wire Line
 	7000 3600 7150 3600
 Wire Wire Line
 	7150 3600 7150 3800
+Text Notes 5100 4900 0    60   ~ 0
+verify 5V/GND pins!  \nwas reversed.
+Text Notes 3200 5850 0    60   ~ 0
+make sure this works without a pot installed.  \nI guess through hole resistor??
 $EndSCHEMATC
