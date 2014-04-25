@@ -7,7 +7,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "23 apr 2014"
+Date "25 apr 2014"
 Rev ""
 Comp ""
 Comment1 ""
@@ -61,7 +61,7 @@ L R R1
 U 1 1 533B9B87
 P 3650 4950
 F 0 "R1" V 3730 4950 40  0000 C CNN
-F 1 "10k" V 3657 4951 40  0000 C CNN
+F 1 "20.7k" V 3657 4951 40  0000 C CNN
 F 2 "~" V 3580 4950 30  0000 C CNN
 F 3 "~" H 3650 4950 30  0000 C CNN
 	1    3650 4950
@@ -108,23 +108,19 @@ NoConn ~ 5150 3450
 $Comp
 L POT OFFSET1
 U 1 1 533BA12C
-P 2300 1950
-F 0 "OFFSET1" H 2300 1850 50  0000 C CNN
-F 1 "10k" H 2300 1950 50  0000 C CNN
-F 2 "~" H 2300 1950 60  0000 C CNN
-F 3 "~" H 2300 1950 60  0000 C CNN
-	1    2300 1950
+P 2300 1250
+F 0 "OFFSET1" H 2300 1150 50  0000 C CNN
+F 1 "10k" H 2300 1250 50  0000 C CNN
+F 2 "~" H 2300 1250 60  0000 C CNN
+F 3 "~" H 2300 1250 60  0000 C CNN
+	1    2300 1250
 	1    0    0    -1  
 $EndComp
-Text GLabel 2050 2100 3    60   Input ~ 0
+Text GLabel 2050 1400 3    60   Input ~ 0
 5V
 NoConn ~ 7100 3500
 Text Notes 6200 4200 0    60   ~ 0
 Ok to have 5V without 'pair' here?  \nYES
-Text Notes 3400 6000 0    60   ~ 0
-offset from which side?  zero or 5v/1024?
-Text Notes 4100 3150 0    60   ~ 0
-1M ok for tuning, not too sensitive?
 $Comp
 L C C1
 U 1 1 53449FBF
@@ -150,7 +146,7 @@ F 3 "" H 6450 5550 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 Text Notes 6200 4650 0    60   ~ 0
-Put near pin 8 on op-amp!
+Put near pin 5 on op-amp!
 $Comp
 L C C2
 U 1 1 5344A0AE
@@ -272,20 +268,20 @@ Wire Wire Line
 $Comp
 L GND #PWR1
 U 1 1 5349C88D
-P 2550 2150
-F 0 "#PWR1" H 2550 2150 30  0001 C CNN
-F 1 "GND" H 2550 2080 30  0001 C CNN
-F 2 "" H 2550 2150 60  0000 C CNN
-F 3 "" H 2550 2150 60  0000 C CNN
-	1    2550 2150
+P 2550 1450
+F 0 "#PWR1" H 2550 1450 30  0001 C CNN
+F 1 "GND" H 2550 1380 30  0001 C CNN
+F 2 "" H 2550 1450 60  0000 C CNN
+F 3 "" H 2550 1450 60  0000 C CNN
+	1    2550 1450
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	2050 2100 2050 1950
+	2050 1400 2050 1250
 Text Notes 3450 1600 0    60   ~ 0
 not used - change\nback to save on pots?
 Wire Wire Line
-	2550 1950 2550 2150
+	2550 1250 2550 1450
 $Comp
 L GND #PWR7
 U 1 1 5355C365
@@ -371,48 +367,41 @@ Wire Wire Line
 $Comp
 L R R?
 U 1 1 535734BD
-P 3150 5100
-F 0 "R?" V 3230 5100 40  0000 C CNN
-F 1 "10k" V 3157 5101 40  0000 C CNN
-F 2 "~" V 3080 5100 30  0000 C CNN
-F 3 "~" H 3150 5100 30  0000 C CNN
-	1    3150 5100
+P 1700 2450
+F 0 "R?" V 1780 2450 40  0000 C CNN
+F 1 "10k" V 1707 2451 40  0000 C CNN
+F 2 "~" V 1630 2450 30  0000 C CNN
+F 3 "~" H 1700 2450 30  0000 C CNN
+	1    1700 2450
 	0    -1   -1   0   
 $EndComp
-Wire Wire Line
-	3650 4600 3450 4600
-Wire Wire Line
-	3450 4600 3450 5100
-Wire Wire Line
-	3450 5100 3400 5100
-Connection ~ 3650 4600
 $Comp
 L POT GAIN?
 U 1 1 53573527
-P 2750 5100
-F 0 "GAIN?" H 2750 5000 50  0000 C CNN
-F 1 "100K" H 2750 5100 50  0000 C CNN
-F 2 "~" H 2750 5100 60  0000 C CNN
-F 3 "~" H 2750 5100 60  0000 C CNN
-	1    2750 5100
+P 1300 2450
+F 0 "GAIN?" H 1300 2350 50  0000 C CNN
+F 1 "100K" H 1300 2450 50  0000 C CNN
+F 2 "~" H 1300 2450 60  0000 C CNN
+F 3 "~" H 1300 2450 60  0000 C CNN
+	1    1300 2450
 	0    1    1    0   
 $EndComp
-Text GLabel 2750 4850 1    60   Input ~ 0
+Text GLabel 1300 2200 1    60   Input ~ 0
 5V
 Wire Wire Line
-	2750 5350 2750 5500
+	1300 2700 1300 2850
 $Comp
 L GND #PWR?
 U 1 1 5357352F
-P 2750 5500
-F 0 "#PWR?" H 2750 5500 30  0001 C CNN
-F 1 "GND" H 2750 5430 30  0001 C CNN
-F 2 "" H 2750 5500 60  0000 C CNN
-F 3 "" H 2750 5500 60  0000 C CNN
-	1    2750 5500
+P 1300 2850
+F 0 "#PWR?" H 1300 2850 30  0001 C CNN
+F 1 "GND" H 1300 2780 30  0001 C CNN
+F 2 "" H 1300 2850 60  0000 C CNN
+F 3 "" H 1300 2850 60  0000 C CNN
+	1    1300 2850
 	1    0    0    -1  
 $EndComp
-Text Notes 2300 5700 0    60   ~ 0
+Text Notes 1100 3000 0    60   ~ 0
 Extra stuff for positive\noffset from zero!
 $Comp
 L MCP6001U U?
