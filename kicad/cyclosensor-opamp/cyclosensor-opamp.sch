@@ -37,7 +37,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "19 apr 2014"
+Date "25 apr 2014"
 Rev ""
 Comp ""
 Comment1 ""
@@ -368,4 +368,15 @@ Text Notes 5100 4900 0    60   ~ 0
 verify 5V/GND pins!  \nwas reversed.
 Text Notes 3200 5850 0    60   ~ 0
 make sure this works without a pot installed.  \nI guess through hole resistor??
+$Comp
+L LM358 U?
+U 1 1 535ABDD9
+P 8950 2850
+F 0 "U?" H 8900 3050 60  0000 L CNN
+F 1 "LM358" H 8900 2600 60  0000 L CNN
+F 2 "" H 8950 2850 60  0000 C CNN
+F 3 "" H 8950 2850 60  0000 C CNN
+	1    8950 2850
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
