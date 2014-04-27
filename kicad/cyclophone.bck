@@ -1,4 +1,4 @@
-EESchema-DOCLIB  Version 2.0  Date: Fri 18 Apr 2014 02:28:22 PM MDT
+EESchema-DOCLIB  Version 2.0  Date: Wed 23 Apr 2014 04:48:10 PM MDT
 #
 $CMP ADS7957
 D Texas Instruments ADS7957
@@ -24,6 +24,12 @@ F op_amps/lmc6082.pdf
 $ENDCMP
 #
 $CMP MCP6001
+D Dual Op amp (low power)
+K ampliop
+F ns/lm158.pdf
+$ENDCMP
+#
+$CMP MCP6001U
 D Dual Op amp (low power)
 K ampliop
 F ns/lm158.pdf

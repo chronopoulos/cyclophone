@@ -1,0 +1,129 @@
+Cmp-Mod V01 Created by Cvpcb (2014-jan-25)-product   date = Sun 27 Apr 2014 09:45:02 AM MDT
+
+BeginCmp
+TimeStamp = /53449FBF;
+Reference = C1;
+ValeurCmp = .01uf;
+IdModule  = SMD_Packages:SM1206;
+EndCmp
+
+BeginCmp
+TimeStamp = /5344A0AE;
+Reference = C2;
+ValeurCmp = 10uf;
+IdModule  = SMD_Packages:SM1206;
+EndCmp
+
+BeginCmp
+TimeStamp = /5359E737;
+Reference = GAIN2;
+ValeurCmp = 100K;
+IdModule  = Cyclophone:PTV09A-2-BOTTOM;
+EndCmp
+
+BeginCmp
+TimeStamp = /532FB864;
+Reference = J1;
+ValeurCmp = RJ14;
+IdModule  = Cyclophone:A-2014-0-4-R_BOTTOM;
+EndCmp
+
+BeginCmp
+TimeStamp = /535AE01E;
+Reference = K1;
+ValeurCmp = CONN_3;
+IdModule  = Connect:SIL-3;
+EndCmp
+
+BeginCmp
+TimeStamp = /5359E724;
+Reference = LOW1;
+ValeurCmp = 100k;
+IdModule  = Cyclophone:PTV09A-2-BOTTOM;
+EndCmp
+
+BeginCmp
+TimeStamp = /533B9FB6;
+Reference = R1;
+ValeurCmp = 220;
+IdModule  = SMD_Packages:SM1206;
+EndCmp
+
+BeginCmp
+TimeStamp = /533B9B87;
+Reference = R2;
+ValeurCmp = 20.7k;
+IdModule  = SMD_Packages:SM1206;
+EndCmp
+
+BeginCmp
+TimeStamp = /5355C3FF;
+Reference = R3;
+ValeurCmp = 10k;
+IdModule  = SMD_Packages:SM1206;
+EndCmp
+
+BeginCmp
+TimeStamp = /5359ED67;
+Reference = R4;
+ValeurCmp = 10k;
+IdModule  = SMD_Packages:SM1206;
+EndCmp
+
+BeginCmp
+TimeStamp = /5355C5BE;
+Reference = R5;
+ValeurCmp = empty;
+IdModule  = SMD_Packages:SM1206;
+EndCmp
+
+BeginCmp
+TimeStamp = /535AB429;
+Reference = R6;
+ValeurCmp = empty;
+IdModule  = SMD_Packages:SM1206;
+EndCmp
+
+BeginCmp
+TimeStamp = /535D1DDF;
+Reference = R7;
+ValeurCmp = empty;
+IdModule  = SMD_Packages:SM1206;
+EndCmp
+
+BeginCmp
+TimeStamp = /535D1A3C;
+Reference = R8;
+ValeurCmp = empty;
+IdModule  = SMD_Packages:SM1206;
+EndCmp
+
+BeginCmp
+TimeStamp = /535D1ECA;
+Reference = R9;
+ValeurCmp = empty;
+IdModule  = SMD_Packages:SM1206;
+EndCmp
+
+BeginCmp
+TimeStamp = /535BDDB2;
+Reference = U1;
+ValeurCmp = TCRT5000;
+IdModule  = Cyclophone:TCRT5000;
+EndCmp
+
+BeginCmp
+TimeStamp = /5358437A;
+Reference = U2;
+ValeurCmp = MCP6001U;
+IdModule  = SMD_Packages:SOT23-5;
+EndCmp
+
+BeginCmp
+TimeStamp = /5359ECE1;
+Reference = U3;
+ValeurCmp = MCP6001U;
+IdModule  = SMD_Packages:SOT23-5;
+EndCmp
+
+EndListe
