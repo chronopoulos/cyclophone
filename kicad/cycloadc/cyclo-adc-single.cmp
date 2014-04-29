@@ -1,0 +1,45 @@
+Cmp-Mod V01 Created by Cvpcb (2014-jan-25)-product   date = Sun 27 Apr 2014 11:45:15 PM MDT
+
+BeginCmp
+TimeStamp = /5313C810;
+Reference = ADS-0;
+ValeurCmp = ADS7957;
+IdModule  = Cyclophone:ADS7957;
+EndCmp
+
+BeginCmp
+TimeStamp = /53449C6F;
+Reference = C1;
+ValeurCmp = C;
+IdModule  = SMD_Packages:SM1206;
+EndCmp
+
+BeginCmp
+TimeStamp = /53274A2C;
+Reference = Left1;
+ValeurCmp = ADCPINS;
+IdModule  = Pin_Headers:Pin_Header_Straight_1x22;
+EndCmp
+
+BeginCmp
+TimeStamp = /535DD5C4;
+Reference = P1;
+ValeurCmp = CONN_9;
+IdModule  = Pin_Headers:Pin_Header_Straight_1x09;
+EndCmp
+
+BeginCmp
+TimeStamp = /5341F690;
+Reference = R1;
+ValeurCmp = 2K;
+IdModule  = SMD_Packages:SM1206;
+EndCmp
+
+BeginCmp
+TimeStamp = /5341EFA8;
+Reference = U1;
+ValeurCmp = TL431LP;
+IdModule  = Cyclophone:TL431LP;
+EndCmp
+
+EndListe

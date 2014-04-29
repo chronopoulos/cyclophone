@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name Cyclophone)(type KiCad)(uri /home/bburdette/code/cyclophone/kicad/cyclophone.pretty)(options "")(descr ""))
+)

@@ -31,7 +31,7 @@ LIBS:contrib
 LIBS:valves
 LIBS:cyclophone-cache
 LIBS:cyclonexus-cache
-EELAYER 27 0
+EELAYER 24 0
 EELAYER END
 $Descr USLedger 17000 11000
 encoding utf-8
@@ -409,8 +409,6 @@ Text GLabel 10550 5950 0    60   Input ~ 0
 GND
 NoConn ~ 11550 5800
 NoConn ~ 11550 5950
-NoConn ~ 11550 6050
-NoConn ~ 10800 6050
 Text GLabel 10550 5800 0    60   Input ~ 0
 +5V
 Wire Wire Line
@@ -736,14 +734,6 @@ Wire Wire Line
 Connection ~ 8950 7600
 Text GLabel 5250 5100 2    47   Input ~ 0
 +5V
-Text GLabel 7050 5550 1    43   Input ~ 0
-D0
-Text GLabel 6950 5550 1    43   Input ~ 0
-D1
-Text GLabel 6850 5550 1    43   Input ~ 0
-D2
-Text GLabel 6750 5550 1    43   Input ~ 0
-D3
 $Comp
 L CONN_4 P1
 U 1 1 534AB6FD
@@ -771,4 +761,22 @@ Wire Wire Line
 	4950 5100 5250 5100
 Text Notes 5400 7700 0    60   ~ 0
 optional DIO pins.\nallow for screw terminals.
+Wire Wire Line
+	10700 5950 10700 6150
+Wire Wire Line
+	10700 6050 10800 6050
+Connection ~ 10700 5950
+Wire Wire Line
+	10700 6150 11550 6150
+Wire Wire Line
+	11550 6150 11550 6050
+Connection ~ 10700 6050
+Text GLabel 7050 5550 1    43   Input ~ 0
+D0
+Text GLabel 6950 5550 1    43   Input ~ 0
+D1
+Text GLabel 6850 5550 1    43   Input ~ 0
+D2
+Text GLabel 6750 5550 1    43   Input ~ 0
+D3
 $EndSCHEMATC

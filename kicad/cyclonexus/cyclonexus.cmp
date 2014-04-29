@@ -1,0 +1,157 @@
+Cmp-Mod V01 Created by Cvpcb (2014-jan-25)-product   date = Tue 29 Apr 2014 11:24:41 AM MDT
+
+BeginCmp
+TimeStamp = /534031B8;
+Reference = C1;
+ValeurCmp = 10uf;
+IdModule  = Capacitors_ThroughHole:Capacitor3MMDiscRM2.5;
+EndCmp
+
+BeginCmp
+TimeStamp = /53402D91;
+Reference = CON1;
+ValeurCmp = BARREL_JACK;
+IdModule  = Connect:BARREL_JACK;
+EndCmp
+
+BeginCmp
+TimeStamp = /53403D81;
+Reference = CON2;
+ValeurCmp = BARREL_JACK;
+IdModule  = Connect:BARREL_JACK;
+EndCmp
+
+BeginCmp
+TimeStamp = /532FA6C6;
+Reference = J1;
+ValeurCmp = RJ14;
+IdModule  = Cyclophone:A-2014-0-4-R_TOP;
+EndCmp
+
+BeginCmp
+TimeStamp = /532FAA82;
+Reference = J2;
+ValeurCmp = RJ14;
+IdModule  = Cyclophone:A-2014-0-4-R_TOP;
+EndCmp
+
+BeginCmp
+TimeStamp = /532FAA98;
+Reference = J3;
+ValeurCmp = RJ14;
+IdModule  = Cyclophone:A-2014-0-4-R_TOP;
+EndCmp
+
+BeginCmp
+TimeStamp = /532FAAAE;
+Reference = J4;
+ValeurCmp = RJ14;
+IdModule  = Cyclophone:A-2014-0-4-R_TOP;
+EndCmp
+
+BeginCmp
+TimeStamp = /532FAB1C;
+Reference = J5;
+ValeurCmp = RJ14;
+IdModule  = Cyclophone:A-2014-0-4-R_TOP;
+EndCmp
+
+BeginCmp
+TimeStamp = /532FAB32;
+Reference = J6;
+ValeurCmp = RJ14;
+IdModule  = Cyclophone:A-2014-0-4-R_TOP;
+EndCmp
+
+BeginCmp
+TimeStamp = /532FAB48;
+Reference = J7;
+ValeurCmp = RJ14;
+IdModule  = Cyclophone:A-2014-0-4-R_TOP;
+EndCmp
+
+BeginCmp
+TimeStamp = /532FAB5E;
+Reference = J8;
+ValeurCmp = RJ14;
+IdModule  = Cyclophone:A-2014-0-4-R_TOP;
+EndCmp
+
+BeginCmp
+TimeStamp = /532FAB74;
+Reference = J9;
+ValeurCmp = RJ14;
+IdModule  = Cyclophone:A-2014-0-4-R_TOP;
+EndCmp
+
+BeginCmp
+TimeStamp = /532FAB8A;
+Reference = J10;
+ValeurCmp = RJ14;
+IdModule  = Cyclophone:A-2014-0-4-R_TOP;
+EndCmp
+
+BeginCmp
+TimeStamp = /532FABA0;
+Reference = J11;
+ValeurCmp = RJ14;
+IdModule  = Cyclophone:A-2014-0-4-R_TOP;
+EndCmp
+
+BeginCmp
+TimeStamp = /532FABB6;
+Reference = J12;
+ValeurCmp = RJ14;
+IdModule  = Cyclophone:A-2014-0-4-R_TOP;
+EndCmp
+
+BeginCmp
+TimeStamp = /532FABCC;
+Reference = J13;
+ValeurCmp = RJ14;
+IdModule  = Cyclophone:A-2014-0-4-R_TOP;
+EndCmp
+
+BeginCmp
+TimeStamp = /532FABE2;
+Reference = J14;
+ValeurCmp = RJ14;
+IdModule  = Cyclophone:A-2014-0-4-R_TOP;
+EndCmp
+
+BeginCmp
+TimeStamp = /532FABF8;
+Reference = J15;
+ValeurCmp = RJ14;
+IdModule  = Cyclophone:A-2014-0-4-R_TOP;
+EndCmp
+
+BeginCmp
+TimeStamp = /532FAC0E;
+Reference = J16;
+ValeurCmp = RJ14;
+IdModule  = Cyclophone:A-2014-0-4-R_TOP;
+EndCmp
+
+BeginCmp
+TimeStamp = /532FA7D3;
+Reference = J17;
+ValeurCmp = USB_1;
+IdModule  = Connect:USB_A;
+EndCmp
+
+BeginCmp
+TimeStamp = /534AB6FD;
+Reference = P1;
+ValeurCmp = CONN_4;
+IdModule  = Cyclophone:Phoenix-5mm-Screw-Terminal-flipped;
+EndCmp
+
+BeginCmp
+TimeStamp = /5327640A;
+Reference = U1;
+ValeurCmp = ADCPINS;
+IdModule  = Pin_Headers:Pin_Header_Straight_1x22;
+EndCmp
+
+EndListe

@@ -1,0 +1,66 @@
+Cmp-Mod V01 Created by Cvpcb (2014-jan-25)-product   date = Tue 29 Apr 2014 02:41:01 PM MDT
+
+BeginCmp
+TimeStamp = /535ECE01;
+Reference = ADC-0;
+ValeurCmp = ADS7957;
+IdModule  = Cyclophone:ADS7957;
+EndCmp
+
+BeginCmp
+TimeStamp = /535ECD4B;
+Reference = ADC-1;
+ValeurCmp = ADS7957;
+IdModule  = Cyclophone:ADS7957;
+EndCmp
+
+BeginCmp
+TimeStamp = /53449C6F;
+Reference = C1;
+ValeurCmp = C;
+IdModule  = SMD_Packages:SM1206;
+EndCmp
+
+BeginCmp
+TimeStamp = /53274A2C;
+Reference = IOPINS0;
+ValeurCmp = ADC-0-PINS;
+IdModule  = Pin_Headers:Pin_Header_Straight_1x22;
+EndCmp
+
+BeginCmp
+TimeStamp = /53274980;
+Reference = IOPINS1;
+ValeurCmp = ADC-1-PINS;
+IdModule  = Pin_Headers:Pin_Header_Straight_1x22;
+EndCmp
+
+BeginCmp
+TimeStamp = /53600A1D;
+Reference = P1;
+ValeurCmp = CONN_8;
+IdModule  = Pin_Headers:Pin_Header_Straight_1x08;
+EndCmp
+
+BeginCmp
+TimeStamp = /53600AFF;
+Reference = P2;
+ValeurCmp = CONN_8;
+IdModule  = Cyclophone:Phoenix-5mm-Screw-Terminal-8-flipped;
+EndCmp
+
+BeginCmp
+TimeStamp = /5341F690;
+Reference = R1;
+ValeurCmp = 2K;
+IdModule  = SMD_Packages:SM1206;
+EndCmp
+
+BeginCmp
+TimeStamp = /5341EFA8;
+Reference = U1;
+ValeurCmp = TL431LP;
+IdModule  = Cyclophone:TL431LP;
+EndCmp
+
+EndListe

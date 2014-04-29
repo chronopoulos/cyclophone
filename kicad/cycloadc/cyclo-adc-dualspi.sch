@@ -29,6 +29,7 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
+LIBS:cyclophone-cache
 LIBS:cyclo-adc-cache
 EELAYER 24 0
 EELAYER END
@@ -51,22 +52,22 @@ GND
 Text GLabel 8800 8750 2    60   Input ~ 0
 GND
 $Comp
-L ADCLEFTPINS IOPINS0
+L ADCLEFTPINS Left1
 U 1 1 53274A2C
 P 7900 7450
-F 0 "IOPINS0" H 7850 5950 60  0000 C CNN
-F 1 "ADC-0-PINS" H 7900 8450 60  0000 C CNN
+F 0 "Left1" H 7850 5950 60  0000 C CNN
+F 1 "ADCLEFTPINS" H 7900 8450 60  0000 C CNN
 F 2 "" H 7900 7450 60  0001 C CNN
 F 3 "" H 7900 7450 60  0001 C CNN
 	1    7900 7450
 	-1   0    0    -1  
 $EndComp
 $Comp
-L ADCRIGHTPINS IOPINS1
+L ADCRIGHTPINS Right1
 U 1 1 53274980
 P 10800 7450
-F 0 "IOPINS1" H 10750 5950 60  0000 C CNN
-F 1 "ADC-1-PINS" H 10800 8450 60  0000 C CNN
+F 0 "Right1" H 10750 5950 60  0000 C CNN
+F 1 "ADCRIGHTPINS" H 10800 8450 60  0000 C CNN
 F 2 "" H 10800 7450 60  0001 C CNN
 F 3 "" H 10800 7450 60  0001 C CNN
 	1    10800 7450
@@ -174,8 +175,6 @@ Text GLabel 6100 3450 0    60   Input ~ 0
 GND
 Text GLabel 6700 4750 0    60   Input ~ 0
 GND
-Text GLabel 14550 4350 0    60   Input ~ 0
-CS0
 Text GLabel 9100 2850 2    60   Input ~ 0
 DIO5
 Text GLabel 8800 2950 2    60   Input ~ 0
@@ -256,12 +255,34 @@ Text GLabel 12050 8450 2    60   Input ~ 0
 CH30
 Text GLabel 11750 8550 2    60   Input ~ 0
 CH31
+$Comp
+L ADS7957 ADS-1
+U 1 1 5313C81B
+P 7800 3900
+F 0 "ADS-1" H 7500 5100 60  0000 C CNN
+F 1 "ADS7957" H 7800 4000 60  0000 C CNN
+F 2 "" H 7800 3900 60  0001 C CNN
+F 3 "" H 7800 3900 60  0001 C CNN
+	1    7800 3900
+	1    0    0    -1  
+$EndComp
+$Comp
+L ADS7957 ADS-0
+U 1 1 5313C810
+P 3900 3900
+F 0 "ADS-0" H 3600 5100 60  0000 C CNN
+F 1 "ADS7957" H 3900 4000 60  0000 C CNN
+F 2 "" H 3900 3900 60  0001 C CNN
+F 3 "" H 3900 3900 60  0001 C CNN
+	1    3900 3900
+	1    0    0    -1  
+$EndComp
 Text GLabel 8750 3250 2    60   Input ~ 0
-SDO
+SDO1
 Text GLabel 9050 3350 2    60   Input ~ 0
-SDI
+SDI1
 Text GLabel 8750 3450 2    60   Input ~ 0
-SCLK
+SCLK1
 Text GLabel 9050 3550 2    60   Input ~ 0
 CS1
 Text GLabel 8800 3750 2    60   Input ~ 0
@@ -351,11 +372,11 @@ CH0
 Text GLabel 5150 3550 2    60   Input ~ 0
 CS0
 Text GLabel 4850 3450 2    60   Input ~ 0
-SCLK
+SCLK0
 Text GLabel 5150 3350 2    60   Input ~ 0
-SDI
+SDI0
 Text GLabel 4900 3250 2    60   Input ~ 0
-SDO
+SDO0
 Text GLabel 4850 3750 2    60   Input ~ 0
 +AREF
 Text GLabel 14500 3750 0    60   Input ~ 0
@@ -377,6 +398,8 @@ F 3 "" H 11300 4600 60  0000 C CNN
 	1    11300 4600
 	0    -1   -1   0   
 $EndComp
+Text GLabel 10100 4600 0    60   Input ~ 0
+5V
 $Comp
 L R R1
 U 1 1 5341F690
@@ -391,10 +414,10 @@ $EndComp
 Text GLabel 11300 4100 1    60   Input ~ 0
 2.5V
 $Comp
-L GND #PWR01
+L GND #PWR1
 U 1 1 534472D8
 P 12000 4700
-F 0 "#PWR01" H 12000 4700 30  0001 C CNN
+F 0 "#PWR1" H 12000 4700 30  0001 C CNN
 F 1 "GND" H 12000 4630 30  0001 C CNN
 F 2 "" H 12000 4700 60  0000 C CNN
 F 3 "" H 12000 4700 60  0000 C CNN
@@ -662,8 +685,6 @@ Wire Wire Line
 Wire Wire Line
 	4800 2850 5150 2850
 Wire Wire Line
-	14650 4350 14550 4350
-Wire Wire Line
 	8800 4750 8900 4750
 Wire Wire Line
 	2900 4750 2800 4750
@@ -718,10 +739,10 @@ Wire Wire Line
 Text Notes 10500 4100 0    60   ~ 0
 Added re Dan
 $Comp
-L C C1
+L C C?
 U 1 1 53449C6F
 P 12350 4400
-F 0 "C1" H 12350 4500 40  0000 L CNN
+F 0 "C?" H 12350 4500 40  0000 L CNN
 F 1 "C" H 12356 4315 40  0000 L CNN
 F 2 "~" H 12388 4250 30  0000 C CNN
 F 3 "~" H 12350 4400 60  0000 C CNN
@@ -734,25 +755,14 @@ Text Notes 11850 4900 0    60   ~ 0
 could leave cap empty
 Text Notes 12850 2800 0    60   ~ 0
 More general purpose:  jumper for + and - REFS\n- AGND and +VA, but not REFP and REFM?\n
-Text Notes 9750 5200 0    60   ~ 0
+Text Notes 9700 4850 0    60   ~ 0
 Change to 3.3?\nMight be ok - then allows \nchange of 5V input
-$Comp
-L CONN_10 P1
-U 1 1 534AB35E
-P 15000 3900
-F 0 "P1" V 14950 3900 60  0000 C CNN
-F 1 "CONN_10" V 15050 3900 60  0000 C CNN
-F 2 "" H 15000 3900 60  0000 C CNN
-F 3 "" H 15000 3900 60  0000 C CNN
-	1    15000 3900
-	1    0    0    -1  
-$EndComp
 Text GLabel 14400 3550 0    60   Input ~ 0
 5V
 Wire Wire Line
 	14650 3550 14400 3550
 Text GLabel 14200 3450 0    60   Input ~ 0
-+AREF
+AREF
 Wire Wire Line
 	14200 3450 14650 3450
 Text Notes 13200 3250 0    60   ~ 0
@@ -768,43 +778,94 @@ REFP
 Wire Wire Line
 	2700 3150 3000 3150
 Text GLabel 14600 3950 0    60   Input ~ 0
-SDO
-Text GLabel 14300 4050 0    60   Input ~ 0
-SDI
+SDO1
+Text GLabel 14250 4050 0    60   Input ~ 0
+SDI1
 Text GLabel 14600 4150 0    60   Input ~ 0
-SCLK
-Text GLabel 14300 4250 0    60   Input ~ 0
+SCLK1
+Text GLabel 14250 4250 0    60   Input ~ 0
 CS1
 Wire Wire Line
+	14250 4050 14650 4050
+Wire Wire Line
+	14650 4250 14250 4250
+Text GLabel 14250 4650 0    60   Input ~ 0
+CS0
+Text GLabel 14600 4550 0    60   Input ~ 0
+SCLK0
+Text GLabel 14250 4450 0    60   Input ~ 0
+SDI0
+Text GLabel 14550 4350 0    60   Input ~ 0
+SDO0
+Wire Wire Line
+	14650 4650 14250 4650
+Wire Wire Line
+	14650 4450 14250 4450
+Wire Wire Line
+	14600 4550 14650 4550
+Wire Wire Line
+	14550 4350 14650 4350
+Wire Wire Line
+	14600 3950 14650 3950
+Wire Wire Line
 	14600 4150 14650 4150
+Text GLabel 15000 5400 2    60   Input ~ 0
+SDO1
+Text GLabel 15350 5500 2    60   Input ~ 0
+SDI1
+Text GLabel 15000 5600 2    60   Input ~ 0
+SCLK1
 Wire Wire Line
-	14650 3950 14600 3950
+	15350 5500 14950 5500
 Wire Wire Line
-	14650 4050 14300 4050
+	15000 5400 14950 5400
 Wire Wire Line
-	14650 4250 14300 4250
-Text GLabel 10100 4600 0    60   Input ~ 0
-3.3V
+	15000 5600 14950 5600
 $Comp
-L ADS7957 ADC-1
-U 1 1 535ECD4B
-P 7800 3900
-F 0 "ADC-1" H 7500 5100 60  0000 C CNN
-F 1 "ADS7957" H 7800 4000 60  0000 C CNN
-F 2 "" H 7800 3900 60  0000 C CNN
-F 3 "" H 7800 3900 60  0000 C CNN
-	1    7800 3900
+L CONN_13 P?
+U 1 1 535ED15E
+P 15000 4050
+F 0 "P?" V 14960 4050 60  0000 C CNN
+F 1 "CONN_13" V 15070 4050 60  0000 C CNN
+F 2 "" H 15000 4050 60  0000 C CNN
+F 3 "" H 15000 4050 60  0000 C CNN
+	1    15000 4050
+	1    0    0    -1  
+$EndComp
+Text GLabel 13900 5600 0    60   Input ~ 0
+SCLK0
+Text GLabel 13550 5500 0    60   Input ~ 0
+SDI0
+Text GLabel 13850 5400 0    60   Input ~ 0
+SDO0
+Wire Wire Line
+	13950 5500 13550 5500
+Wire Wire Line
+	13900 5600 13950 5600
+Wire Wire Line
+	13850 5400 13950 5400
+$Comp
+L CONN_3 K?
+U 1 1 535ED1ED
+P 14300 5500
+F 0 "K?" V 14250 5500 50  0000 C CNN
+F 1 "CONN_3" V 14350 5500 40  0000 C CNN
+F 2 "" H 14300 5500 60  0000 C CNN
+F 3 "" H 14300 5500 60  0000 C CNN
+	1    14300 5500
 	1    0    0    -1  
 $EndComp
 $Comp
-L ADS7957 ADC-0
-U 1 1 535ECE01
-P 3900 3900
-F 0 "ADC-0" H 3600 5100 60  0000 C CNN
-F 1 "ADS7957" H 3900 4000 60  0000 C CNN
-F 2 "" H 3900 3900 60  0000 C CNN
-F 3 "" H 3900 3900 60  0000 C CNN
-	1    3900 3900
-	1    0    0    -1  
+L CONN_3 K?
+U 1 1 535ED212
+P 14600 5500
+F 0 "K?" V 14550 5500 50  0000 C CNN
+F 1 "CONN_3" V 14650 5500 40  0000 C CNN
+F 2 "" H 14600 5500 60  0000 C CNN
+F 3 "" H 14600 5500 60  0000 C CNN
+	1    14600 5500
+	-1   0    0    1   
 $EndComp
+Text Notes 13350 5150 0    60   ~ 0
+can jumper these together to have everything on one bus.
 $EndSCHEMATC
