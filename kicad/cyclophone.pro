@@ -1,6 +1,6 @@
-update=Wed 12 Mar 2014 12:50:20 PM MDT
+update=Sun 27 Apr 2014 05:21:59 PM MDT
 version=1
-last_client=eeschema
+last_client=kicad
 [cvpcb]
 version=1
 NetIExt=net
@@ -36,8 +36,6 @@ LibName8=led
 LibName9=dip_sockets
 LibName10=pga_sockets
 LibName11=valves
-[general]
-version=1
 [eeschema]
 version=1
 LibDir=/home/bburdette/kicad-parts/libraries;/home/bburdette/kicad-library/library;/home/bburdette/kicad-library/template
@@ -102,3 +100,5 @@ LibName29=atmel
 LibName30=contrib
 LibName31=valves
 LibName32=raspberrypi-gpio/raspberrypi-gpio-cache
+[general]
+version=1
