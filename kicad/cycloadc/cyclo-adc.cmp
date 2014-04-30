@@ -1,17 +1,17 @@
-Cmp-Mod V01 Created by Cvpcb (2014-jan-25)-product   date = Tue 29 Apr 2014 02:41:01 PM MDT
+Cmp-Mod V01 Created by Cvpcb (2014-jan-25)-product   date = Tue 29 Apr 2014 11:24:21 PM MDT
 
 BeginCmp
 TimeStamp = /535ECE01;
 Reference = ADC-0;
 ValeurCmp = ADS7957;
-IdModule  = Cyclophone:ADS7957;
+IdModule  = ADSomething:AB2_TSSOP38_0p50P;
 EndCmp
 
 BeginCmp
 TimeStamp = /535ECD4B;
 Reference = ADC-1;
 ValeurCmp = ADS7957;
-IdModule  = Cyclophone:ADS7957;
+IdModule  = ADSomething:AB2_TSSOP38_0p50P;
 EndCmp
 
 BeginCmp
@@ -19,6 +19,34 @@ TimeStamp = /53449C6F;
 Reference = C1;
 ValeurCmp = C;
 IdModule  = SMD_Packages:SM1206;
+EndCmp
+
+BeginCmp
+TimeStamp = /53608C05;
+Reference = C2;
+ValeurCmp = .1uf;
+IdModule  = Capacitors_SMD:c_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /53608BFD;
+Reference = C3;
+ValeurCmp = .1uf;
+IdModule  = Capacitors_SMD:c_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /53608984;
+Reference = C4;
+ValeurCmp = .1uf;
+IdModule  = Capacitors_SMD:c_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /53608756;
+Reference = C5;
+ValeurCmp = .1uf;
+IdModule  = Capacitors_SMD:c_0603;
 EndCmp
 
 BeginCmp
@@ -46,7 +74,7 @@ BeginCmp
 TimeStamp = /53600AFF;
 Reference = P2;
 ValeurCmp = CONN_8;
-IdModule  = Cyclophone:Phoenix-5mm-Screw-Terminal-8-flipped;
+IdModule  = Cyclophone:Phoenix-5mm-Screw-Terminal-8;
 EndCmp
 
 BeginCmp
