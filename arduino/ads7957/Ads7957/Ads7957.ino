@@ -53,24 +53,25 @@ void loop() {
   unsigned char outpoot[2];
   unsigned int lUiPin, lUiVal;
 
-  digitalWrite(slaveSelectPin1,LOW);
 
 
-  for (int j = 0; j < 10000; ++j)
-  {
+//  for (int j = 0; j < 10000; ++j)
+//  {
   unsigned char *lUc = controlwords;
   for (int i = 0; i < sensorcount; ++i)
   {
+    digitalWrite(slaveSelectPin1,LOW);
     //  send in the address and value via SPI:
     outpoot[0] = SPI.transfer(*lUc);
     outpoot[1] = SPI.transfer(*(lUc + 1));
     
+    digitalWrite(slaveSelectPin1,HIGH);
     decodeDataWord(outpoot, lUiPin, lUiVal);
     outval[i] = lUiVal;
     
     lUc += 2;
   }
-  }
+//  }
 
   for (int i = 0; i < sensorcount; ++i)
   {
@@ -86,7 +87,7 @@ void loop() {
   // zero out 'outvals' to see if they are being refreshed each time.
   for (int i = 0; i < sensorcount; ++i)
   {
-    outval[i] = 0;
+    // outval[i] = 0;
   }
   
   // don't bother switching right now.
