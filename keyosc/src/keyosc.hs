@@ -349,7 +349,9 @@ nowgo appsettings =
      in 
      if (printSensorsValues appsettings)
       then let blah = thressend sendftn thres drumlist ignorelist medvals
-               print = mkniceprint medvals 
+               print = if (diffFormat appsettings) 
+                           then mkniceprint medvals 
+                           else printvalues
                -- multay = mkmulti [blah, printvalues, print]
                -- multay = mkmulti [blah, printindexes, print]
                multay = mkmulti [blah, print]
