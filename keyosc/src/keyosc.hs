@@ -12,9 +12,12 @@ import Foreign.C.Types
 import Foreign.C.String
 
 import Control.Concurrent
+import Control.Monad
 import System.Directory
+import System.IO
 import Data.Time.Clock
 import Data.List
+import qualified Data.Map.Strict as M
 
 -- mode = SPI_MODE_0 ;
 -- bitsPerWord = 8;
@@ -22,6 +25,8 @@ import Data.List
 -- spifd = -1;
 
 bitsperword = 8
+
+-- application settings data structs.
 
 data AppSettings = AppSettings {
   adcSettings :: AdcSettings,
@@ -63,6 +68,8 @@ defaultAppSettings =
     "127.0.0.1"
     8000
 
+-- runtime data structures.
+
 data Sensor = Sensor {
   pin :: CUChar,
   fd :: CInt,
@@ -75,6 +82,29 @@ data SensorSets = SensorSets {
   sensors :: [Sensor],
   speed :: CInt,
   delay :: Int
+  }
+  deriving (Show)
+
+data KeyoscState = KeyoscState {
+  sensets :: SensorSets,
+  onlist :: [Int],
+  baseline :: [Int],
+  keyseqactive :: Bool,
+  keysequence :: [Int],
+  rangefindingactive :: Bool,
+  keyrange :: [Int],
+  fr_itercount :: Int,
+  fr_lasttime :: UTCTime,
+  -- since functions can't be compared, we have string IDs for them.
+  activeftns :: M.Map String ([(Int,Int)] -> KeyoscState -> IO KeyoscState),
+  activeftnlist :: [([(Int,Int)] -> KeyoscState -> IO KeyoscState)]
+  } 
+  -- deriving (Show)
+
+data Calibration = Calibration {
+  sensorindex :: [Int],
+  -- baseline :: [Int],
+  max :: [Int]
   }
   deriving (Show)
 
@@ -148,6 +178,7 @@ decodedata b1 b2 =
 --                   unsigned char bitsPerWord,
 --                   unsigned int speed);
 
+-- takes control word, calls spi, returns pin index and value.
 poll :: CInt -> CInt -> Int -> (CUChar, CUChar) -> IO (Int, Int)
 poll fd speed delay (b1,b2) = 
  do 
@@ -176,6 +207,9 @@ getval :: Sensor -> CInt -> Int -> IO (Int,Int)
 getval sensor speed delay = 
  poll (fd sensor) speed delay (controlword sensor) 
 
+-- returns list of pins, values.  
+-- with multiple spi chips, pin numbers are duplicated, so aren't
+-- super useful except as diagnostics.
 getsetvals :: SensorSets -> IO [(Int,Int)]
 getsetvals sensets = sequence (map (\s -> getval s (speed sensets) (delay sensets)) (sensors sensets)) 
 
@@ -205,11 +239,12 @@ meadvals lst =
 
 repetay_count = 1000
 
+-- the primary loop of the program.
 repetay :: SensorSets -> ([(Int,Int)] -> [Int] -> IO [Int]) -> [Int] -> Int -> UTCTime -> IO ()
 repetay sensets theftn onlist count lasttime =  
  do
-  newvals <- getsetvals sensets
-  onlist <- theftn newvals onlist
+  newvals <- getsetvals sensets       -- get new sensor values each iteration.
+  onlist <- theftn newvals onlist     -- theftn returns an 'onlist', which is the current state.
   if (count <= 0)
     then do
       now <- getCurrentTime
@@ -218,6 +253,129 @@ repetay sensets theftn onlist count lasttime =
       repetay sensets theftn onlist repetay_count now
     else 
       repetay sensets theftn onlist (count - 1) lasttime
+
+-- the primary loop of the program.
+repete :: KeyoscState -> IO ()
+repete state =  
+ do
+  newvals <- getsetvals (sensets state)       -- get new sensor values each iteration.
+  newstate <- foldM (\state ftn -> (ftn newvals state)) state (activeftnlist state)
+  repete newstate
+
+toggleftn :: String -> ([(Int,Int)] -> KeyoscState -> IO KeyoscState) -> KeyoscState -> KeyoscState
+toggleftn ftnname ftn state = 
+  if (M.member ftnname (activeftns state))
+   then removeftn ftnname state
+   else addftn ftnname ftn state
+
+addftn :: String -> ([(Int,Int)] -> KeyoscState -> IO KeyoscState) -> KeyoscState -> KeyoscState
+addftn ftnname ftn state = 
+  let newmap = M.insert ftnname ftn (activeftns state)
+   in 
+    state { activeftns = newmap, activeftnlist = (M.elems newmap) }
+ 
+removeftn :: String -> KeyoscState -> KeyoscState
+removeftn ftnname state = 
+  let newmap = M.delete ftnname (activeftns state)
+   in 
+    state { activeftns = newmap, activeftnlist = (M.elems newmap) }
+ 
+
+-- given a list of functions of the form ([(Int,Int)] -> KeyoscState -> IO KeyoscState), 
+-- builds a function that calls them all in sequence, each using the state emitted by the previous ftn.
+--mkmultistate ftnlist = (\newvals state ->
+--  foldM (\state ftn -> (ftn newvals state)) state ftnlist)
+
+----------------------------------------------------------------
+-- various functions that do stuff with state and sensor values.
+----------------------------------------------------------------
+
+showframerate :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
+showframerate sensorvals state = 
+  if (fr_itercount state) <= 0
+    then do
+      now <- getCurrentTime
+      putStr "samples/sec: "
+      putStrLn (show ((fromIntegral repetay_count) / (realToFrac (diffUTCTime now (fr_lasttime state)))))
+      return state { fr_itercount = repetay_count, fr_lasttime = now }
+    else 
+      return state
+
+printDiffs :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
+printDiffs sensorvals state = do
+   niceprint (zipWith (\(i,v) b -> v-b) sensorvals (baseline state))
+   return state
+
+printVals :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
+printVals sensorvals state = do
+   niceprint (map snd sensorvals) 
+   return state
+
+commands :: M.Map String ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
+commands = M.fromList [
+  ("diffs", togglePrintDiffs),
+  ("vals", togglePrintVals),
+  ("?", printCmds) ]
+{-
+  ("sendosc", toggleSendOsc)
+  ("keyseq", startKeySequence),
+  ("range", startRangeCalibrate),
+  ("resetrange", resetRangeCalibrate),
+  ("diffs", togglePrintDiffs),
+  ("vals", togglePrintVals),
+  ("sendosc", toggleSendOsc)
+  ]
+-}
+   
+printCmds :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
+printCmds sensorvals state = do
+  mapM print (M.keys commands)
+  return state
+
+togglePrintVals :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
+togglePrintVals sensorvals state = 
+  return $ toggleftn "printVals" printVals state
+
+togglePrintDiffs :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
+togglePrintDiffs sensorvals state = 
+  return $ toggleftn "printDiffs" printDiffs state
+
+{-
+toggleSendOsc :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
+toggleSendOsc sensorvals state = 
+  return $ toggleftn "sendOsc" sendOsc state
+
+sendOsc :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
+sendOsc sensorvals state =   
+
+to do::: retwrite thressend below to work with the new regime.
+also uh... update the onlist in state.  right?
+
+how about have an onlist ftn that will contain other ftns that depend on the onlist?
+
+
+thressend :: (String -> IO ()) -> Int -> [String] -> [Int] -> [Int] -> ([(Int, Int)] -> [Int] -> IO [Int])
+thressend sendfun thres msglist ignorelist baselines = (\newvals onlist ->
+ let indexeson = map fst (filter (\(x,y) -> y < thres) (zip [0..] (zipWith (\(i,v) b -> v-b) newvals baselines)))
+     sendlist = filter (\i -> (not (elem i onlist)) && (not (elem i ignorelist))) indexeson
+  in do
+   sequence_ (map (\i -> sendfun (msglist !! i)) sendlist)
+   return (sendlist ++ (filter (\i -> (elem i indexeson)) onlist))
+  )
+-}
+
+commandInput :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
+commandInput sensorvals state = do
+  ready <- hReady stdin
+  if ready 
+    then do
+     cmd <- getLine
+     case (M.lookup cmd commands) of
+      Nothing -> return state
+      (Just ftn) -> ftn sensorvals state
+    else
+      return state
+
 
 drumlist = ["/arduino/drums/tr909/0",
             "/arduino/drums/tr909/1",
@@ -283,7 +441,7 @@ printindexes vals onlist =
   niceprint (map fst vals)
   return onlist
 
--- ftn that subtracts the baselines and prints.
+-- print the sensor info as a heading. 
 printsensors :: [Sensor] -> IO ()
 printsensors sensors = 
  do
@@ -331,6 +489,8 @@ calcignorelist sensors =
 nowgo appsettings = 
  do 
   putStrLn "keyosc v1.0"
+{-
+
   t <- openUDP (targetIP appsettings) (targetPort appsettings)
   sensets <- makeSensorSets (adcSettings appsettings)
   printsensors (sensors sensets)
@@ -339,6 +499,9 @@ nowgo appsettings =
       sendftn = makeSendFtn appsettings sendo printo
       thres = (keythreshold (adcSettings appsettings))
       ignorelist = (calcignorelist (sensors sensets)) 
+      msglist = if (calibrateMode appsettings)
+                    then (map show [0..((count (sensors sensets))-1)])
+                    else drumlist
    in do
     -- get initial sensor values for baselines.
     vals <- getsvmulti sensets 20 (spiDelay (adcSettings appsettings))
@@ -346,9 +509,14 @@ nowgo appsettings =
     now <- getCurrentTime
     -- let medvals = map snd $ head vals
     let medvals = meadvals vals 
-     in 
-     if (printSensorsValues appsettings)
-      then let blah = thressend sendftn thres drumlist ignorelist medvals
+        tsend = [(thressend sendftn thres drumlist ignorelist medvals)]
+        print = if (printSensorsValues appsettings) 
+                   then [(mkniceprint medvals)] ++ tsend
+                   else tsend
+        cal   = if (calibrate appsettings) 
+                   then [(mkniceprint medvals)] ++ tsend
+                   else tsend
+           let blah = thressend sendftn thres drumlist ignorelist medvals
                print = mkniceprint medvals 
                -- multay = mkmulti [blah, printvalues, print]
                -- multay = mkmulti [blah, printindexes, print]
@@ -360,4 +528,4 @@ nowgo appsettings =
         repetay sensets multay [] repetay_count now 
       else 
         repetay sensets (thressend sendftn thres drumlist ignorelist medvals) [] repetay_count now
-
+-}
