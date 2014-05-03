@@ -509,8 +509,7 @@ nowgo appsettings =
     now <- getCurrentTime
     -- let medvals = map snd $ head vals
     let medvals = meadvals vals 
-<<<<<<< HEAD
-        tsend = [(thressend sendftn thres drumlist ignorelist medvals)]
+       tsend = [(thressend sendftn thres drumlist ignorelist medvals)]
         print = if (printSensorsValues appsettings) 
                    then [(mkniceprint medvals)] ++ tsend
                    else tsend
@@ -519,14 +518,6 @@ nowgo appsettings =
                    else tsend
            let blah = thressend sendftn thres drumlist ignorelist medvals
                print = mkniceprint medvals 
-=======
-     in 
-     if (printSensorsValues appsettings)
-      then let blah = thressend sendftn thres drumlist ignorelist medvals
-               print = if (diffFormat appsettings) 
-                           then mkniceprint medvals 
-                           else printvalues
->>>>>>> 5d45a3d0b79ef13bf1f410d504f1c21915f9adca
                -- multay = mkmulti [blah, printvalues, print]
                -- multay = mkmulti [blah, printindexes, print]
                multay = mkmulti [blah, print]
