@@ -254,7 +254,12 @@ repetay sensets theftn onlist count lasttime =
     else 
       repetay sensets theftn onlist (count - 1) lasttime
 
+----------------------------------------------------------
 -- the primary loop of the program.
+-- maintains a list of functions, on each iteration 
+-- loops through them allowing them to maintain the state.
+----------------------------------------------------------
+
 repete :: KeyoscState -> IO ()
 repete state =  
  do
@@ -262,6 +267,9 @@ repete state =
   newstate <- foldM (\state ftn -> (ftn newvals state)) state (activeftnlist state)
   repete newstate
 
+----------------------------------------------------------
+-- add/remove ftns from the list of current ftns.
+----------------------------------------------------------
 toggleftn :: String -> ([(Int,Int)] -> KeyoscState -> IO KeyoscState) -> KeyoscState -> KeyoscState
 toggleftn ftnname ftn state = 
   if (M.member ftnname (activeftns state))
@@ -319,10 +327,8 @@ commands = M.fromList [
 {-
   ("sendosc", toggleSendOsc)
   ("keyseq", startKeySequence),
-  ("range", startRangeCalibrate),
+  ("range", toggleRangeCalibrate),
   ("resetrange", resetRangeCalibrate),
-  ("diffs", togglePrintDiffs),
-  ("vals", togglePrintVals),
   ("sendosc", toggleSendOsc)
   ]
 -}
@@ -341,6 +347,12 @@ togglePrintDiffs sensorvals state =
   return $ toggleftn "printDiffs" printDiffs state
 
 {-
+toggleRangeCalibrate :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
+toggleRangeCalibrate sensorvals state =
+  -- if calibrating, write table and stop calibrating.
+  -- if not calibrating, start calibrating. 
+  return $ toggleftn "rangeCalibrate" printDiffs state
+
 toggleSendOsc :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
 toggleSendOsc sensorvals state = 
   return $ toggleftn "sendOsc" sendOsc state
@@ -490,7 +502,6 @@ nowgo appsettings =
  do 
   putStrLn "keyosc v1.0"
 {-
-
   t <- openUDP (targetIP appsettings) (targetPort appsettings)
   sensets <- makeSensorSets (adcSettings appsettings)
   printsensors (sensors sensets)
