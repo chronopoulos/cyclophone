@@ -3,14 +3,10 @@ import System.Environment
 import Data.List.Split
 import Text.Show.Pretty
 import qualified Data.Map as M
+import Control.Monad
 
+import Sound.OSC.FD
 import Csound.Base
-
-
-
--- args:
--- prefix
--- directory
 
 data DTree = 
     DeeFile FilePath
@@ -28,27 +24,52 @@ fname fullpath = last (pathlist fullpath)
 
 main = do 
  args <- getArgs
- if (length args /= 2) 
+ if (length args /= 3) 
     then do
       print "syntax:"
-      print "oscdirsamp <oscprefix> <sample directory>"
+      print "oscdirsamp <port> <oscprefix> <sample directory>"
     else do
-      print $ "prefix" ++ args !! 0
-      blah <- treein (args !! 1)
-      putStr $ ppShow $ M.keys blah
+      print $ "prefix" ++ args !! 1
+      smap <- treein (args !! 2)
+      let soundmap = addkeyprefix (args !! 1) smap in do 
+        putStrLn $ ppShow $ M.keys soundmap
+        let port = readMaybe (args !! 0) :: (Maybe Int)
+         in case port of
+           Just p -> oscloop p soundmap
+           Nothing -> putStrLn $ "Invalid port: " ++ (args !! 0) 
 
 {-
-dirtree :: FilePath -> IO DTree
-dirtree rootdir = do
-  files <- getDirectoryContents rootdir
-  blah <- mapM treein (map (\f -> rootdir ++ "/" ++ f) (filter (\e -> notElem e [".", ".."]) files))
-  return $ DeeTree rootdir blah
+oscloop port soundmap = do
+  withTransport (t port) f
+  where
+    f fd = forever (recvMessage fd >>= print) 
+    t port = udpServer "127.0.0.1" port 
 -}
 
+oscloop :: Int -> M.Map String (Sig, Sig) -> IO ()
+oscloop port soundmap = do
+  withTransport (t port) f
+  where
+    f fd = forever 
+      (recvMessage fd >>= 
+        (\msg -> 
+           case msg of 
+              Just msg -> onoscmessage soundmap msg
+              Nothing -> return ())) 
+    t port = udpServer "127.0.0.1" port 
+
+onoscmessage :: M.Map String (Sig, Sig) -> Message -> IO ()
+onoscmessage soundmap msg = do
+  let soundname = messageAddress msg 
+      sound = M.lookup soundname soundmap
+   in case sound of 
+    Just s -> dac s
+    Nothing -> return ()
  
 treein :: FilePath -> IO (M.Map String (Sig, Sig))
-treein fileordir = 
-  treeinm M.empty fileordir
+treein fileordir = do 
+  sigtree <- treeinm M.empty fileordir
+  return (stripkeys (length fileordir) sigtree)
     
 treeinm :: (M.Map String (Sig, Sig)) -> FilePath -> IO (M.Map String (Sig, Sig))
 treeinm tomap fileordir = do
@@ -67,3 +88,30 @@ treeind tomap (f:fs) = do
   treeind mp fs
 treeind tomap [] = return tomap
 
+addkeyprefix prefix inmap =
+  M.foldWithKey (\k s mp -> M.insert (prefix ++ k) s mp) M.empty inmap 
+
+stripkeys count inmap =
+  M.foldWithKey (\k s mp -> M.insert (drop count k) s mp) M.empty inmap 
+
+{-  
+main = 
+  let {f fd = forever (recvMessage fd >>= print)
+     ;t = udpServer "127.0.0.1" 57300}
+  in void (forkIO (withTransport t f))
+
+
+getArgsPort args = 
+ if (length args) < 1 
+   then 9000
+   else (read (head args))
+
+main = do
+  args <- getArgs
+  withTransport (t (getArgsPort args)) f
+  where
+    f fd = forever (recvMessage fd >>= print)
+    t port = udpServer "127.0.0.1" port 
+
+
+-}
