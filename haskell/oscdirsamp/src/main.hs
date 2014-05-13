@@ -8,14 +8,6 @@ import Control.Monad
 import Sound.OSC.FD
 import Csound.Base
 
-data DTree = 
-    DeeFile FilePath
-  | DeeTree FilePath [DTree]
-
-instance Show DTree where
-  show (DeeFile fp) = show fp
-  show (DeeTree fp dtl) = (show fp) ++ (foldl (++) "" (map show dtl))
-
 pathlist fpath = splitOneOf "/" fpath
 
 fname fullpath = last (pathlist fullpath)
@@ -39,11 +31,12 @@ main = do
            Nothing -> putStrLn $ "Invalid port: " ++ (args !! 0) 
 
 {-
-oscloop port soundmap = do
-  withTransport (t port) f
-  where
-    f fd = forever (recvMessage fd >>= print) 
-    t port = udpServer "127.0.0.1" port 
+oscevts :: Int -> M.Map String (Sig, Sig) -> Evt (D,D)
+
+data OscEvts = OscEvts Int (M.Map String (Sig, Sig))
+
+instance Functor OscEvts where
+ fmap f oe = 
 -}
 
 oscloop :: Int -> M.Map String (Sig, Sig) -> IO ()
@@ -58,6 +51,9 @@ oscloop port soundmap = do
               Nothing -> return ())) 
     t port = udpServer "127.0.0.1" port 
 
+
+-- this will play a sound, but it never returns.  supposed to call dac 
+-- and do stuff in the functions that are its args, I suppose.
 onoscmessage :: M.Map String (Sig, Sig) -> Message -> IO ()
 onoscmessage soundmap msg = do
   let soundname = messageAddress msg 
@@ -94,24 +90,4 @@ addkeyprefix prefix inmap =
 stripkeys count inmap =
   M.foldWithKey (\k s mp -> M.insert (drop count k) s mp) M.empty inmap 
 
-{-  
-main = 
-  let {f fd = forever (recvMessage fd >>= print)
-     ;t = udpServer "127.0.0.1" 57300}
-  in void (forkIO (withTransport t f))
 
-
-getArgsPort args = 
- if (length args) < 1 
-   then 9000
-   else (read (head args))
-
-main = do
-  args <- getArgs
-  withTransport (t (getArgsPort args)) f
-  where
-    f fd = forever (recvMessage fd >>= print)
-    t port = udpServer "127.0.0.1" port 
-
-
--}
