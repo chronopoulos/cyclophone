@@ -87,11 +87,11 @@ data SensorSets = SensorSets {
 
 data KeyoscState = KeyoscState {
   sensets :: SensorSets,
-  onlist :: [Int],
-  baseline :: [Int],
-  keyseqactive :: Bool,
+  onlist :: [Int],        -- what keys are currently on.
+  baseline :: [Int],      -- 'zero position' for each key
+  keyseqactive :: Bool,   -- are we doing the 'keysequence' thing?
   keysequence :: [Int],
-  rangefindingactive :: Bool,
+  rangefindingactive :: Bool,-- are we doing the 'rangefinding' calibration?
   keyrange :: [Int],
   fr_itercount :: Int,
   fr_lasttime :: UTCTime,
@@ -306,8 +306,10 @@ showframerate sensorvals state =
       putStr "samples/sec: "
       putStrLn (show ((fromIntegral repetay_count) / (realToFrac (diffUTCTime now (fr_lasttime state)))))
       return state { fr_itercount = repetay_count, fr_lasttime = now }
-    else 
-      return state
+    else do
+      -- putStr "count:"
+      -- print repetay_count
+      return state { fr_itercount = (fr_itercount state) - 1 }
 
 printDiffs :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
 printDiffs sensorvals state = do
@@ -323,6 +325,7 @@ commands :: M.Map String ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
 commands = M.fromList [
   ("diffs", togglePrintDiffs),
   ("vals", togglePrintVals),
+  ("frate", toggleShowFrameRate),
   ("?", printCmds) ]
 {-
   ("sendosc", toggleSendOsc)
@@ -345,6 +348,10 @@ togglePrintVals sensorvals state =
 togglePrintDiffs :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
 togglePrintDiffs sensorvals state = 
   return $ toggleftn "printDiffs" printDiffs state
+
+toggleShowFrameRate :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
+toggleShowFrameRate sensorvals state = 
+  return $ toggleftn "frate" showframerate state
 
 {-
 toggleRangeCalibrate :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
