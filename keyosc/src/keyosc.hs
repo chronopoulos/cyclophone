@@ -87,11 +87,11 @@ data SensorSets = SensorSets {
 
 data KeyoscState = KeyoscState {
   sensets :: SensorSets,
-  onlist :: [Int],
-  baseline :: [Int],
-  keyseqactive :: Bool,
+  onlist :: [Int],        -- what keys are currently on.
+  baseline :: [Int],      -- 'zero position' for each key
+  keyseqactive :: Bool,   -- are we doing the 'keysequence' thing?
   keysequence :: [Int],
-  rangefindingactive :: Bool,
+  rangefindingactive :: Bool,-- are we doing the 'rangefinding' calibration?
   keyrange :: [Int],
   fr_itercount :: Int,
   fr_lasttime :: UTCTime,
@@ -306,8 +306,10 @@ showframerate sensorvals state =
       putStr "samples/sec: "
       putStrLn (show ((fromIntegral repetay_count) / (realToFrac (diffUTCTime now (fr_lasttime state)))))
       return state { fr_itercount = repetay_count, fr_lasttime = now }
-    else 
-      return state
+    else do
+      -- putStr "count:"
+      -- print repetay_count
+      return state { fr_itercount = (fr_itercount state) - 1 }
 
 printDiffs :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
 printDiffs sensorvals state = do
@@ -323,6 +325,7 @@ commands :: M.Map String ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
 commands = M.fromList [
   ("diffs", togglePrintDiffs),
   ("vals", togglePrintVals),
+  ("frate", toggleShowFrameRate),
   ("?", printCmds) ]
 {-
   ("sendosc", toggleSendOsc)
@@ -345,6 +348,10 @@ togglePrintVals sensorvals state =
 togglePrintDiffs :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
 togglePrintDiffs sensorvals state = 
   return $ toggleftn "printDiffs" printDiffs state
+
+toggleShowFrameRate :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
+toggleShowFrameRate sensorvals state = 
+  return $ toggleftn "frate" showframerate state
 
 {-
 toggleRangeCalibrate :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
@@ -413,6 +420,11 @@ drumlist = ["/arduino/drums/tr909/0",
             "/arduino/drums/tabla/5",
             "/arduino/drums/tabla/6",
             "/arduino/drums/tabla/7"]
+
+fmlist = zipWith (\a b -> a ++ (show b)) (repeat "/arduino/fm/note/") [10..42]
+    
+
+
 
 niceprint [] = 
  do 
@@ -488,6 +500,50 @@ main =
         prefs <- (readFile prefsfile)
         nowgo ((read prefs) :: AppSettings)
 
+{-
+ data KeyoscState = KeyoscState {
+  sensets :: SensorSets,
+  onlist :: [Int],
+  baseline :: [Int],
+  keyseqactive :: Bool,
+  keysequence :: [Int],
+  rangefindingactive :: Bool,
+  keyrange :: [Int],
+  fr_itercount :: Int,
+  fr_lasttime :: UTCTime,
+  -- since functions can't be compared, we have string IDs for them.
+  activeftns :: M.Map String ([(Int,Int)] -> KeyoscState -> IO KeyoscState),
+  activeftnlist :: [([(Int,Int)] -> KeyoscState -> IO KeyoscState)]
+  } 
+  -
+    -}
+
+initialftns appsettings = 
+ M.fromList [
+  ("commands", commandInput)]
+
+nowgo appsettings = 
+ do 
+  putStrLn "keyosc v1.0"
+  t <- openUDP (targetIP appsettings) (targetPort appsettings)
+  sensets <- makeSensorSets (adcSettings appsettings)
+  printsensors (sensors sensets)
+  baselines <- getbaselines sensets 20 appsettings
+  now <- getCurrentTime
+  let leEtat = KeyoscState sensets [] baselines False [] False [] 0 now initftns (map snd (M.toList initftns))
+      initftns = (initialftns appsettings) 
+   in do 
+    repete leEtat
+
+  
+getbaselines sensets count appsettings = do
+  -- get initial sensor values for baselines.
+  vals <- getsvmulti sensets 20 (spiDelay (adcSettings appsettings))
+  -- mapM niceprint (map (\vs -> (map (\(i,v) -> v) vs)) vals)
+  return $ meadvals vals
+
+ 
+{-
 makeSendFtn appsettings sendftn printftn = 
  case ((printKeyMsgs appsettings), (sendKeyMsgs appsettings)) of
   (True,True) -> (\msg -> do {sendftn msg; printftn msg})
@@ -501,7 +557,6 @@ calcignorelist sensors =
 nowgo appsettings = 
  do 
   putStrLn "keyosc v1.0"
-{-
   t <- openUDP (targetIP appsettings) (targetPort appsettings)
   sensets <- makeSensorSets (adcSettings appsettings)
   printsensors (sensors sensets)
@@ -520,7 +575,7 @@ nowgo appsettings =
     now <- getCurrentTime
     -- let medvals = map snd $ head vals
     let medvals = meadvals vals 
-       tsend = [(thressend sendftn thres drumlist ignorelist medvals)]
+        tsend = [(thressend sendftn thres drumlist ignorelist medvals)]
         print = if (printSensorsValues appsettings) 
                    then [(mkniceprint medvals)] ++ tsend
                    else tsend
@@ -539,4 +594,5 @@ nowgo appsettings =
         repetay sensets multay [] repetay_count now 
       else 
         repetay sensets (thressend sendftn thres drumlist ignorelist medvals) [] repetay_count now
--}
+
+        -}
