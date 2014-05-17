@@ -3,7 +3,7 @@ import System.Environment
 import Spidev
 import Text.Printf
 import Text.Show.Pretty
-import Sound.OSC.FD
+import qualified Sound.OSC.FD as O
 
 import qualified Data.ByteString.Char8 as S
 
@@ -87,12 +87,15 @@ data SensorSets = SensorSets {
 
 data KeyoscState = KeyoscState {
   sensets :: SensorSets,
-  onlist :: [Int],        -- what keys are currently on.
+--  udpconn :: UDP,         -- udp connection, for osc.
+  sendfun :: (Float -> String -> IO ()),  -- send osc, print, or something. 
+  keythres :: Int,
+  pts_onlist :: [Int],    -- what keys are currently on. (ptSendOsc)
   baseline :: [Int],      -- 'zero position' for each key
-  keyseqactive :: Bool,   -- are we doing the 'keysequence' thing?
-  keysequence :: [Int],
-  rangefindingactive :: Bool,-- are we doing the 'rangefinding' calibration?
-  keyrange :: [Int],
+--  keyseqactive :: Bool,   -- are we doing the 'keysequence' thing?
+--  keysequence :: [Int],
+--  rangefindingactive :: Bool,-- are we doing the 'rangefinding' calibration?
+--  keyrange :: [Int],
   fr_itercount :: Int,
   fr_lasttime :: UTCTime,
   -- since functions can't be compared, we have string IDs for them.
@@ -100,6 +103,33 @@ data KeyoscState = KeyoscState {
   activeftnlist :: [([(Int,Int)] -> KeyoscState -> IO KeyoscState)]
   } 
   -- deriving (Show)
+
+keyoscSend conn amt str = 
+  O.sendOSC conn (O.Message str [O.Float amt])
+
+--   let sendo msg = sendOSC t (Message msg [Int32 1])
+
+-- if a key is over the threshold, and it wasn't in the 'onlist' before, then
+-- send a message and turn it on.
+
+
+--  t <- openUDP (targetIP appsettings) (targetPort appsettings)  
+-- 'Position Threshold send'
+--  
+ptSend :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
+ptSend sensorvals state =
+ let  kt = (keythres state)
+      baselines = (baseline state)
+      onlist = (pts_onlist state) 
+      sf = (sendfun state)
+      indexeson = map fst (filter (\(x,y) -> y < kt) (zip [0..] (zipWith (\(i,v) b -> v-b) sensorvals baselines)))
+      sendlist = filter (\i -> (not (elem i onlist))) indexeson
+  in do
+   sequence_ (map (\i -> sf 1.0 (drumlist !! i)) sendlist)
+   return (state { pts_onlist = indexeson }) 
+
+-- version where we don't send indexes that are ignored.
+-- sendlist = filter (\i -> (not (elem i onlist)) && (not (elem i ignorelist))) indexeson
 
 data Calibration = Calibration {
   sensorindex :: [Int],
@@ -237,7 +267,7 @@ meadvals :: [[(Int,Int)]] -> [Int]
 meadvals lst = 
   map meadian $ transpose (map (\l -> map (\(i,v) -> v) l) lst)
 
-repetay_count = 1000
+framerate_count = 1000
 
 -- the primary loop of the program.
 repetay :: SensorSets -> ([(Int,Int)] -> [Int] -> IO [Int]) -> [Int] -> Int -> UTCTime -> IO ()
@@ -249,8 +279,8 @@ repetay sensets theftn onlist count lasttime =
     then do
       now <- getCurrentTime
       putStr "samples/sec: "
-      putStrLn (show ((fromIntegral repetay_count) / (realToFrac (diffUTCTime now lasttime))))
-      repetay sensets theftn onlist repetay_count now
+      putStrLn (show ((fromIntegral framerate_count) / (realToFrac (diffUTCTime now lasttime))))
+      repetay sensets theftn onlist framerate_count now
     else 
       repetay sensets theftn onlist (count - 1) lasttime
 
@@ -304,11 +334,9 @@ showframerate sensorvals state =
     then do
       now <- getCurrentTime
       putStr "samples/sec: "
-      putStrLn (show ((fromIntegral repetay_count) / (realToFrac (diffUTCTime now (fr_lasttime state)))))
-      return state { fr_itercount = repetay_count, fr_lasttime = now }
+      putStrLn (show ((fromIntegral framerate_count) / (realToFrac (diffUTCTime now (fr_lasttime state)))))
+      return state { fr_itercount = framerate_count, fr_lasttime = now }
     else do
-      -- putStr "count:"
-      -- print repetay_count
       return state { fr_itercount = (fr_itercount state) - 1 }
 
 printDiffs :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
@@ -328,7 +356,7 @@ commands = M.fromList [
   ("frate", toggleShowFrameRate),
   ("?", printCmds) ]
 {-
-  ("sendosc", toggleSendOsc)
+  ("ptsendosc", togglePtSendOsc)
   ("keyseq", startKeySequence),
   ("range", toggleRangeCalibrate),
   ("resetrange", resetRangeCalibrate),
@@ -360,12 +388,18 @@ toggleRangeCalibrate sensorvals state =
   -- if not calibrating, start calibrating. 
   return $ toggleftn "rangeCalibrate" printDiffs state
 
+
+-----------------------------------------------------------------------
+-- simple position threshold for osc send.
+-----------------------------------------------------------------------
+
+togglePtSendOsc :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
+togglePtSendOsc sensorvals state = 
+  return $ toggleftn "sendOsc" sendOsc state
+
 toggleSendOsc :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
 toggleSendOsc sensorvals state = 
   return $ toggleftn "sendOsc" sendOsc state
-
-sendOsc :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
-sendOsc sensorvals state =   
 
 to do::: retwrite thressend below to work with the new regime.
 also uh... update the onlist in state.  right?
@@ -421,10 +455,7 @@ drumlist = ["/arduino/drums/tr909/0",
             "/arduino/drums/tabla/6",
             "/arduino/drums/tabla/7"]
 
-fmlist = zipWith (\a b -> a ++ (show b)) (repeat "/arduino/fm/note/") [10..42]
-    
-
-
+fmlist = zipWith (\a b -> a ++ (show b)) (repeat "/arduino/fm/note/") [11..42]
 
 niceprint [] = 
  do 
@@ -500,24 +531,6 @@ main =
         prefs <- (readFile prefsfile)
         nowgo ((read prefs) :: AppSettings)
 
-{-
- data KeyoscState = KeyoscState {
-  sensets :: SensorSets,
-  onlist :: [Int],
-  baseline :: [Int],
-  keyseqactive :: Bool,
-  keysequence :: [Int],
-  rangefindingactive :: Bool,
-  keyrange :: [Int],
-  fr_itercount :: Int,
-  fr_lasttime :: UTCTime,
-  -- since functions can't be compared, we have string IDs for them.
-  activeftns :: M.Map String ([(Int,Int)] -> KeyoscState -> IO KeyoscState),
-  activeftnlist :: [([(Int,Int)] -> KeyoscState -> IO KeyoscState)]
-  } 
-  -
-    -}
-
 initialftns appsettings = 
  M.fromList [
   ("commands", commandInput)]
@@ -525,16 +538,17 @@ initialftns appsettings =
 nowgo appsettings = 
  do 
   putStrLn "keyosc v1.0"
-  t <- openUDP (targetIP appsettings) (targetPort appsettings)
+  t <- O.openUDP (targetIP appsettings) (targetPort appsettings)
   sensets <- makeSensorSets (adcSettings appsettings)
   printsensors (sensors sensets)
   baselines <- getbaselines sensets 20 appsettings
   now <- getCurrentTime
-  let leEtat = KeyoscState sensets [] baselines False [] False [] 0 now initftns (map snd (M.toList initftns))
+  let leEtat = KeyoscState sensets (keyoscSend t) (keythreshold (adcSettings appsettings)) [] baselines framerate_count now initftns (map snd (M.toList initftns))
       initftns = (initialftns appsettings) 
    in do 
     repete leEtat
 
+  -- let leEtat = KeyoscState sensets [] baselines False [] False [] 0 now initftns (map snd (M.toList initftns))
   
 getbaselines sensets count appsettings = do
   -- get initial sensor values for baselines.
@@ -557,10 +571,10 @@ calcignorelist sensors =
 nowgo appsettings = 
  do 
   putStrLn "keyosc v1.0"
-  t <- openUDP (targetIP appsettings) (targetPort appsettings)
+  t <- O.openUDP (targetIP appsettings) (targetPort appsettings)
   sensets <- makeSensorSets (adcSettings appsettings)
   printsensors (sensors sensets)
-  let sendo msg = sendOSC t (Message msg [Int32 1])
+  let sendo msg = O.sendOSC t (O.Message msg [Int32 1])
       printo msg = putStrLn msg 
       sendftn = makeSendFtn appsettings sendo printo
       thres = (keythreshold (adcSettings appsettings))
@@ -591,8 +605,8 @@ nowgo appsettings =
         -- putStrLn (show vals)
         -- niceprint medvals
         -- niceprint (map snd (head vals))
-        repetay sensets multay [] repetay_count now 
+        repetay sensets multay [] framerate_count now 
       else 
-        repetay sensets (thressend sendftn thres drumlist ignorelist medvals) [] repetay_count now
+        repetay sensets (thressend sendftn thres drumlist ignorelist medvals) [] framerate_count now
 
         -}
