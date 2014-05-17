@@ -104,7 +104,8 @@ data KeyoscState = KeyoscState {
   } 
   -- deriving (Show)
 
-keyoscSend conn amt str = 
+keyoscSend conn amt str = do 
+  print str
   O.sendOSC conn (O.Message str [O.Float amt])
 
 --   let sendo msg = sendOSC t (Message msg [Int32 1])
