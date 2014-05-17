@@ -115,7 +115,6 @@ keyoscSend conn amt str =
 
 --  t <- openUDP (targetIP appsettings) (targetPort appsettings)  
 -- 'Position Threshold send'
---  
 ptSend :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
 ptSend sensorvals state =
  let  kt = (keythres state)
@@ -128,8 +127,28 @@ ptSend sensorvals state =
    sequence_ (map (\i -> sf 1.0 (drumlist !! i)) sendlist)
    return (state { pts_onlist = indexeson }) 
 
+togglePtSend :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
+togglePtSend sensorvals state = 
+  return $ toggleftn "ptSend" ptSend state
+
 -- version where we don't send indexes that are ignored.
 -- sendlist = filter (\i -> (not (elem i onlist)) && (not (elem i ignorelist))) indexeson
+
+--  t <- openUDP (targetIP appsettings) (targetPort appsettings)  
+-- 'Velocity Threshold send'
+--  
+vtSend :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
+vtSend sensorvals state =
+ let  kt = (keythres state)
+      baselines = (baseline state)
+      onlist = (pts_onlist state) 
+      sf = (sendfun state)
+      indexeson = map fst (filter (\(x,y) -> y < kt) (zip [0..] (zipWith (\(i,v) b -> v-b) sensorvals baselines)))
+      sendlist = filter (\i -> (not (elem i onlist))) indexeson
+  in do
+   sequence_ (map (\i -> sf 1.0 (drumlist !! i)) sendlist)
+   return (state { pts_onlist = indexeson }) 
+
 
 data Calibration = Calibration {
   sensorindex :: [Int],
@@ -354,13 +373,13 @@ commands = M.fromList [
   ("diffs", togglePrintDiffs),
   ("vals", togglePrintVals),
   ("frate", toggleShowFrameRate),
+  ("ptsend", togglePtSend),
   ("?", printCmds) ]
 {-
   ("ptsendosc", togglePtSendOsc)
   ("keyseq", startKeySequence),
   ("range", toggleRangeCalibrate),
   ("resetrange", resetRangeCalibrate),
-  ("sendosc", toggleSendOsc)
   ]
 -}
    
