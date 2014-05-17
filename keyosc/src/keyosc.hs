@@ -105,7 +105,7 @@ data KeyoscState = KeyoscState {
   -- deriving (Show)
 
 keyoscSend conn amt str = do 
-  print str
+  print (str, amt)
   O.sendOSC conn (O.Message str [O.Float amt])
 
 --   let sendo msg = sendOSC t (Message msg [Int32 1])
@@ -122,11 +122,11 @@ ptSend sensorvals state =
       baselines = (baseline state)
       onlist = (pts_onlist state) 
       sf = (sendfun state)
-      indexeson = map fst (filter (\(x,y) -> y < kt) (zip [0..] (zipWith (\(i,v) b -> v-b) sensorvals baselines)))
-      sendlist = filter (\i -> (not (elem i onlist))) indexeson
+      indexeson = filter (\(x,y) -> y < kt) (zip [0..] (zipWith (\(i,v) b -> v-b) sensorvals baselines))
+      sendlist = filter (\(i, v) -> (not (elem i onlist))) indexeson
   in do
-   sequence_ (map (\i -> sf 1.0 (drumlist !! i)) sendlist)
-   return (state { pts_onlist = indexeson }) 
+   sequence_ (map (\(i,v) -> sf ((fromIntegral v) / 1024.0) (drumlist !! i)) sendlist)
+   return (state { pts_onlist = (map fst indexeson) }) 
 
 togglePtSend :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
 togglePtSend sensorvals state = 
