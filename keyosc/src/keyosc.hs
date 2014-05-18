@@ -132,6 +132,19 @@ ptSend sensorvals state =
     mapM (\(i,v) -> sf v (drumlist !! i)) sendlist
     return (state { pts_onlist = (map fst indexeson) }) 
 
+-- 'Max Send' - when the threshold is crossed, wait until successive values no longer are 
+-- increasing.  send the next-to-last number from that.  
+-- how to do:
+--    have max array in the state, and keep updated.  
+--    another way would be to have the state be local to the function, 
+--    and update the function in the keyoscState.  then, not shared state.  but efficiency! 
+
+
+-- 'Velocity print'
+-- 
+
+
+
 {-
      if (length sendlist) > 0
       then do
