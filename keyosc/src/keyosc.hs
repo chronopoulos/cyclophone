@@ -19,6 +19,7 @@ import Data.Time.Clock
 import Data.List
 -- import qualified Data.Map.Strict as M
 import qualified Data.Map as M
+import qualified Data.Foldable as F
 
 -- mode = SPI_MODE_0 ;
 -- bitsPerWord = 8;
@@ -100,8 +101,7 @@ data KeyoscState = KeyoscState {
   fr_itercount :: Int,
   fr_lasttime :: UTCTime,
   -- since functions can't be compared, we have string IDs for them.
-  activeftns :: M.Map String ([(Int,Int)] -> KeyoscState -> IO KeyoscState),
-  activeftnlist :: [([(Int,Int)] -> KeyoscState -> IO KeyoscState)]
+  activeftns :: M.Map String ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
   } 
   -- deriving (Show)
 
@@ -353,7 +353,7 @@ repete :: KeyoscState -> IO ()
 repete state =  
  do
   newvals <- getsetvals (sensets state)       -- get new sensor values each iteration.
-  newstate <- foldM (\state ftn -> (ftn newvals state)) state (activeftnlist state)
+  newstate <- F.foldlM (\state ftn -> (ftn newvals state)) state (activeftns state)
   repete newstate
 
 ----------------------------------------------------------
@@ -369,13 +369,13 @@ addftn :: String -> ([(Int,Int)] -> KeyoscState -> IO KeyoscState) -> KeyoscStat
 addftn ftnname ftn state = 
   let newmap = M.insert ftnname ftn (activeftns state)
    in 
-    state { activeftns = newmap, activeftnlist = (M.elems newmap) }
+    state { activeftns = newmap } 
  
 removeftn :: String -> KeyoscState -> KeyoscState
 removeftn ftnname state = 
   let newmap = M.delete ftnname (activeftns state)
    in 
-    state { activeftns = newmap, activeftnlist = (M.elems newmap) }
+    state { activeftns = newmap } 
  
 
 -- given a list of functions of the form ([(Int,Int)] -> KeyoscState -> IO KeyoscState), 
@@ -609,12 +609,12 @@ nowgo appsettings =
   niceprint baselines
   now <- getCurrentTime
   -- let leEtat = KeyoscState sensets (keyoscSend t) (keythreshold (adcSettings appsettings)) [] baselines framerate_count now initftns (map snd (M.toList initftns))
-  let leEtat = KeyoscState sensets simpleprint (keythreshold (adcSettings appsettings)) [] baselines framerate_count now initftns (map snd (M.toList initftns))
+  let leEtat = KeyoscState sensets simpleprint (keythreshold (adcSettings appsettings)) [] baselines framerate_count now initftns 
       initftns = (initialftns appsettings) 
    in do 
     repete leEtat
 
-  -- let leEtat = KeyoscState sensets [] baselines False [] False [] 0 now initftns (map snd (M.toList initftns))
+  -- let leEtat = KeyoscState sensets [] baselines False [] False [] 0 now initftns 
   
 getbaselines sensets count appsettings = do
   -- get initial sensor values for baselines.
