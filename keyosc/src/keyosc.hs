@@ -17,7 +17,8 @@ import System.Directory
 import System.IO
 import Data.Time.Clock
 import Data.List
-import qualified Data.Map.Strict as M
+-- import qualified Data.Map.Strict as M
+import qualified Data.Map as M
 
 -- mode = SPI_MODE_0 ;
 -- bitsPerWord = 8;
@@ -88,7 +89,7 @@ data SensorSets = SensorSets {
 data KeyoscState = KeyoscState {
   sensets :: SensorSets,
 --  udpconn :: UDP,         -- udp connection, for osc.
-  sendfun :: (Float -> String -> IO ()),  -- send osc, print, or something. 
+  sendfun :: (Int -> String -> IO ()),  -- send osc, print, or something. 
   keythres :: Int,
   pts_onlist :: [Int],    -- what keys are currently on. (ptSendOsc)
   baseline :: [Int],      -- 'zero position' for each key
@@ -106,7 +107,7 @@ data KeyoscState = KeyoscState {
 
 keyoscSend conn amt str = do 
   print (str, amt)
-  O.sendOSC conn (O.Message str [O.Float amt])
+  O.sendOSC conn (O.Message str [O.Int32 amt])
 
 --   let sendo msg = sendOSC t (Message msg [Int32 1])
 
@@ -122,11 +123,36 @@ ptSend sensorvals state =
       baselines = (baseline state)
       onlist = (pts_onlist state) 
       sf = (sendfun state)
-      indexeson = filter (\(x,y) -> y < kt) (zip [0..] (zipWith (\(i,v) b -> v-b) sensorvals baselines))
+      -- reindex and subtract baselines
+      indexeson = filter (\(x,y) -> y > kt) 
+                    (zip [0..] 
+                      (zipWith (\(i,v) b -> v-b) sensorvals baselines))
       sendlist = filter (\(i, v) -> (not (elem i onlist))) indexeson
-  in do
-   sequence_ (map (\(i,v) -> sf ((fromIntegral v) / 1024.0) (drumlist !! i)) sendlist)
-   return (state { pts_onlist = (map fst indexeson) }) 
+  in do 
+    mapM (\(i,v) -> sf v (drumlist !! i)) sendlist
+    return (state { pts_onlist = (map fst indexeson) }) 
+
+{-
+     if (length sendlist) > 0
+      then do
+        print "sensorvals"
+        print sensorvals
+        print "baselines"
+        print baselines
+        print "zipwith"
+        print (zipWith (\(i,v) b -> v-b) sensorvals baselines)
+        print "indexeson"
+        print indexeson
+        print "sendlist"
+        print sendlist
+        -- sequence_ (map (\(i,v) -> sf (fromIntegral v) (drumlist !! i)) sendlist)
+        mapM (\(i,v) -> sf v (drumlist !! i)) sendlist
+        return (state { pts_onlist = (map fst indexeson) }) 
+      else do
+        -- sequence_ (map (\(i,v) -> sf ((fromIntegral v) / 1024.0) (drumlist !! i)) sendlist)
+        sequence_ (map (\(i,v) -> sf (fromIntegral v) (drumlist !! i)) sendlist)
+        return (state { pts_onlist = (map fst indexeson) }) 
+-}
 
 togglePtSend :: ([(Int,Int)] -> KeyoscState -> IO KeyoscState)
 togglePtSend sensorvals state = 
@@ -147,7 +173,7 @@ vtSend sensorvals state =
       indexeson = map fst (filter (\(x,y) -> y < kt) (zip [0..] (zipWith (\(i,v) b -> v-b) sensorvals baselines)))
       sendlist = filter (\i -> (not (elem i onlist))) indexeson
   in do
-   sequence_ (map (\i -> sf 1.0 (drumlist !! i)) sendlist)
+   sequence_ (map (\i -> sf 1 (drumlist !! i)) sendlist)
    return (state { pts_onlist = indexeson }) 
 
 
@@ -555,6 +581,10 @@ initialftns appsettings =
  M.fromList [
   ("commands", commandInput)]
 
+simpleprint :: Int -> String -> IO ()
+simpleprint a b = do
+ print (a,b)
+
 nowgo appsettings = 
  do 
   putStrLn "keyosc v1.0"
@@ -562,8 +592,11 @@ nowgo appsettings =
   sensets <- makeSensorSets (adcSettings appsettings)
   printsensors (sensors sensets)
   baselines <- getbaselines sensets 20 appsettings
+  print "baselines:"
+  niceprint baselines
   now <- getCurrentTime
-  let leEtat = KeyoscState sensets (keyoscSend t) (keythreshold (adcSettings appsettings)) [] baselines framerate_count now initftns (map snd (M.toList initftns))
+  -- let leEtat = KeyoscState sensets (keyoscSend t) (keythreshold (adcSettings appsettings)) [] baselines framerate_count now initftns (map snd (M.toList initftns))
+  let leEtat = KeyoscState sensets simpleprint (keythreshold (adcSettings appsettings)) [] baselines framerate_count now initftns (map snd (M.toList initftns))
       initftns = (initialftns appsettings) 
    in do 
     repete leEtat
@@ -576,57 +609,4 @@ getbaselines sensets count appsettings = do
   -- mapM niceprint (map (\vs -> (map (\(i,v) -> v) vs)) vals)
   return $ meadvals vals
 
- 
-{-
-makeSendFtn appsettings sendftn printftn = 
- case ((printKeyMsgs appsettings), (sendKeyMsgs appsettings)) of
-  (True,True) -> (\msg -> do {sendftn msg; printftn msg})
-  (True,False) -> printftn
-  (False,True) -> sendftn
-  (False,False) -> (\msg -> return ())
 
-calcignorelist sensors = 
- map snd $ filter (\(s,i) -> ignore s) (zip sensors [0..])
-
-nowgo appsettings = 
- do 
-  putStrLn "keyosc v1.0"
-  t <- O.openUDP (targetIP appsettings) (targetPort appsettings)
-  sensets <- makeSensorSets (adcSettings appsettings)
-  printsensors (sensors sensets)
-  let sendo msg = O.sendOSC t (O.Message msg [Int32 1])
-      printo msg = putStrLn msg 
-      sendftn = makeSendFtn appsettings sendo printo
-      thres = (keythreshold (adcSettings appsettings))
-      ignorelist = (calcignorelist (sensors sensets)) 
-      msglist = if (calibrateMode appsettings)
-                    then (map show [0..((count (sensors sensets))-1)])
-                    else drumlist
-   in do
-    -- get initial sensor values for baselines.
-    vals <- getsvmulti sensets 20 (spiDelay (adcSettings appsettings))
-    mapM niceprint (map (\vs -> (map (\(i,v) -> v) vs)) vals)
-    now <- getCurrentTime
-    -- let medvals = map snd $ head vals
-    let medvals = meadvals vals 
-        tsend = [(thressend sendftn thres drumlist ignorelist medvals)]
-        print = if (printSensorsValues appsettings) 
-                   then [(mkniceprint medvals)] ++ tsend
-                   else tsend
-        cal   = if (calibrate appsettings) 
-                   then [(mkniceprint medvals)] ++ tsend
-                   else tsend
-           let blah = thressend sendftn thres drumlist ignorelist medvals
-               print = mkniceprint medvals 
-               -- multay = mkmulti [blah, printvalues, print]
-               -- multay = mkmulti [blah, printindexes, print]
-               multay = mkmulti [blah, print]
-       in do            
-        -- putStrLn (show vals)
-        -- niceprint medvals
-        -- niceprint (map snd (head vals))
-        repetay sensets multay [] framerate_count now 
-      else 
-        repetay sensets (thressend sendftn thres drumlist ignorelist medvals) [] framerate_count now
-
-        -}
