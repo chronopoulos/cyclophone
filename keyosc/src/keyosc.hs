@@ -105,9 +105,10 @@ data KeyoscState = KeyoscState {
   } 
   -- deriving (Show)
 
+-- keyoscSend :: UDP -> Int -> String -> IO ()
 keyoscSend conn amt str = do 
   print (str, amt)
-  O.sendOSC conn (O.Message str [O.Int32 amt])
+  O.sendOSC conn (O.Message str [O.Int32 (fromIntegral amt)])
 
 --   let sendo msg = sendOSC t (Message msg [Int32 1])
 
@@ -598,6 +599,25 @@ simpleprint :: Int -> String -> IO ()
 simpleprint a b = do
  print (a,b)
 
+--  sendKeyMsgs :: Bool,
+--  printKeyMsgs :: Bool,
+makeSendFun t appsets = 
+  if (sendKeyMsgs appsets) 
+    then
+      if (printKeyMsgs appsets) 
+        then
+          (\i s -> do 
+            simpleprint i s
+            keyoscSend t i s)
+        else
+          keyoscSend t
+    else
+      if (printKeyMsgs appsets) 
+        then
+          simpleprint
+        else
+          (\i s -> return ())
+
 nowgo appsettings = 
  do 
   putStrLn "keyosc v1.0"
@@ -608,8 +628,7 @@ nowgo appsettings =
   print "baselines:"
   niceprint baselines
   now <- getCurrentTime
-  -- let leEtat = KeyoscState sensets (keyoscSend t) (keythreshold (adcSettings appsettings)) [] baselines framerate_count now initftns (map snd (M.toList initftns))
-  let leEtat = KeyoscState sensets simpleprint (keythreshold (adcSettings appsettings)) [] baselines framerate_count now initftns 
+  let leEtat = KeyoscState sensets (makeSendFun t appsettings) (keythreshold (adcSettings appsettings)) [] baselines framerate_count now initftns 
       initftns = (initialftns appsettings) 
    in do 
     repete leEtat
