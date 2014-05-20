@@ -95,7 +95,7 @@ data KeyoscState = KeyoscState {
   -- stuff for thres-send
   thres_onlist :: [Int],        -- what keys have values over their thresholds. [Index] 
   thres_sendlist :: [(Int,Int)],  -- what keys were just turned on - (index,value)
-  mxs_max :: [Int],       -- current max value for each key. 
+  maxes_sendlist :: [(Int,Int)],  -- max to send out. 
   baseline :: [Int],      -- 'zero position' for each key
   -- stuff for framerate
   fr_itercount :: Int,
@@ -156,22 +156,24 @@ thresSend input state =
 --    and update the function in the keyoscState.  then, not shared state.  but efficiency! 
 
 -- while a key is on, collect its max. 
--- requires thresUpdate to be updating the thres_onlist.
-{-
+-- reqiuires thresUpdate to be updating the thres_onlist.
+-- we have a max if:
+--   - prevval is over thres
+--   - velocity is less than zero
+--   
+
 maxUpdate :: Input -> KeyoscState -> KeyoscState
 maxUpdate input state =
- let  vals = (sensorvals input)
-      kt = (keymax (sensets state))
-      baselines = (baseline state)
-      onlist = (thres_onlist state) 
-      -- reindex and subtract baselines
-      indexeson = filter (\(x,y) -> y > kt) 
-                    (zip [0..] 
-                      (zipWith (\(i,v) b -> v-b) vals baselines))
-      sendlist = filter (\(i, v) -> (not (elem i onlist))) indexeson
-  in 
-    (state { thres_onlist = (map fst indexeson), thres_sendlist = sendlist }) 
--}
+ let  nwstate = velUpdate input state
+      blah = zip [0..] (zip (velocities state) (prevvals state))
+      maxes = map (\(i,(v,p)) -> (i,v)) 
+        (filter (\(i,(v,p)) -> p > (keythres (sensets state)) && v < 0) blah)
+  in (state { maxes_sendlist = maxes }) 
+
+maxPrint :: Input -> KeyoscState -> IO ()     
+maxPrint input state = do 
+  mapM print (maxes_sendlist state)
+  return ()
 
 velUpdate :: Input -> KeyoscState -> KeyoscState
 velUpdate input state =
