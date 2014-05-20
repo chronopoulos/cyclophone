@@ -175,6 +175,11 @@ maxPrint input state = do
   mapM print (maxes_sendlist state)
   return ()
 
+toggleMaxPrint :: Input -> KeyoscState -> KeyoscState
+toggleMaxPrint input state =
+  toggleIOU "maxprint" maxUpdate maxPrint input state
+
+
 velUpdate :: Input -> KeyoscState -> KeyoscState
 velUpdate input state =
   state { prevvals = (map snd (sensorvals input)), 
