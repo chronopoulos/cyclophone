@@ -100,7 +100,7 @@ data KeyoscState = KeyoscState {
   -- stuff for framerate
   fr_itercount :: Int,
   fr_lasttime :: UTCTime,
-  fr_lastfr :: Float,
+  fr_lastfr :: Double,
   -- since functions can't be compared, we have string IDs for them.
   updateftns :: M.Map String (Input -> KeyoscState -> KeyoscState),
   ioftns :: M.Map String (Input -> KeyoscState -> IO ())
@@ -157,9 +157,9 @@ thresSend input state =
 -- 'Velocity print'
 -- 
 
-togglePtSend :: (Input -> KeyoscState -> KeyoscState)
-togglePtSend input state = 
-  toggleuftn "thres_update" thresUpdate state
+togglePtSend :: Input -> KeyoscState -> KeyoscState
+togglePtSend input state =
+  toggleIOU "thressend" thresUpdate thresSend input state
 
 -- version where we don't send indexes that are ignored.
 -- sendlist = filter (\i -> (not (elem i onlist)) && (not (elem i ignorelist))) indexeson
@@ -389,11 +389,12 @@ removeioftn ftnname state =
 updateframerate :: Input -> KeyoscState -> KeyoscState
 updateframerate input state = 
   if (fr_itercount state) <= 0
-    then
+    then let nowe = now input in
       state { fr_itercount = framerate_count, 
-              fr_lasttime = (now input),
+              fr_lasttime = nowe,
               fr_lastfr = ((fromIntegral framerate_count) / 
-                           (realToFrac (diffUTCTime (now input) (fr_lasttime state)))) }
+                           (realToFrac (diffUTCTime nowe (fr_lasttime state))))
+            }
     else 
       state { fr_itercount = (fr_itercount state) - 1 }
 
@@ -459,10 +460,14 @@ togglePrintDiffs input state =
 
 toggleShowFrameRate :: Input -> KeyoscState -> KeyoscState
 toggleShowFrameRate input state = 
-  if (M.member "frate" (ioftns state))
-   then removeioftn "frate" (removeuftn "frate" state)
-   else addioftn "frate" showframerate (adduftn "frate" updateframerate state)
+  toggleIOU "frate" updateframerate showframerate input state
 
+toggleIOU :: String -> (Input -> KeyoscState -> KeyoscState) ->
+  (Input -> KeyoscState -> IO ()) -> Input -> KeyoscState -> KeyoscState
+toggleIOU name updateftn ioftn input state = 
+  if (M.member name (ioftns state))
+   then removeioftn name (removeuftn name state)
+   else addioftn name ioftn (adduftn name updateftn state)
 
 commandInput :: Input -> KeyoscState -> KeyoscState
 commandInput input state = 
