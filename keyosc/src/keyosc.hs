@@ -95,12 +95,15 @@ data KeyoscState = KeyoscState {
   -- stuff for thres-send
   thres_onlist :: [Int],        -- what keys have values over their thresholds. [Index] 
   thres_sendlist :: [(Int,Int)],  -- what keys were just turned on - (index,value)
-  mxs_max :: [(Int,Int)],       -- current max value for each key. 
+  mxs_max :: [Int],       -- current max value for each key. 
   baseline :: [Int],      -- 'zero position' for each key
   -- stuff for framerate
   fr_itercount :: Int,
   fr_lasttime :: UTCTime,
   fr_lastfr :: Double,
+  -- stuff for velocity
+  prevvals :: [Int],
+  velocities :: [Int], 
   -- since functions can't be compared, we have string IDs for them.
   updateftns :: M.Map String (Input -> KeyoscState -> KeyoscState),
   ioftns :: M.Map String (Input -> KeyoscState -> IO ())
@@ -152,10 +155,38 @@ thresSend input state =
 --    another way would be to have the state be local to the function, 
 --    and update the function in the keyoscState.  then, not shared state.  but efficiency! 
 
+-- while a key is on, collect its max. 
+-- requires thresUpdate to be updating the thres_onlist.
+{-
+maxUpdate :: Input -> KeyoscState -> KeyoscState
+maxUpdate input state =
+ let  vals = (sensorvals input)
+      kt = (keymax (sensets state))
+      baselines = (baseline state)
+      onlist = (thres_onlist state) 
+      -- reindex and subtract baselines
+      indexeson = filter (\(x,y) -> y > kt) 
+                    (zip [0..] 
+                      (zipWith (\(i,v) b -> v-b) vals baselines))
+      sendlist = filter (\(i, v) -> (not (elem i onlist))) indexeson
+  in 
+    (state { thres_onlist = (map fst indexeson), thres_sendlist = sendlist }) 
+-}
 
--- 
--- 'Velocity print'
--- 
+velUpdate :: Input -> KeyoscState -> KeyoscState
+velUpdate input state =
+  state { velocities = zipWith (-) (map snd (sensorvals input)) (prevvals state) }
+
+velPrint :: Input -> KeyoscState -> IO ()
+velPrint input state = do 
+  putStr "velocities: "
+  print (velocities state)
+
+toggleVelPrint :: Input -> KeyoscState -> KeyoscState
+toggleVelPrint input state =
+  toggleIOU "velprint" velUpdate velPrint input state
+
+
 
 togglePtSend :: Input -> KeyoscState -> KeyoscState
 togglePtSend input state =
@@ -542,12 +573,6 @@ printsensors sensors =
   niceprint ((map (\x -> fromIntegral (fd x)) sensors) :: [Int])
   niceprint ((map (\x -> fromIntegral (pin x)) sensors) :: [Int])
 
---getspeed :: [String] :: CInt
-getspeed args = 
-  if (length args) > 2 
-    then (read (args !! 2)) :: CInt 
-    else 4000000
-
 prefsfile = "keyosc.prefs"
 
 main = 
@@ -611,7 +636,9 @@ nowgo appsettings =
                           []
                           []
                           baselines 
-                          framerate_count now 0.0 inituftns initioftns
+                          framerate_count now 0.0 
+                          [] []
+                          inituftns initioftns
       inituftns = (initialuftns appsettings) 
       initioftns = (initialioftns appsettings)
    in do 
