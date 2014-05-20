@@ -175,12 +175,12 @@ maxUpdate input state =
 
 velUpdate :: Input -> KeyoscState -> KeyoscState
 velUpdate input state =
-  state { velocities = zipWith (-) (map snd (sensorvals input)) (prevvals state) }
+  state { prevvals = (map snd (sensorvals input)), 
+          velocities = zipWith (-) (map snd (sensorvals input)) (prevvals state) }
 
 velPrint :: Input -> KeyoscState -> IO ()
 velPrint input state = do 
-  putStr "velocities: "
-  print (velocities state)
+  niceprint (velocities state)
 
 toggleVelPrint :: Input -> KeyoscState -> KeyoscState
 toggleVelPrint input state =
@@ -452,6 +452,7 @@ commands = M.fromList [
   ("vals", togglePrintVals),
   ("frate", toggleShowFrameRate),
   ("ptsend", togglePtSend),
+  ("velprint", toggleVelPrint),
   ("?", cuePrintCmds) ]
 {-
   ("ptsendosc", togglePtSendOsc)
