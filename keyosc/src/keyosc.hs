@@ -460,6 +460,7 @@ commands = M.fromList [
   ("frate", toggleShowFrameRate),
   ("ptsend", togglePtSend),
   ("velprint", toggleVelPrint),
+  ("maxprint", toggleMaxPrint),
   ("?", cuePrintCmds) ]
 {-
   ("ptsendosc", togglePtSendOsc)
