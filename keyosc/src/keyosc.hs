@@ -109,6 +109,7 @@ data KeyoscState = KeyoscState {
   -- writing out data.
   out_count_init :: Int,      -- how many records to write
   out_count :: Int,           -- counter for writing records.
+  out_start :: UTCTime,       -- time at counter start.
   out_vals :: [[Int]],        -- data to write.  store in memory, then write.
   -- since functions can't be compared, we have string IDs for them.
   updateftns :: M.Map String (Input -> KeyoscState -> KeyoscState),
@@ -478,7 +479,10 @@ commands = M.fromList [
  
 startOutWrite :: Input -> KeyoscState -> KeyoscState
 startOutWrite input state = 
-  adduftn "outWrite" outWriteUpdate $ state { out_count = out_count_init state, out_vals = [] } 
+  adduftn "outWrite" outWriteUpdate $ 
+    state { out_count = out_count_init state, 
+            out_vals = [],
+            out_start = now input } 
 
 outWriteUpdate :: Input -> KeyoscState -> KeyoscState
 outWriteUpdate input state = 
@@ -493,7 +497,13 @@ outWriteUpdate input state =
   
 outWriteWrite :: Input -> KeyoscState -> IO ()
 outWriteWrite input state = do
-  writeFile "outWrite" $ foldr (\a b -> (a ++ "\n" ++ b)) "" (map niceprints (out_vals state))  
+  let duration = "duration: " ++ 
+                  (show (realToFrac (diffUTCTime (now input) (out_start state)))) ++ 
+                  "\n"
+   in 
+     writeFile "outWrite" $ 
+        duration ++ ( 
+        foldr (\a b -> (a ++ "\n" ++ b)) "" (map niceprints (out_vals state)))
   print "outWrite complete!"
   
 cuePrintCmds :: Input -> KeyoscState -> KeyoscState
@@ -676,7 +686,7 @@ nowgo appsettings =
                           baselines 
                           framerate_count now 0.0 
                           [] []
-                          (outwritecount appsettings) 0 []
+                          (outwritecount appsettings) 0 now []
                           inituftns initioftns
       inituftns = (initialuftns appsettings) 
       initioftns = (initialioftns appsettings)
