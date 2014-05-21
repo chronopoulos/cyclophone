@@ -477,9 +477,7 @@ outwritecount = 5000;
  
 startOutWrite :: Input -> KeyoscState -> KeyoscState
 startOutWrite input state = 
-  let ns = state { out_count = outwritecount, out_vals = [] } 
-   in
-     adduftn "outWrite" outWriteUpdate state
+  adduftn "outWrite" outWriteUpdate $ state { out_count = outwritecount, out_vals = [] } 
 
 outWriteUpdate :: Input -> KeyoscState -> KeyoscState
 outWriteUpdate input state = 
@@ -489,12 +487,13 @@ outWriteUpdate input state =
               out_vals = (map snd (sensorvals input)) : (out_vals state) }
     else
       -- remove self from update ftns; add outwrite oneshot.  
+      -- addioftn "outWriteDebug" outWriteDebug $
       addOneShotIOFtn "outWrite" outWriteWrite $ removeuftn "outWrite" state
   
- 
 outWriteWrite :: Input -> KeyoscState -> IO ()
 outWriteWrite input state = do
   writeFile "outWrite" $ foldr (\a b -> (a ++ "\n" ++ b)) "" (map niceprints (out_vals state))  
+  print "outWrite complete!"
   
 cuePrintCmds :: Input -> KeyoscState -> KeyoscState
 cuePrintCmds input state = 
