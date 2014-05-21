@@ -104,6 +104,9 @@ data KeyoscState = KeyoscState {
   -- stuff for velocity
   prevvals :: [Int],
   velocities :: [Int], 
+  -- writing out data.
+  out_count :: Int,
+  out_vals :: [[Int]],
   -- since functions can't be compared, we have string IDs for them.
   updateftns :: M.Map String (Input -> KeyoscState -> KeyoscState),
   ioftns :: M.Map String (Input -> KeyoscState -> IO ())
@@ -460,6 +463,7 @@ commands = M.fromList [
   ("ptsend", togglePtSend),
   ("velprint", toggleVelPrint),
   ("maxprint", toggleMaxPrint),
+  ("outwrite", startOutWrite),
   ("?", cuePrintCmds) ]
 {-
   ("ptsendosc", togglePtSendOsc)
@@ -468,7 +472,30 @@ commands = M.fromList [
   ("resetrange", resetRangeCalibrate),
   ]
 -}
-   
+ 
+outwritecount = 5000;
+ 
+startOutWrite :: Input -> KeyoscState -> KeyoscState
+startOutWrite input state = 
+  let ns = state { out_count = outwritecount, out_vals = [] } 
+   in
+     adduftn "outWrite" outWriteUpdate state
+
+outWriteUpdate :: Input -> KeyoscState -> KeyoscState
+outWriteUpdate input state = 
+  if (out_count state) > 0
+    then 
+      state { out_count = (out_count state) - 1, 
+              out_vals = (map snd (sensorvals input)) : (out_vals state) }
+    else
+      -- remove self from update ftns; add outwrite oneshot.  
+      addOneShotIOFtn "outWrite" outWriteWrite $ removeuftn "outWrite" state
+  
+ 
+outWriteWrite :: Input -> KeyoscState -> IO ()
+outWriteWrite input state = do
+  writeFile "outWrite" $ foldr (\a b -> (a ++ "\n" ++ b)) "" (map niceprints (out_vals state))  
+  
 cuePrintCmds :: Input -> KeyoscState -> KeyoscState
 cuePrintCmds input state = 
   addOneShotIOFtn "printCmds" printCmds state
@@ -552,6 +579,9 @@ niceprint lst =
  do 
   printf "%4d " (head lst)
   niceprint (tail lst)
+
+niceprints [] = ""
+niceprints l = foldr (\a b -> (printf "%4d " a) ++ b) "" l
 
 -- ftn that subtracts the baselines and prints.
 mkniceprint :: [Int] -> ([(Int, Int)] -> [Int] -> IO [Int])
@@ -646,13 +676,13 @@ nowgo appsettings =
                           baselines 
                           framerate_count now 0.0 
                           [] []
+                          0 []
                           inituftns initioftns
       inituftns = (initialuftns appsettings) 
       initioftns = (initialioftns appsettings)
    in do 
     repete leEtat
 
- 
 getbaselines sensets count appsettings = do
   -- get initial sensor values for baselines.
   vals <- getsvmulti sensets 20 (spiDelay (adcSettings appsettings))
