@@ -37,7 +37,8 @@ data AppSettings = AppSettings {
   sendKeyMsgs :: Bool,
   printKeyMsgs :: Bool,
   targetIP :: String,
-  targetPort :: Int
+  targetPort :: Int,
+  outwritecount :: Int
   }
   deriving (Show, Read)
 
@@ -69,6 +70,7 @@ defaultAppSettings =
     True
     "127.0.0.1"
     8000
+    2500
 
 -- runtime data structures.
 
@@ -105,8 +107,9 @@ data KeyoscState = KeyoscState {
   prevvals :: [Int],
   velocities :: [Int], 
   -- writing out data.
-  out_count :: Int,
-  out_vals :: [[Int]],
+  out_count_init :: Int,      -- how many records to write
+  out_count :: Int,           -- counter for writing records.
+  out_vals :: [[Int]],        -- data to write.  store in memory, then write.
   -- since functions can't be compared, we have string IDs for them.
   updateftns :: M.Map String (Input -> KeyoscState -> KeyoscState),
   ioftns :: M.Map String (Input -> KeyoscState -> IO ())
@@ -473,11 +476,9 @@ commands = M.fromList [
   ]
 -}
  
-outwritecount = 5000;
- 
 startOutWrite :: Input -> KeyoscState -> KeyoscState
 startOutWrite input state = 
-  adduftn "outWrite" outWriteUpdate $ state { out_count = outwritecount, out_vals = [] } 
+  adduftn "outWrite" outWriteUpdate $ state { out_count = out_count_init state, out_vals = [] } 
 
 outWriteUpdate :: Input -> KeyoscState -> KeyoscState
 outWriteUpdate input state = 
@@ -675,7 +676,7 @@ nowgo appsettings =
                           baselines 
                           framerate_count now 0.0 
                           [] []
-                          0 []
+                          (outwritecount appsettings) 0 []
                           inituftns initioftns
       inituftns = (initialuftns appsettings) 
       initioftns = (initialioftns appsettings)
