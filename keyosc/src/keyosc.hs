@@ -503,7 +503,7 @@ outWriteWrite input state = do
    in 
      writeFile "outWrite" $ 
         duration ++ ( 
-        foldr (\a b -> (a ++ "\n" ++ b)) "" (map niceprints (out_vals state)))
+        foldr (\a b -> (a ++ "\n" ++ b)) "" (map niceprints (reverse (out_vals state))))
   print "outWrite complete!"
   
 cuePrintCmds :: Input -> KeyoscState -> KeyoscState
