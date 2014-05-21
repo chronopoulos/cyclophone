@@ -165,10 +165,10 @@ thresSend input state =
 maxUpdate :: Input -> KeyoscState -> KeyoscState
 maxUpdate input state =
  let  nwstate = velUpdate input state
-      blah = zip [0..] (zip (velocities state) (prevvals state))
-      maxes = map (\(i,(v,p)) -> (i,v)) 
-        (filter (\(i,(v,p)) -> p > (keythres (sensets state)) && v < 0) blah)
-  in (state { maxes_sendlist = maxes }) 
+      blah = zip [0..] (zip (velocities state) (prevvals nwstate))
+      maxes = map (\(i,(v,p)) -> (i,p)) 
+        (filter (\(i,(v,p)) -> p > (keythres (sensets nwstate)) && v < 0) blah)
+  in (nwstate { maxes_sendlist = maxes }) 
 
 maxPrint :: Input -> KeyoscState -> IO ()     
 maxPrint input state = do 
@@ -192,7 +192,6 @@ velPrint input state = do
 toggleVelPrint :: Input -> KeyoscState -> KeyoscState
 toggleVelPrint input state =
   toggleIOU "velprint" velUpdate velPrint input state
-
 
 
 togglePtSend :: Input -> KeyoscState -> KeyoscState
