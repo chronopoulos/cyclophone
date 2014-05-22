@@ -192,34 +192,27 @@ toggleMaxPrint :: Input -> KeyoscState -> KeyoscState
 toggleMaxPrint input state =
   toggleIOU "maxprint" maxUpdate maxPrint input state
 
-  
-{-
-  prevvals :: [Int],
-  velocities :: [Int], 
-  prevvelocities :: [Int],
-  velocity_sendlist :: [(Int,Int)]
-  velsent :: [Int]           
--}
-
 toggleVelMax :: Input -> KeyoscState -> KeyoscState
 toggleVelMax input state =
   toggleIOU "velmax" velMaxUpdate velMaxPrint input state
 
 velMaxUpdate :: Input -> KeyoscState -> KeyoscState
-velMaxUpdate input state =
-  let state = velUpdate input (state { prevvelocities = (velocities state) } )
-      sendlist = filter (\(i,v) -> v < 0)
-        (zip [0..] (zipWith (-) (velocities state) (prevvelocities state)))
-      --sendlist = filter (\(i,v) -> v < 0 && (not (elem i (velsent state))))
-      --  (zip [0..] (zipWith (-) (velocities state) (prevvelocities state)))
+velMaxUpdate input prevstate =
+  let state = velUpdate input (prevstate { prevvelocities = (velocities prevstate) } )
+      sendlist = filter (\(i,(v,d)) -> d < 0 
+                                   && v > (velthres (sensets state))
+                                   && (not (elem i (velsent state))))
+        (zip [0..] (zip (velocities state) (zipWith (-) (velocities state) (prevvelocities state))))
       underthres = map fst (filter (\(i,v) -> v < velthres (sensets state)) (zip [0..] (velocities state))) 
       velsent_ = filter (\i -> not (elem i underthres)) ((map (\(i,v) -> i) sendlist) ++ (velsent state))
    in 
-    state { velocity_sendlist = sendlist, velsent = velsent_ }
+    state { velocity_sendlist = map (\(i,(v,d)) -> (i,v)) sendlist, velsent = velsent_ }
             
 velMaxPrint :: Input -> KeyoscState -> IO ()
 velMaxPrint input state = do 
-  mapM_ print (velocity_sendlist state) 
+  if null (velocity_sendlist state)
+    then return ()
+    else print (velocity_sendlist state)
 
 velUpdate :: Input -> KeyoscState -> KeyoscState
 velUpdate input state =
