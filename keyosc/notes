@@ -1,7 +1,42 @@
 ----------------------------------------------
 
-calibration.
+revisit max.  try same tech as vel.
+ - max is first nonincreasing value.
+ - must cross posthres again to reset.
 
+----------------------------------------------
+
+for the max ftn.  try resetting when the position thres is crossed again.  so only one
+max per excursion.
+
+
+
+----------------------------------------------
+
+moving to better filtering functions??
+  single sensor functions instead of multi sensor, simpler.
+  also can do rpar on an array of these.
+
+would like to express per-key filtering without the complication of the arrays.
+
+sigfun :: Int -> (sigfun, Maybe Int)
+sigfun newval = 
+ 
+fivePtAvg :: [Int] -> Int -> (sigfun, Maybe Int)
+fivePtAvg lst new = 
+ if (length lst) > 5 
+  then let 
+
+
+basically signal processing.  
+
+so suppose we have a ftn that avgs the last 5 readings.  would like to be able to 'feed' it one point at a time, and retreive one reading at a time from the other side.  
+not sure how to do this!
+
+
+----------------------------------------------
+
+calibration.
 1) key assignment.  
 2) key range.  
 
@@ -99,4 +134,66 @@ problem 'solved' - basically have to put a delay after each read, so its similar
 to the normal read.  10000 microseconds did the trick.
 
 ----------------------------------------------
+
+change to update ftns and send ftn, separated?
+seems maybe cleaner.
+allows using 'onlist' but without having to also send osc messages from ptSend.  
+
+so sigs:
+
+[(Int,Int)] -> KeyoscState -> KeyoscState
+KeyoscState -> IO ()
+
+----------------------------------------------
+
+printing the max value for each key.
+
+idea is when a key goes over the thres, start looking for the first 
+non-increasing value.
+
+when that is found, print the previous value, the 'max'.
+
+but only want one max per excursion over the thres.
+
+or, only want to record a new max when the previous value is more than the 
+current value.
+
+- so max is reached, new value is less than max.
+  - send a message
+  - reset the max to zero?
+
+rule is, increase max only when previous OT value is less.  
+ok how about this
+
+prevdirection
+prevval
+
+if direction = down 
+  if direction <> prevdirection then 
+    cue prevval for print.
+  else
+    nothing
+
+prevdirection = direction
+
+----------------------------------------------
+
+data capture.
+ - type 'capture 500'
+ - store 500 samples in memory, then writes to disk.  
+ - then import to excel or whatever.
+
+----------------------------------------------
+
+ok, let's do key velocity!
+- I think a good way to go is to find peak velocity.  
+- also, a good way to go is to write out raw data to look at.  
+
+peak velocity:
+ - at each step compute velocity, cur-prev
+ - as now, use derivative - acceleration - as marker of the peak.  
+ - need filtering?  look at data.
+
+----------------------------------------------
+
 
