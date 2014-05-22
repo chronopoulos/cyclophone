@@ -46,7 +46,8 @@ data AdcSettings = AdcSettings {
   adcs :: [Adc],
   spiSpeed :: CInt,
   spiDelay :: Int,
-  keythreshold :: Int
+  keythreshold :: Int,
+  velthreshold :: Int
   }
   deriving (Show, Read)
 
@@ -63,7 +64,8 @@ defaultAppSettings =
                  (Adc "/dev/spidev0.1" [2..13] [])]
                 4000000
                 0
-                (-25))
+                50
+                25)
     True 
     True
     True
@@ -86,7 +88,8 @@ data SensorSets = SensorSets {
   sensors :: [Sensor],
   speed :: CInt,
   delay :: Int,
-  keythres :: Int
+  keythres :: Int,
+  velthres :: Int
   }
   deriving (Show)
 
@@ -106,6 +109,9 @@ data KeyoscState = KeyoscState {
   -- stuff for velocity
   prevvals :: [Int],
   velocities :: [Int], 
+  prevvelocities :: [Int],
+  velocity_sendlist :: [(Int,Int)],
+  velsent :: [Int],           
   -- writing out data.
   out_count_init :: Int,      -- how many records to write
   out_count :: Int,           -- counter for writing records.
@@ -186,6 +192,29 @@ toggleMaxPrint :: Input -> KeyoscState -> KeyoscState
 toggleMaxPrint input state =
   toggleIOU "maxprint" maxUpdate maxPrint input state
 
+  
+{-
+  prevvals :: [Int],
+  velocities :: [Int], 
+  prevvelocities :: [Int],
+  velocity_sendlist :: [(Int,Int)]
+  velsent :: [Int]           
+-}
+
+velMaxUpdate :: Input -> KeyoscState -> KeyoscState
+velMaxUpdate input state =
+  let nws = velUpdate input (state { prevvelocities = (velocities state) } )
+      sendlist = filter (\(i,v) -> v < 0 && (not (elem i (velsent nws))))
+        (zip [0..] (zipWith (-) (velocities nws) (prevvelocities nws)))
+      underthres = map fst (filter (\(i,v) -> v < velthres (sensets nws)) (zip [0..] (velocities nws))) 
+      velsent_ = filter (\i -> not (elem i underthres)) ((map (\(i,v) -> i) sendlist) ++ (velsent nws))
+   in 
+    state { velocity_sendlist = sendlist, velsent = velsent_ }
+            
+
+velMaxPrint :: Input -> KeyoscState -> IO ()
+velMaxPrint input state = do 
+  niceprint (velocities state)
 
 velUpdate :: Input -> KeyoscState -> KeyoscState
 velUpdate input state =
@@ -199,6 +228,10 @@ velPrint input state = do
 toggleVelPrint :: Input -> KeyoscState -> KeyoscState
 toggleVelPrint input state =
   toggleIOU "velprint" velUpdate velPrint input state
+
+toggleVelMax :: Input -> KeyoscState -> KeyoscState
+toggleVelMax input state =
+  toggleIOU "velmax" velMaxUpdate velMaxPrint input state
 
 
 togglePtSend :: Input -> KeyoscState -> KeyoscState
@@ -229,7 +262,8 @@ makeSensorSets adcSettings =
      return (SensorSets sensors 
                         (spiSpeed adcSettings) 
                         (spiDelay adcSettings) 
-                        (keythreshold adcSettings))
+                        (keythreshold adcSettings)
+                        (velthreshold adcSettings))
  
 makeAdcSensors :: Adc -> CInt -> IO [Sensor]
 makeAdcSensors adc speed = 
@@ -466,6 +500,7 @@ commands = M.fromList [
   ("frate", toggleShowFrameRate),
   ("ptsend", togglePtSend),
   ("velprint", toggleVelPrint),
+  ("velmax", toggleVelMax),
   ("maxprint", toggleMaxPrint),
   ("outwrite", startOutWrite),
   ("?", cuePrintCmds) ]
@@ -685,7 +720,7 @@ nowgo appsettings =
                           []
                           baselines 
                           framerate_count now 0.0 
-                          [] []
+                          [] [] [] [] []
                           (outwritecount appsettings) 0 now []
                           inituftns initioftns
       inituftns = (initialuftns appsettings) 
