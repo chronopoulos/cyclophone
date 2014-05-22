@@ -201,6 +201,10 @@ toggleMaxPrint input state =
   velsent :: [Int]           
 -}
 
+toggleVelMax :: Input -> KeyoscState -> KeyoscState
+toggleVelMax input state =
+  toggleIOU "velmax" velMaxUpdate velMaxPrint input state
+
 velMaxUpdate :: Input -> KeyoscState -> KeyoscState
 velMaxUpdate input state =
   let nws = velUpdate input (state { prevvelocities = (velocities state) } )
@@ -211,10 +215,9 @@ velMaxUpdate input state =
    in 
     state { velocity_sendlist = sendlist, velsent = velsent_ }
             
-
 velMaxPrint :: Input -> KeyoscState -> IO ()
 velMaxPrint input state = do 
-  niceprint (velocities state)
+  mapM_ print (velocity_sendlist state) 
 
 velUpdate :: Input -> KeyoscState -> KeyoscState
 velUpdate input state =
@@ -228,10 +231,6 @@ velPrint input state = do
 toggleVelPrint :: Input -> KeyoscState -> KeyoscState
 toggleVelPrint input state =
   toggleIOU "velprint" velUpdate velPrint input state
-
-toggleVelMax :: Input -> KeyoscState -> KeyoscState
-toggleVelMax input state =
-  toggleIOU "velmax" velMaxUpdate velMaxPrint input state
 
 
 togglePtSend :: Input -> KeyoscState -> KeyoscState
