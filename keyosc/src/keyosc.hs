@@ -212,7 +212,7 @@ velMaxPrint :: Input -> KeyoscState -> IO ()
 velMaxPrint input state = do 
   if null (velocity_sendlist state)
     then return ()
-    else niceprint (map snd (velocity_sendlist state))
+    else print (velocity_sendlist state)
 
 velUpdate :: Input -> KeyoscState -> KeyoscState
 velUpdate input state =
