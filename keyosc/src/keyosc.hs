@@ -176,18 +176,20 @@ thresSend input state =
 --   - velocity is less than zero
 --   
 
+
 maxUpdate :: Input -> KeyoscState -> KeyoscState
 maxUpdate input prevstate =
  let  state = velUpdate input prevstate
-      blah = zip [0..] (zip (velocities state) (prevvals state))
+      blah = zip [0..] (zip (velocities state) (zipWith (-) (prevvals state) (baseline state)))
       maxes = map (\(i,(v,p)) -> (i,p)) 
         (filter (\(i,(v,p)) -> 
                   p > (keythres (sensets state)) 
                   && v < 0
                   && (not (elem i (maxes_sent state))))
                 blah)
+      subbedvals = zipWith (\(i,p) b -> (i,p-b)) (sensorvals input) (baseline state)
       underthres = map (\(i,p) -> i) 
-                       (filter (\(i,p) -> p < (keythres (sensets state))) (sensorvals input))
+                       (filter (\(i,p) -> p < (keythres (sensets state))) subbedvals)
       sent = (filter (\i -> (not (elem i underthres)))
                      (maxes_sent state)) 
              ++ (map (\(i,p) -> i) maxes)
