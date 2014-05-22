@@ -98,10 +98,11 @@ data KeyoscState = KeyoscState {
   -- send osc, print, or something. 
   sendfun :: (Int -> String -> IO ()),  
   -- stuff for thres-send
-  thres_onlist :: [Int],        -- what keys have values over their thresholds. [Index] 
+  thres_onlist :: [Int],          -- what keys have values over their thresholds. [Index] 
   thres_sendlist :: [(Int,Int)],  -- what keys were just turned on - (index,value)
   maxes_sendlist :: [(Int,Int)],  -- max to send out. 
-  baseline :: [Int],      -- 'zero position' for each key
+  maxes_sent :: [Int] ,           -- maxes already sent, need reset by going below thres
+  baseline :: [Int],              -- 'zero position' for each key
   -- stuff for framerate
   fr_itercount :: Int,
   fr_lasttime :: UTCTime,
@@ -176,12 +177,21 @@ thresSend input state =
 --   
 
 maxUpdate :: Input -> KeyoscState -> KeyoscState
-maxUpdate input state =
- let  nwstate = velUpdate input state
-      blah = zip [0..] (zip (velocities state) (prevvals nwstate))
+maxUpdate input prevstate =
+ let  state = velUpdate input prevstate
+      blah = zip [0..] (zip (velocities state) (prevvals state))
       maxes = map (\(i,(v,p)) -> (i,p)) 
-        (filter (\(i,(v,p)) -> p > (keythres (sensets nwstate)) && v < 0) blah)
-  in (nwstate { maxes_sendlist = maxes }) 
+        (filter (\(i,(v,p)) -> 
+                  p > (keythres (sensets state)) 
+                  && v < 0
+                  && (not (elem i (maxes_sent state))))
+                blah)
+      underthres = map (\(i,p) -> i) 
+                       (filter (\(i,p) -> p < (keythres (sensets state))) (sensorvals input))
+      sent = (filter (\i -> (not (elem i underthres)))
+                     (maxes_sent state)) 
+             ++ (map (\(i,p) -> i) maxes)
+  in (state { maxes_sendlist = maxes, maxes_sent = sent }) 
 
 maxPrint :: Input -> KeyoscState -> IO ()     
 maxPrint input state = do 
@@ -710,6 +720,7 @@ nowgo appsettings =
   let leEtat = KeyoscState sensettings 
                           (makeSendFun t appsettings) 
                           [] 
+                          []
                           []
                           []
                           baselines 
