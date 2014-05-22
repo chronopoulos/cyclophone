@@ -207,11 +207,13 @@ toggleVelMax input state =
 
 velMaxUpdate :: Input -> KeyoscState -> KeyoscState
 velMaxUpdate input state =
-  let nws = velUpdate input (state { prevvelocities = (velocities state) } )
-      sendlist = filter (\(i,v) -> v < 0 && (not (elem i (velsent nws))))
-        (zip [0..] (zipWith (-) (velocities nws) (prevvelocities nws)))
-      underthres = map fst (filter (\(i,v) -> v < velthres (sensets nws)) (zip [0..] (velocities nws))) 
-      velsent_ = filter (\i -> not (elem i underthres)) ((map (\(i,v) -> i) sendlist) ++ (velsent nws))
+  let state = velUpdate input (state { prevvelocities = (velocities state) } )
+      sendlist = filter (\(i,v) -> v < 0)
+        (zip [0..] (zipWith (-) (velocities state) (prevvelocities state)))
+      --sendlist = filter (\(i,v) -> v < 0 && (not (elem i (velsent state))))
+      --  (zip [0..] (zipWith (-) (velocities state) (prevvelocities state)))
+      underthres = map fst (filter (\(i,v) -> v < velthres (sensets state)) (zip [0..] (velocities state))) 
+      velsent_ = filter (\i -> not (elem i underthres)) ((map (\(i,v) -> i) sendlist) ++ (velsent state))
    in 
     state { velocity_sendlist = sendlist, velsent = velsent_ }
             
