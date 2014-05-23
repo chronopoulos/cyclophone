@@ -102,6 +102,7 @@ data KeyoscState = KeyoscState {
   thres_sendlist :: [(Int,Int)],  -- what keys were just turned on - (index,value)
   maxes_sendlist :: [(Int,Int)],  -- max to send out. 
   maxes_sent :: [Int] ,           -- maxes already sent, need reset by going below thres
+  maxes :: [Int] ,                -- max bucket.  zero out when sent.
   baseline :: [Int],              -- 'zero position' for each key
   -- stuff for framerate
   fr_itercount :: Int,
@@ -138,8 +139,12 @@ data Input = Input {
 -- if a key is over the threshold, and it wasn't in the 'onlist' before, then
 -- send a message and turn it on.
 
---  t <- openUDP (targetIP appsettings) (targetPort appsettings)  
--- 'Position Threshold send'
+togglePosThres :: Input -> KeyoscState -> KeyoscState
+togglePosThres input state =
+  toggleIOU "thressend" thresUpdate thresSend input state
+
+-- if over the thres, put it into the sendlist.
+-- don't report keys that are already in the 'onlist'. 
 thresUpdate :: Input -> KeyoscState -> KeyoscState
 thresUpdate input state =
  let  vals = (sensorvals input)
@@ -177,8 +182,9 @@ thresSend input state =
 --   
 
 
-maxUpdate :: Input -> KeyoscState -> KeyoscState
-maxUpdate input prevstate =
+-- complex thing that doesn't really work right.
+maxUpdate_old :: Input -> KeyoscState -> KeyoscState
+maxUpdate_old input prevstate =
  let  state = velUpdate input prevstate
       blah = zip [0..] (zip (velocities state) (zipWith (-) (prevvals state) (baseline state)))
       maxes = map (\(i,(v,p)) -> (i,p)) 
@@ -194,6 +200,32 @@ maxUpdate input prevstate =
                      (maxes_sent state)) 
              ++ (map (\(i,p) -> i) maxes)
   in (state { maxes_sendlist = maxes, maxes_sent = sent }) 
+
+-- if a key is over the threshold, update its max.
+-- if a key is under the threshold but has a max, send the max.
+-- if a key is under the threshold but has a max, zero the max.
+
+updmax thres pos max = 
+ if (pos > thres) 
+  then 
+   if (pos > max)
+     then pos
+     else max
+  else
+    0
+  
+
+maxUpdate :: Input -> KeyoscState -> KeyoscState
+maxUpdate input state =
+ let kt = keythres (sensets state)
+     bastevals = zipWith (\(i,p) b -> p - b) (sensorvals input) (baseline state)
+     newmaxes = zipWith (updmax kt) bastevals (maxes state)
+     maxes_send = filter (\(i,v) -> v > 0) 
+                    (zip [0..] 
+                         (zipWith (\b m -> if (b < kt) then m else 0) 
+                                  bastevals (maxes state)))
+   in 
+    state { maxes_sendlist = maxes_send, maxes = newmaxes }
 
 maxPrint :: Input -> KeyoscState -> IO ()     
 maxPrint input state = do 
@@ -239,10 +271,6 @@ toggleVelPrint :: Input -> KeyoscState -> KeyoscState
 toggleVelPrint input state =
   toggleIOU "velprint" velUpdate velPrint input state
 
-
-togglePtSend :: Input -> KeyoscState -> KeyoscState
-togglePtSend input state =
-  toggleIOU "thressend" thresUpdate thresSend input state
 
 -- version where we don't send indexes that are ignored.
 -- sendlist = filter (\i -> (not (elem i onlist)) && (not (elem i ignorelist))) indexeson
@@ -504,7 +532,7 @@ commands = M.fromList [
   ("diffs", togglePrintDiffs),
   ("vals", togglePrintVals),
   ("frate", toggleShowFrameRate),
-  ("ptsend", togglePtSend),
+  ("pthres", togglePosThres),
   ("velprint", toggleVelPrint),
   ("velmax", toggleVelMax),
   ("maxprint", toggleMaxPrint),
@@ -722,6 +750,7 @@ nowgo appsettings =
   let leEtat = KeyoscState sensettings 
                           (makeSendFun t appsettings) 
                           [] 
+                          []
                           []
                           []
                           []
