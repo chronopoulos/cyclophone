@@ -566,12 +566,15 @@ outWriteUpdate input state =
   
 outWriteWrite :: Input -> KeyoscState -> IO ()
 outWriteWrite input state = do
-  let duration = "duration: " ++ 
-                  (show (realToFrac (diffUTCTime (now input) (out_start state)))) ++ 
+  let duration = realToFrac (diffUTCTime (now input) (out_start state))
+      duration_s = "duration: " ++ 
+                  (show duration) ++
                   "\n"
-   in 
-     writeFile "outWrite" $ 
-        duration ++ ( 
+   in do
+     writeFile "outWrite-machine" $
+        (show (duration, (reverse (out_vals state))))
+     writeFile "outWrite-human" $ 
+        duration_s ++ ( 
         foldr (\a b -> (a ++ "\n" ++ b)) "" (map niceprints (reverse (out_vals state))))
   print "outWrite complete!"
   
