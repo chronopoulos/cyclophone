@@ -753,7 +753,7 @@ nowgo appsettings =
                           []
                           []
                           []
-                          []
+                          (replicate (length baselines) 0)
                           baselines 
                           framerate_count now 0.0 
                           [] [] [] [] []
