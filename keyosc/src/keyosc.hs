@@ -96,7 +96,7 @@ data SensorSets = SensorSets {
 data KeyoscState = KeyoscState {
   sensets :: SensorSets,
   -- send osc, print, or something. 
-  sendfun :: (Int -> String -> IO ()),  
+  sendfun :: (Float -> String -> IO ()),  
   -- stuff for thres-send
   thres_onlist :: [Int],          -- what keys have values over their thresholds. [Index] 
   thres_sendlist :: [(Int,Int)],  -- what keys were just turned on - (index,value)
@@ -107,7 +107,7 @@ data KeyoscState = KeyoscState {
   -- stuff for framerate
   fr_itercount :: Int,
   fr_lasttime :: UTCTime,
-  fr_lastfr :: Double,
+  fr_lastfr :: Float,
   -- stuff for velocity
   prevvals :: [Int],
   velocities :: [Int], 
@@ -164,7 +164,7 @@ thresSend :: Input -> KeyoscState -> IO ()
 thresSend input state =
  let  sf = (sendfun state)
   in do 
-    blah <- mapM (\(i,v) -> sf v (drumlist !! i)) (thres_sendlist state)
+    mapM_ (\(i,v) -> sf (fromIntegral v) (drumlist !! i)) (thres_sendlist state)
     return ()
 
 -- 'Max Send' - when the threshold is crossed, wait until successive values no longer are 
@@ -227,10 +227,13 @@ maxUpdate input state =
    in 
     state { maxes_sendlist = maxes_send, maxes = newmaxes }
 
+scalef = 1.0 / 1024.0 :: Float
+
 maxPrint :: Input -> KeyoscState -> IO ()     
-maxPrint input state = do 
-  mapM print (maxes_sendlist state)
-  return ()
+maxPrint input state = 
+  let sf = (sendfun state) in do 
+    mapM_ (\(i,v) -> sf ((fromIntegral v) * scalef) (drumlist !! i)) (maxes_sendlist state)
+    return ()
 
 toggleMaxPrint :: Input -> KeyoscState -> KeyoscState
 toggleMaxPrint input state =
@@ -713,24 +716,24 @@ initialuftns appsettings =
 initialioftns appsettings = 
  M.fromList []
 
-simpleprint :: Int -> String -> IO ()
+simpleprint :: Float -> String -> IO ()
 simpleprint a b = do
  print (a,b)
 
 -- keyoscSend :: O.UDP -> Int -> String -> IO ()
 keyoscSend conn amt str = do 
   print (str, amt)
-  O.sendOSC conn (O.Message str [O.Int32 (fromIntegral amt)])
+  O.sendOSC conn (O.Message str [O.Float amt])
 
-makeSendFun :: O.UDP -> AppSettings -> (Int -> String -> IO ())
+makeSendFun :: O.UDP -> AppSettings -> (Float -> String -> IO ())
 makeSendFun t appsets = 
   if (sendKeyMsgs appsets) 
     then
       if (printKeyMsgs appsets) 
         then
-          (\i s -> do 
-            simpleprint i s
-            keyoscSend t i s)
+          (\d s -> do 
+            simpleprint d s
+            keyoscSend t d s)
         else
           keyoscSend t
     else
@@ -738,7 +741,7 @@ makeSendFun t appsets =
         then
           simpleprint
         else
-          (\i s -> return ())
+          (\d s -> return ())
 
 nowgo appsettings = 
  do 
