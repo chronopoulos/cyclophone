@@ -19,32 +19,33 @@ fname fullpath = last (pathlist fullpath)
 audioRate     = 44100
 -- audioFormat   = Mix.AudioS16LSB
 audioFormat   = Mix.AudioU16LSB
-audioChannels = 2
+audioChannels = 2   -- make 24??
 audioBuffers  = 4096
 anyChannel    = (-1)
 
 
 main = do 
  args <- getArgs
- if (length args /= 3) 
+ if (length args /= 4) 
     then do
       print "syntax:"
-      print "oscdirsamp <port> <oscprefix> <sample directory>"
+      print "oscdirsamp <ip> <port> <oscprefix> <sample directory>"
     else do
       SDL.init [SDL.InitAudio]
+      -- Mix.allocateChannels(
       result <- openAudio audioRate audioFormat audioChannels audioBuffers
-      print $ "prefix" ++ args !! 1
-      smap <- treein (args !! 2)
-      let soundmap = addkeyprefix (args !! 1) smap in do 
+      -- print $ "osc prefix: " ++ args !! 2
+      smap <- treein (args !! 3)
+      let soundmap = addkeyprefix (args !! 2) smap in do 
         putStrLn $ ppShow $ M.keys soundmap
-        let port = readMaybe (args !! 0) :: (Maybe Int)
+        let port = readMaybe (args !! 1) :: (Maybe Int)
          in case port of
-           Just p -> oscloop p soundmap
+           Just p -> oscloop (args !! 0) p soundmap
            Nothing -> putStrLn $ "Invalid port: " ++ (args !! 0) 
 
-oscloop :: Int -> M.Map String Mix.Chunk -> IO ()
-oscloop port soundmap = do
-  withTransport (t port) f
+oscloop :: String -> Int -> M.Map String Mix.Chunk -> IO ()
+oscloop ip port soundmap = do
+  withTransport (t ip port) f
   where
     f fd = forever 
       (recvMessage fd >>= 
@@ -52,7 +53,7 @@ oscloop port soundmap = do
            case msg of 
               Just msg -> onoscmessage soundmap msg
               Nothing -> return ())) 
-    t port = udpServer "127.0.0.1" port 
+    t ip port = udpServer ip port 
 
 
 onoscmessage :: M.Map String Mix.Chunk -> Message -> IO ()
@@ -60,7 +61,7 @@ onoscmessage soundmap msg = do
   let soundname = messageAddress msg 
       sound = M.lookup soundname soundmap
    in case sound of 
-    Just s -> do { Mix.playChannel anyChannel s 0; return () }
+    Just s -> do { chn <- Mix.playChannel anyChannel s 0; return () }
     Nothing -> return ()
  
 treein :: FilePath -> IO (M.Map String Mix.Chunk)
