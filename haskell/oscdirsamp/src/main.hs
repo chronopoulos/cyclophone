@@ -4,15 +4,25 @@ import Data.List.Split
 import Text.Show.Pretty
 import qualified Data.Map as M
 import Control.Monad
+import Control.Monad.Fix
+import Graphics.UI.SDL as SDL
+import Graphics.UI.SDL.Mixer as Mix
+
 
 import Sound.OSC.FD
-import Csound.Base
 
 pathlist fpath = splitOneOf "/" fpath
 
 fname fullpath = last (pathlist fullpath)
 
--- dac $ ar2 $ diskin2 (text "/home/bburdette/ownCloud/Cyclophone/starsplash.wav") 2
+-- audioRate     = 22050
+audioRate     = 44100
+-- audioFormat   = Mix.AudioS16LSB
+audioFormat   = Mix.AudioU16LSB
+audioChannels = 2
+audioBuffers  = 4096
+anyChannel    = (-1)
+
 
 main = do 
  args <- getArgs
@@ -21,6 +31,8 @@ main = do
       print "syntax:"
       print "oscdirsamp <port> <oscprefix> <sample directory>"
     else do
+      SDL.init [SDL.InitAudio]
+      result <- openAudio audioRate audioFormat audioChannels audioBuffers
       print $ "prefix" ++ args !! 1
       smap <- treein (args !! 2)
       let soundmap = addkeyprefix (args !! 1) smap in do 
@@ -30,16 +42,7 @@ main = do
            Just p -> oscloop p soundmap
            Nothing -> putStrLn $ "Invalid port: " ++ (args !! 0) 
 
-{-
-oscevts :: Int -> M.Map String (Sig, Sig) -> Evt (D,D)
-
-data OscEvts = OscEvts Int (M.Map String (Sig, Sig))
-
-instance Functor OscEvts where
- fmap f oe = 
--}
-
-oscloop :: Int -> M.Map String (Sig, Sig) -> IO ()
+oscloop :: Int -> M.Map String Mix.Chunk -> IO ()
 oscloop port soundmap = do
   withTransport (t port) f
   where
@@ -52,22 +55,20 @@ oscloop port soundmap = do
     t port = udpServer "127.0.0.1" port 
 
 
--- this will play a sound, but it never returns.  supposed to call dac 
--- and do stuff in the functions that are its args, I suppose.
-onoscmessage :: M.Map String (Sig, Sig) -> Message -> IO ()
+onoscmessage :: M.Map String Mix.Chunk -> Message -> IO ()
 onoscmessage soundmap msg = do
   let soundname = messageAddress msg 
       sound = M.lookup soundname soundmap
    in case sound of 
-    Just s -> dac s
+    Just s -> do { Mix.playChannel anyChannel s 0; return () }
     Nothing -> return ()
  
-treein :: FilePath -> IO (M.Map String (Sig, Sig))
+treein :: FilePath -> IO (M.Map String Mix.Chunk)
 treein fileordir = do 
   sigtree <- treeinm M.empty fileordir
   return (stripkeys (length fileordir) sigtree)
     
-treeinm :: (M.Map String (Sig, Sig)) -> FilePath -> IO (M.Map String (Sig, Sig))
+treeinm :: (M.Map String Mix.Chunk) -> FilePath -> IO (M.Map String Mix.Chunk)
 treeinm tomap fileordir = do
   doesit <- doesDirectoryExist fileordir
   if doesit
@@ -75,10 +76,11 @@ treeinm tomap fileordir = do
       files <- getDirectoryContents fileordir
       let fullfiles = (map (\f -> fileordir ++ "/" ++ f) (filter (\e -> notElem e [".", ".."]) files)) in
         treeind tomap fullfiles 
-    else
-      return $ M.insert fileordir (ar2 $ diskin2 (text fileordir) 2) tomap
+    else do
+      chunk <- (Mix.loadWAV fileordir) 
+      return $ M.insert fileordir chunk tomap
    
-treeind :: (M.Map String (Sig, Sig)) -> [FilePath] -> IO (M.Map String (Sig, Sig))
+treeind :: (M.Map String Mix.Chunk) -> [FilePath] -> IO (M.Map String Mix.Chunk)
 treeind tomap (f:fs) = do
   mp <- treeinm tomap f
   treeind mp fs

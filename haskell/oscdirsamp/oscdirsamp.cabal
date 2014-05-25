@@ -23,7 +23,8 @@ executable oscdirsamp
                        directory,
                        split,
                        pretty-show,
-                       csound-expression,
+                       SDL,
+                       SDL-mixer,
                        containers,
                        hosc
   -- hs-source-dirs:      
