@@ -17,6 +17,7 @@ import System.Directory
 import System.IO
 import Data.Time.Clock
 import Data.List
+import Data.Maybe
 -- import qualified Data.Map.Strict as M
 import qualified Data.Map as M
 import qualified Data.Foldable as F
@@ -38,7 +39,8 @@ data AppSettings = AppSettings {
   printKeyMsgs :: Bool,
   targetIP :: String,
   targetPort :: Int,
-  outwritecount :: Int
+  outwritecount :: Int,
+  soundmap :: String
   }
   deriving (Show, Read)
 
@@ -47,7 +49,8 @@ data AdcSettings = AdcSettings {
   spiSpeed :: CInt,
   spiDelay :: Int,
   keythreshold :: Int,
-  velthreshold :: Int
+  velthreshold :: Int,
+  positionUpdateIntervalSecs :: Float
   }
   deriving (Show, Read)
 
@@ -65,7 +68,8 @@ defaultAppSettings =
                 4000000
                 0
                 50
-                25)
+                25
+                100)
     True 
     True
     True
@@ -73,6 +77,7 @@ defaultAppSettings =
     "127.0.0.1"
     8000
     2500
+    "soundmap"
 
 -- runtime data structures.
 
@@ -89,7 +94,8 @@ data SensorSets = SensorSets {
   speed :: CInt,
   delay :: Int,
   keythres :: Int,
-  velthres :: Int
+  velthres :: Int,
+  posuptime :: NominalDiffTime    -- min time between position updates.
   }
   deriving (Show)
 
@@ -97,6 +103,8 @@ data KeyoscState = KeyoscState {
   sensets :: SensorSets,
   -- send osc, print, or something. 
   sendfun :: (Float -> String -> IO ()),  
+  -- messagelist
+  messagelist :: [String], 
   -- stuff for thres-send
   thres_onlist :: [Int],          -- what keys have values over their thresholds. [Index] 
   thres_sendlist :: [(Int,Int)],  -- what keys were just turned on - (index,value)
@@ -104,6 +112,8 @@ data KeyoscState = KeyoscState {
   maxes_sent :: [Int] ,           -- maxes already sent, need reset by going below thres
   maxes :: [Int] ,                -- max bucket.  zero out when sent.
   baseline :: [Int],              -- 'zero position' for each key
+  -- stuff for overThresSend
+  otsstate :: OtsState,
   -- stuff for framerate
   fr_itercount :: Int,
   fr_lasttime :: UTCTime,
@@ -134,6 +144,7 @@ data Input = Input {
 
 -----------------------------------------------------------------------
 -- simple position threshold for osc send.
+-- send one message per over-threshold excursion.
 -----------------------------------------------------------------------
 
 -- if a key is over the threshold, and it wasn't in the 'onlist' before, then
@@ -164,11 +175,78 @@ thresSend :: Input -> KeyoscState -> IO ()
 thresSend input state =
  let  sf = (sendfun state)
   in do 
-    mapM_ (\(i,v) -> sf (fromIntegral v) (drumlist !! i)) (thres_sendlist state)
+    mapM_ (\(i,v) -> sf (fromIntegral v) ((messagelist state) !! i)) (thres_sendlist state)
     return ()
 
--- 'Max Send' - when the threshold is crossed, wait until successive values no longer are 
--- increasing.  send the next-to-last number from that.  
+-----------------------------------------------------------------------
+-- send position over thres, with minimum time interval in between sends. 
+-- initial position message is sent right away; always send a '0' message
+-- when the key goes below the thres.
+-----------------------------------------------------------------------
+
+data OtsState = OtsState {
+  otsLastTimes :: [Maybe UTCTime],
+  otsSend :: [(Int,Int)],
+  otsMinTime :: NominalDiffTime
+  }
+
+-- if a key is over the threshold, and it wasn't in the 'onlist' before, then
+-- send a message and turn it on.
+
+toggleOts :: Input -> KeyoscState -> KeyoscState
+toggleOts input state =
+  toggleIOU "thressend" thresUpdate thresSend input state
+
+-- if over the thres, put it into the sendlist.
+-- if it was over thres last time but not this time, send 0.
+overThresUpdate :: Input -> KeyoscState -> KeyoscState
+overThresUpdate input state =
+ let  ots = (otsstate state)
+      vals = (sensorvals input)
+      kt = (keythres (sensets state))
+      baselines = (baseline state)
+      -- overthreslist.  if over thres AND time interval since last send is 
+      -- exceeded.
+      ot = zipWith (compval (otsMinTime ots) kt (now input)) 
+                    vals 
+                    (zip baselines (otsLastTimes ots)) 
+      compval timethres kt now (i,v) (b, lasttime) = 
+            let overtime = isot timethres now lasttime
+                ot = v - b 
+             in 
+              if overtime && (ot > kt)
+                then Just (ot - kt)
+                else Nothing
+      isot timethres n (Just t) = (diffUTCTime n t) > timethres
+      isot timethres n Nothing = True 
+      -- overthreslist in (i,v) form.
+      onsends = map sendextract (filter (\(i,v) -> isJust v) (zip [0..] ot))
+      sendextract (i,Just v) = (i,v)
+      sendextract (i,Nothing) = (i,0)
+      -- send 0 if was over last time but not this time.
+      offsends = map (\(i, (ot, t)) -> (i,0)) 
+                   (filter (\(i, (ot, t)) -> (isNothing ot) && (isJust t)) (zip [0..] (zip ot (otsLastTimes ots))))
+      newtimes = zipWith (timeupdate (now input)) ot (otsLastTimes ots)
+      timeupdate now (Just v) _ = Just now  
+      timeupdate now Nothing oldval = oldval
+      sendlist = onsends ++ offsends 
+      newots = ots { otsLastTimes = newtimes, otsSend = sendlist }
+  in 
+    (state { otsstate = newots }) 
+
+-- 'Position Threshold send'
+overThresSend :: Input -> KeyoscState -> IO ()
+overThresSend input state =
+ let  sf = (sendfun state)
+      sends = (otsSend (otsstate state))
+  in do 
+    mapM_ (\(i,v) -> sf (fromIntegral v) ((messagelist state) !! i)) sends 
+    return ()
+
+-----------------------------------------------------------------------
+-- 'Max Send' - when the threshold is crossed, wait until successive 
+-----------------------------------------------------------------------
+-- values no longer are increasing.  send the next-to-last number from that.  
 -- how to do:
 --    have max array in the state, and keep updated.  
 --    another way would be to have the state be local to the function, 
@@ -232,13 +310,16 @@ scalef = 1.0 / 1024.0 :: Float
 maxPrint :: Input -> KeyoscState -> IO ()     
 maxPrint input state = 
   let sf = (sendfun state) in do 
-    mapM_ (\(i,v) -> sf ((fromIntegral v) * scalef) (drumlist !! i)) (maxes_sendlist state)
+    mapM_ (\(i,v) -> sf ((fromIntegral v) * scalef) ((messagelist state) !! i)) (maxes_sendlist state)
     return ()
 
 toggleMaxPrint :: Input -> KeyoscState -> KeyoscState
 toggleMaxPrint input state =
   toggleIOU "maxprint" maxUpdate maxPrint input state
 
+-----------------------------------------------------------------------
+-- velmax
+-----------------------------------------------------------------------
 toggleVelMax :: Input -> KeyoscState -> KeyoscState
 toggleVelMax input state =
   toggleIOU "velmax" velMaxUpdate velMaxPrint input state
@@ -260,6 +341,10 @@ velMaxPrint input state = do
   if null (velocity_sendlist state)
     then return ()
     else print (velocity_sendlist state)
+
+-----------------------------------------------------------------------
+-- velprint 
+-----------------------------------------------------------------------
 
 velUpdate :: Input -> KeyoscState -> KeyoscState
 velUpdate input state =
@@ -300,7 +385,8 @@ makeSensorSets adcSettings =
                         (spiSpeed adcSettings) 
                         (spiDelay adcSettings) 
                         (keythreshold adcSettings)
-                        (velthreshold adcSettings))
+                        (velthreshold adcSettings)
+                        (realToFrac (positionUpdateIntervalSecs adcSettings)))
  
 makeAdcSensors :: Adc -> CInt -> IO [Sensor]
 makeAdcSensors adc speed = 
@@ -630,31 +716,6 @@ commandInput input state =
     Nothing -> state
     
 
-drumlist = ["/arduino/drums/tr909/0",
-            "/arduino/drums/tr909/1",
-            "/arduino/drums/tr909/2",
-            "/arduino/drums/tr909/3",
-            "/arduino/drums/tr909/4",
-            "/arduino/drums/tr909/5",
-            "/arduino/drums/dundunba/0",
-            "/arduino/drums/dundunba/1",
-            "/arduino/drums/dundunba/2",
-            "/arduino/drums/dundunba/3",
-            "/arduino/drums/rx21Latin/0",
-            "/arduino/drums/rx21Latin/1",
-            "/arduino/drums/rx21Latin/2",
-            "/arduino/drums/rx21Latin/3",
-            "/arduino/drums/rx21Latin/4",
-            "/arduino/drums/rx21Latin/5",
-            "/arduino/drums/tabla/0",
-            "/arduino/drums/tabla/1",
-            "/arduino/drums/tabla/2",
-            "/arduino/drums/tabla/3",
-            "/arduino/drums/tabla/4",
-            "/arduino/drums/tabla/5",
-            "/arduino/drums/tabla/6",
-            "/arduino/drums/tabla/7"]
-
 fmlist = zipWith (\a b -> a ++ (show b)) (repeat "/arduino/fm/note/") [11..42]
 
 niceprint [] = 
@@ -752,21 +813,25 @@ nowgo appsettings =
   baselines <- getbaselines sensettings 20 appsettings
   print "baselines:"
   niceprint baselines
+  stwing <- readFile (soundmap appsettings)
   now <- getCurrentTime
   let leEtat = KeyoscState sensettings 
                           (makeSendFun t appsettings) 
+                          ((read stwing) :: [String])
                           [] 
                           []
                           []
                           []
                           (replicate (length baselines) 0)
                           baselines 
+                          otsstate
                           framerate_count now 0.0 
                           [] [] [] [] []
                           (outwritecount appsettings) 0 now []
                           inituftns initioftns
       inituftns = (initialuftns appsettings) 
       initioftns = (initialioftns appsettings)
+      otsstate = OtsState (take (length baselines) (repeat Nothing)) [] (fromIntegral 0)
    in do 
     repete leEtat
 
