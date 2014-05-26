@@ -195,7 +195,7 @@ data OtsState = OtsState {
 
 toggleOts :: Input -> KeyoscState -> KeyoscState
 toggleOts input state =
-  toggleIOU "thressend" thresUpdate thresSend input state
+  toggleIOU "thressend" overThresUpdate overThresSend input state
 
 -- if over the thres, put it into the sendlist.
 -- if it was over thres last time but not this time, send 0.
@@ -228,7 +228,7 @@ overThresUpdate input state =
                    (filter (\(i, (ot, t)) -> (isNothing ot) && (isJust t)) (zip [0..] (zip ot (otsLastTimes ots))))
       newtimes = zipWith (timeupdate (now input)) ot (otsLastTimes ots)
       timeupdate now (Just v) _ = Just now  
-      timeupdate now Nothing oldval = oldval
+      timeupdate now Nothing oldval = Nothing
       sendlist = onsends ++ offsends 
       newots = ots { otsLastTimes = newtimes, otsSend = sendlist }
   in 
@@ -626,7 +626,7 @@ commands = M.fromList [
   ("velmax", toggleVelMax),
   ("maxprint", toggleMaxPrint),
   ("outwrite", startOutWrite),
-  ("continuous", toggleOts),
+  ("ots", toggleOts),
   ("?", cuePrintCmds) ]
 {-
   ("ptsendosc", togglePtSendOsc)
