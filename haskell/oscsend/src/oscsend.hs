@@ -4,7 +4,6 @@ import System.Environment
 main = 
   do 
     args <- getArgs
-    putStrLn (show (length args)) 
     if (length args) < 4
       then do 
         putStrLn "oscsend requires at least 4 args:"
