@@ -1,0 +1,10 @@
+from tutorial here:
+
+http://content.gpwiki.org/index.php/SDL_mixer:Tutorials:Playing_a_WAV_Sound_File
+
+a key point:
+
+> sdl-config --cflags will print out the compiler flags
+> sdl-config --libs will print out the linker flags
+
+current the prog expects a "sound.wav" file in the current directory. 
