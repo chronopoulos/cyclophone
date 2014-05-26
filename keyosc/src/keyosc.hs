@@ -626,6 +626,7 @@ commands = M.fromList [
   ("velmax", toggleVelMax),
   ("maxprint", toggleMaxPrint),
   ("outwrite", startOutWrite),
+  ("continuous", toggleOts),
   ("?", cuePrintCmds) ]
 {-
   ("ptsendosc", togglePtSendOsc)
