@@ -19,7 +19,7 @@ executable oscdirsamp
   main-is:            src/main.hs
   -- other-modules:       
   -- other-extensions:    
-  build-depends:       base >=4.6 && <4.7,
+  build-depends:       base, 
                        directory,
                        split,
                        pretty-show,

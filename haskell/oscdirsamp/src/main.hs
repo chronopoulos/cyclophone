@@ -17,8 +17,8 @@ fname fullpath = last (pathlist fullpath)
 
 -- audioRate     = 22050
 audioRate     = 44100
--- audioFormat   = Mix.AudioS16LSB
-audioFormat   = Mix.AudioU16LSB
+audioFormat   = Mix.AudioS16LSB
+-- audioFormat   = Mix.AudioU16LSB
 audioChannels = 2   -- make 24??
 audioBuffers  = 4096
 anyChannel    = (-1)
@@ -61,7 +61,10 @@ onoscmessage soundmap msg = do
   let soundname = messageAddress msg 
       sound = M.lookup soundname soundmap
    in case sound of 
-    Just s -> do { chn <- Mix.playChannel anyChannel s 0; return () }
+    Just s -> do 
+        print msg; 
+        chn <- Mix.playChannel anyChannel s 0
+        return () 
     Nothing -> return ()
  
 treein :: FilePath -> IO (M.Map String Mix.Chunk)
