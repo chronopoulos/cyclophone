@@ -63,9 +63,9 @@ data Adc = Adc {
 
 defaultAppSettings = 
  AppSettings (AdcSettings 
-                [(Adc "/dev/spidev0.0" [2..13] []),
-                 (Adc "/dev/spidev0.1" [2..13] [])]
-                4000000
+                [(Adc "/dev/spidev0.0" [0..11] []),
+                 (Adc "/dev/spidev0.1" [0..11] [])]
+                2000000
                 0
                 50
                 25
