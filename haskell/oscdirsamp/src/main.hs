@@ -9,7 +9,7 @@ import Graphics.UI.SDL as SDL
 import Graphics.UI.SDL.Mixer as Mix
 
 
-import Sound.OSC.FD
+import qualified Sound.OSC.FD as OSC
 
 pathlist fpath = splitOneOf "/" fpath
 
@@ -38,35 +38,95 @@ main = do
       smap <- treein (args !! 3)
       let soundmap = addkeyprefix (args !! 2) smap in do 
         putStrLn $ ppShow $ M.keys soundmap
-        let port = readMaybe (args !! 1) :: (Maybe Int)
+        let port = OSC.readMaybe (args !! 1) :: (Maybe Int)
+            ip = (args !! 0)
+            soundstate = SoundState (M.fromList []) 
          in case port of
-           Just p -> oscloop (args !! 0) p soundmap
+           Just p -> startoscloop ip p soundmap soundstate 
            Nothing -> putStrLn $ "Invalid port: " ++ (args !! 0) 
 
-oscloop :: String -> Int -> M.Map String Mix.Chunk -> IO ()
-oscloop ip port soundmap = do
-  withTransport (t ip port) f
-  where
-    f fd = forever 
-      (recvMessage fd >>= 
-        (\msg -> 
-           case msg of 
-              Just msg -> onoscmessage soundmap msg
-              Nothing -> return ())) 
-    t ip port = udpServer ip port 
+
+data SoundState = SoundState {
+  soundchannels :: M.Map String Int
+  }
 
 
-onoscmessage :: M.Map String Mix.Chunk -> Message -> IO ()
-onoscmessage soundmap msg = do
-  let soundname = messageAddress msg 
+addSoundChan :: SoundState -> String -> Int -> SoundState
+addSoundChan soundstate name chn = 
+  soundstate { soundchannels = M.insert name chn (soundchannels soundstate) }
+
+removeSoundChan soundstate name = 
+  soundstate { soundchannels = M.delete name (soundchannels soundstate) }
+
+getSoundChan :: SoundState -> String -> Maybe Int
+getSoundChan soundstate name = M.lookup name (soundchannels soundstate)
+
+
+startoscloop :: String -> Int -> M.Map String Mix.Chunk -> SoundState -> IO ()
+startoscloop ip port soundmap soundstate = do
+  OSC.withTransport (OSC.udpServer ip port) (oscloop soundmap soundstate)
+    
+-- oscloop :: M.Map String Mix.Chunk -> SoundState -> IO ()
+oscloop soundmap soundstate fd = do
+  msg <- OSC.recvMessage fd
+  case msg of 
+    Just msg -> do 
+      newsoundstate <- onoscmessage soundmap soundstate msg
+      oscloop soundmap soundstate fd
+    Nothing -> 
+      oscloop soundmap soundstate fd
+
+-- expecting 0 to 1.0
+getoscamt :: OSC.Message -> Maybe Float
+getoscamt msg = 
+  let lst = OSC.messageDatum msg
+    in case lst of
+      ((OSC.Float x):xs) -> Just x
+      _ -> Nothing
+
+computevolume fl = 
+  if fl < 0 
+    then 0
+    else if fl > 1.0 
+      then 128
+      else floor (fl * 128.0)
+  
+-- if sound does not exist and volume is positive, create a channel playing the sound at the given volume.
+-- if sound exists and volume is positive, change the volume.
+-- if sound exists and volume is zero, fade it and remove from soundstate.
+onoscmessage :: M.Map String Mix.Chunk -> SoundState -> OSC.Message -> IO SoundState
+onoscmessage soundmap soundstate msg = do
+  print msg
+  let soundname = OSC.messageAddress msg 
       sound = M.lookup soundname soundmap
-   in case sound of 
-    Just s -> do 
-        print msg; 
-        chn <- Mix.playChannel anyChannel s 0
-        return () 
-    Nothing -> return ()
- 
+      chan = getSoundChan soundstate soundname
+      amt = getoscamt msg 
+   in case (sound, chan, amt) of 
+    (Just s, Just c, Just a) -> 
+     if (a > 0.0) 
+      then do
+        print $ "setvol: " ++ (show (computevolume a))
+        Mix.volume c (computevolume a)
+        return soundstate
+      else do
+        Mix.fadeOutChannel c 250
+        return $ removeSoundChan soundstate soundname
+    (Just s, Nothing, Just a) -> 
+      if (a > 0.0)
+        then do
+          chan <- Mix.playChannel anyChannel s 0
+          print $ "playchan, setvol: " ++ (show (computevolume a))
+          Mix.volume chan (computevolume a)
+          return $ addSoundChan soundstate soundname chan
+        else
+          return soundstate
+    (Nothing, _, _) -> 
+      return soundstate
+
+-----------------------------------------------------------------------
+-- reading in a directory tree of sounds.
+-----------------------------------------------------------------------
+
 treein :: FilePath -> IO (M.Map String Mix.Chunk)
 treein fileordir = do 
   sigtree <- treeinm M.empty fileordir
