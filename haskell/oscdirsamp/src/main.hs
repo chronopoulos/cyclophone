@@ -15,8 +15,8 @@ pathlist fpath = splitOneOf "/" fpath
 
 fname fullpath = last (pathlist fullpath)
 
--- audioRate     = 22050
-audioRate     = 44100
+audioRate     = 22050
+-- audioRate     = 44100
 audioFormat   = Mix.AudioS16LSB
 -- audioFormat   = Mix.AudioU16LSB
 audioChannels = 2   -- make 24??
