@@ -786,7 +786,6 @@ simpleprint a b = do
 
 -- keyoscSend :: O.UDP -> Int -> String -> IO ()
 keyoscSend conn amt str = do 
-  print (str, amt)
   O.sendOSC conn (O.Message str [O.Float amt])
 
 makeSendFun :: O.UDP -> AppSettings -> (Float -> String -> IO ())
