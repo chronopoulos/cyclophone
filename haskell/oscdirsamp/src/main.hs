@@ -97,7 +97,7 @@ computevolume fl =
 -- if sound exists and volume is zero, fade it and remove from soundstate.
 onoscmessage :: M.Map String Mix.Chunk -> SoundState -> OSC.Message -> IO SoundState
 onoscmessage soundmap soundstate msg = do
-  print msg
+  -- print msg
   let soundname = OSC.messageAddress msg 
       sound = M.lookup soundname soundmap
       chan = getSoundChan soundstate soundname
@@ -106,11 +106,11 @@ onoscmessage soundmap soundstate msg = do
     (Just s, Just c, Just a) -> 
      if (a > 0.0) 
       then do
-        print $ "setvol: " ++ (show (computevolume a))
+        -- print $ "setvol: " ++ (show (computevolume a))
         Mix.volume c (computevolume a)
         return soundstate
       else do
-        print $ "fadeout "
+        -- print $ "fadeout "
         -- Mix.fadeOutChannel c 250
         Mix.haltChannel c 
         return $ removeSoundChan soundstate soundname
@@ -118,7 +118,7 @@ onoscmessage soundmap soundstate msg = do
       if (a > 0.0)
         then do
           chan <- Mix.playChannel anyChannel s 0
-          print $ "playchan, setvol: " ++ (show (computevolume a))
+          -- print $ "playchan, setvol: " ++ (show (computevolume a))
           Mix.volume chan (computevolume a)
           return $ addSoundChan soundstate soundname chan
         else
