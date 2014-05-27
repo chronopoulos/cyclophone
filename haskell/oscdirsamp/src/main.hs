@@ -111,7 +111,8 @@ onoscmessage soundmap soundstate msg = do
         return soundstate
       else do
         print $ "fadeout "
-        Mix.fadeOutChannel c 250
+        -- Mix.fadeOutChannel c 250
+        Mix.haltChannel c 
         return $ removeSoundChan soundstate soundname
     (Just s, Nothing, Just a) -> 
       if (a > 0.0)
