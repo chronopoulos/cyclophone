@@ -175,7 +175,7 @@ thresSend :: Input -> KeyoscState -> IO ()
 thresSend input state =
  let  sf = (sendfun state)
   in do 
-    mapM_ (\(i,v) -> sf (fromIntegral v) ((messagelist state) !! i)) (thres_sendlist state)
+    mapM_ (\(i,v) -> sf (scaleToOsc v) ((messagelist state) !! i)) (thres_sendlist state)
     return ()
 
 -----------------------------------------------------------------------
@@ -240,7 +240,7 @@ overThresSend input state =
  let  sf = (sendfun state)
       sends = (otsSend (otsstate state))
   in do 
-    mapM_ (\(i,v) -> sf (fromIntegral v) ((messagelist state) !! i)) sends 
+    mapM_ (\(i,v) -> sf (scaleToOsc v) ((messagelist state) !! i)) sends 
     return ()
 
 -----------------------------------------------------------------------
@@ -306,11 +306,13 @@ maxUpdate input state =
     state { maxes_sendlist = maxes_send, maxes = newmaxes }
 
 scalef = 1.0 / 1024.0 :: Float
+scaleToOsc :: Int -> Float
+scaleToOsc i = (fromIntegral i) * scalef
 
 maxPrint :: Input -> KeyoscState -> IO ()     
 maxPrint input state = 
   let sf = (sendfun state) in do 
-    mapM_ (\(i,v) -> sf ((fromIntegral v) * scalef) ((messagelist state) !! i)) (maxes_sendlist state)
+    mapM_ (\(i,v) -> sf (scaleToOsc v) ((messagelist state) !! i)) (maxes_sendlist state)
     return ()
 
 toggleMaxPrint :: Input -> KeyoscState -> KeyoscState
