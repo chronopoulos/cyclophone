@@ -72,7 +72,7 @@ oscloop soundmap soundstate fd = do
   case msg of 
     Just msg -> do 
       newsoundstate <- onoscmessage soundmap soundstate msg
-      oscloop soundmap soundstate fd
+      oscloop soundmap newsoundstate fd
     Nothing -> 
       oscloop soundmap soundstate fd
 
@@ -84,6 +84,7 @@ getoscamt msg =
       ((OSC.Float x):xs) -> Just x
       _ -> Nothing
 
+computevolume :: Float -> Int
 computevolume fl = 
   if fl < 0 
     then 0
@@ -109,6 +110,7 @@ onoscmessage soundmap soundstate msg = do
         Mix.volume c (computevolume a)
         return soundstate
       else do
+        print $ "fadeout "
         Mix.fadeOutChannel c 250
         return $ removeSoundChan soundstate soundname
     (Just s, Nothing, Just a) -> 
