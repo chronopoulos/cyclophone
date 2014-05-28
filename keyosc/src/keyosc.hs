@@ -6,7 +6,7 @@ import Text.Show.Pretty
 import qualified Sound.OSC.FD as O
 import Scales
 
-import qualified Data.ByteString.Char8 as S
+import qualified Data.ByteString.Char8 as B
 
 import Data.Bits
 import Foreign.C.Types
@@ -484,12 +484,12 @@ decodedata b1 b2 =
 poll :: CInt -> CInt -> Int -> (CUChar, CUChar) -> IO (Int, Int)
 poll fd speed delay (b1,b2) = 
  do 
-  S.useAsCStringLen (S.pack [castCUCharToChar b1,castCUCharToChar b2]) 
+  B.useAsCStringLen (B.pack [castCUCharToChar b1,castCUCharToChar b2]) 
    (\sendbytes -> do
     -- threadDelay delay 
     c_spiWriteRead fd (fst sendbytes) 2 bitsperword speed
-    bs <- S.packCStringLen sendbytes
-    return (decodedata (castCharToCUChar (S.index bs 0)) (castCharToCUChar (S.index bs 1)))
+    bs <- B.packCStringLen sendbytes
+    return (decodedata (castCharToCUChar (B.index bs 0)) (castCharToCUChar (B.index bs 1)))
     )
 
 printsensorval :: Show a => IO (a1, a) -> IO ()
@@ -501,7 +501,7 @@ printsensorval x =
 
 spiOpen :: String -> CUChar -> CUChar -> CInt -> IO CInt
 spiOpen devname mode bitsperword speed = 
- S.useAsCString (S.pack devname) 
+ B.useAsCString (B.pack devname) 
   (\bdevname -> do
     c_spiOpen bdevname mode bitsperword speed)
 
