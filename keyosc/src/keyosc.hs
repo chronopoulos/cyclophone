@@ -41,7 +41,8 @@ data AppSettings = AppSettings {
   targetIP :: String,
   targetPort :: Int,
   outwritecount :: Int,
-  soundmap :: String
+  soundmap :: String,
+  arduinoserial :: Maybe String
   }
   deriving (Show, Read)
 
@@ -79,6 +80,7 @@ defaultAppSettings =
     8000
     2500
     "soundmap"
+    Nothing
 
 -- runtime data structures.
 
@@ -815,61 +817,6 @@ simpleprint a b = do
 -- keyoscSend :: O.UDP -> Int -> String -> IO ()
 keyoscSend conn amt str = do 
   O.sendOSC conn (O.Message str [O.Float amt])
-
-data KeySendMode = 
-  SampleList { samples :: [String] } |
-  SynthPrefix { prefix :: String,
-                scale :: (Int -> Int)
-               }
-
-data KeySendState = KeySendState 
-  { kssSendMode :: KeySendMode,
-    kssStartNote :: Int
-  }
-
-makeSendModes samplelist synthprefix = M.fromList
-  [ ('a', SynthPrefix synthprefix Scales.chromatic),
-    ('b', SynthPrefix synthprefix Scales.major),
-    ('c', SynthPrefix synthprefix Scales.hungarianMinor),
-    ('d', SynthPrefix synthprefix Scales.majorPentatonic),
-    ('e', SampleList samplelist) ]
-
-knobmapping = [ ('A',"/arduino/delay/time"),
-                ('B',"/arduino/fm/harmonic")
-              ]
-
-buttonmapping = [ ('a',"/arduino/delay/onoff"),
-                  ('b',"/arduino/kill/on"),
-                  ('B',"/arduino/kill/off"),
-                  ('c',"/arduino/loop")
-                ]
-
-processArduinoLine :: [(Char, KeySendMode)] -> S.ByteString -> KeySendState -> (KeySendState, Maybe O.Message)
-processArduinoLine sendmodes line kss = 
-  let linec = S.unpack line in 
-   case linec of 
-     ('#':'C':numstring) -> 
-        -- adjust start note!  (transpose)
-        let pos = (read numstring) :: Float 
-         in (kss { kssStartNote = floor (pos / 21.3125)} , Nothing)
-     ('#':nobchar:numstring) ->
-        -- send knob value via osc. 
-        let pos = (read numstring) :: Float
-            lkp = (lookup nobchar knobmapping)
-         in case lkp of 
-            Just msg -> (kss , Just (O.Message msg [O.Float (pos/1024.0)]))
-            Nothing -> (kss, Nothing) 
-     ('$':nobchar:_) ->
-        -- change keysendmode
-        case (lookup nobchar sendmodes) of
-          Just ksm -> (kss { kssSendMode = ksm }, Nothing)
-          Nothing -> (kss, Nothing)
-     ('@':bchar:_) -> 
-        case (lookup bchar buttonmapping) of 
-          Just msgstring -> (kss, Just (O.Message msgstring []))
-          Nothing -> (kss, Nothing)
-     _ -> (kss, Nothing)
-        
 
 makeSendFun :: O.UDP -> AppSettings -> (Float -> String -> IO ())
 makeSendFun t appsets = 
