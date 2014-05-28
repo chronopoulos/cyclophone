@@ -145,6 +145,7 @@ data Input = Input {
 -----------------------------------------------------------------------
 -- simple position threshold for osc send.
 -- send one message per over-threshold excursion.
+-- good for simple on/off.
 -----------------------------------------------------------------------
 
 -- if a key is over the threshold, and it wasn't in the 'onlist' before, then
@@ -251,14 +252,12 @@ overThresSend input state =
 --    have max array in the state, and keep updated.  
 --    another way would be to have the state be local to the function, 
 --    and update the function in the keyoscState.  then, not shared state.  but efficiency! 
-
 -- while a key is on, collect its max. 
 -- reqiuires thresUpdate to be updating the thres_onlist.
 -- we have a max if:
 --   - prevval is over thres
 --   - velocity is less than zero
 --   
-
 
 -- complex thing that doesn't really work right.
 maxUpdate_old :: Input -> KeyoscState -> KeyoscState
@@ -343,6 +342,33 @@ velMaxPrint input state = do
   if null (velocity_sendlist state)
     then return ()
     else print (velocity_sendlist state)
+
+-----------------------------------------------------------------------
+-- velposmax
+-- if velocity is negative or zero but was positive.
+-- if pos is over thres
+-----------------------------------------------------------------------
+toggleVelPosMax :: Input -> KeyoscState -> KeyoscState
+toggleVelPosMax input state =
+  toggleIOU "velposmax" velPosMaxUpdate velPosMaxSend input state
+
+velPosMaxUpdate :: Input -> KeyoscState -> KeyoscState
+velPosMaxUpdate input prevstate =
+  let state = velUpdate input (prevstate { prevvelocities = (velocities prevstate) } )
+      sendlist = filter (\(i,(p, (vnew,vold))) -> vnew < 0 && vold >= 0
+                                   && p > (keythres (sensets state)))
+        (zip [0..] (zip (prevvals state) (zip (velocities state) (prevvelocities state))))
+      -- underthres = map fst (filter (\(i,v) -> v < velthres (sensets state)) (zip [0..] (velocities state))) 
+      -- velsent_ = filter (\i -> not (elem i underthres)) ((map (\(i,v) -> i) sendlist) ++ (velsent state))
+   in 
+    state { velocity_sendlist = map (\(i,(p,(v,v2))) -> (i,p)) sendlist }
+            
+velPosMaxSend :: Input -> KeyoscState -> IO ()
+velPosMaxSend input state = do 
+ let sf = (sendfun state) in do 
+    mapM_ (\(i,v) -> sf (scaleToOsc v) ((messagelist state) !! i)) (velocity_sendlist state)
+    return ()
+
 
 -----------------------------------------------------------------------
 -- velprint 
@@ -626,6 +652,7 @@ commands = M.fromList [
   ("pthres", togglePosThres),
   ("velprint", toggleVelPrint),
   ("velmax", toggleVelMax),
+  ("velposmax", toggleVelPosMax),
   ("maxprint", toggleMaxPrint),
   ("outwrite", startOutWrite),
   ("ots", toggleOts),
