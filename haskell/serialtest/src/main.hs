@@ -25,28 +25,6 @@ getaline serial = do
         rest <- getaline serial
         return (c : rest)
 
-printLinez serial line = do
-  putStr "0"
-  lineres <- checkforline serial line
-  case lineres of 
-    Left linestr -> printLinez serial linestr
-    Right linestr -> do 
-      print linestr
-      printLinez serial ""
-
-
-checkforline :: SerialPort -> String -> IO (Either String String)
-checkforline serial linestr = do
-  c <- recv serial 1
-  if B.null c
-    then return (Left linestr)
-    else case (B.head c) of
-      '\r' -> return $ Left linestr
-      '\n' -> return $ Right (reverse linestr)
-      c -> return $ Left (c : linestr)
-
--- arduline = MVar String
-
 spinforresult :: MVar String -> IO ()
 spinforresult line = do
   putStr "0"
@@ -65,6 +43,13 @@ dumpaline serial mvar = do
   dumpaline serial mvar
 
 
+------------------------------------------------------------------
+-- multi threaded serial read.  one thread blocks on serial read, 
+-- and puts lines into the MVar as they are read.
+-- The other thread is free to spin around and around printing 
+-- zeros until the MVar has something in it. 
+------------------------------------------------------------------
+
 main =
   do
     args <- getArgs
@@ -79,7 +64,10 @@ main =
                 (defaultSerialSettings { commSpeed = CS115200 })
         forkIO (dumpaline serial arduline)
         spinforresult arduline
-        printLinez serial "its over"
+
+------------------------------------------------------------------
+-- single threaded serial read.
+------------------------------------------------------------------
 
 {-
 main =
@@ -93,6 +81,5 @@ main =
       else do
         serial <- openSerial (head args) 
                 (defaultSerialSettings { commSpeed = CS115200 })
-        --printLines serial
-        printLinez serial ""
+        printLines serial
 -}
