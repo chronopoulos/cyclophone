@@ -12,16 +12,21 @@ import Data.Bits
 import Foreign.C.Types
 import Foreign.C.String
 
-import Control.Concurrent
 import Control.Monad
-import System.Directory
+import Control.Concurrent
+import Control.Concurrent.MVar
 import System.IO
+import System.Directory
+import System.Hardware.Serialport
 import Data.Time.Clock
 import Data.List
 import Data.Maybe
 -- import qualified Data.Map.Strict as M
 import qualified Data.Map as M
 import qualified Data.Foldable as F
+
+import qualified CycloMap as CM
+
 
 -- mode = SPI_MODE_0 ;
 -- bitsPerWord = 8;
@@ -104,10 +109,11 @@ data SensorSets = SensorSets {
 
 data KeyoscState = KeyoscState {
   sensets :: SensorSets,
-  -- send osc, print, or something. 
-  sendfun :: (Float -> String -> IO ()),  
-  -- messagelist
-  messagelist :: [String], 
+  keysendstate :: CM.KeySendState,
+  -- for keys, send osc, print, or something. 
+  oscsendfun :: (O.Message -> IO ()),  
+  -- get a line from the arduino serial port, if any. 
+  getarduinoline :: IO (Maybe String),
   -- stuff for thres-send
   thres_onlist :: [Int],          -- what keys have values over their thresholds. [Index] 
   thres_sendlist :: [(Int,Int)],  -- what keys were just turned on - (index,value)
@@ -141,9 +147,24 @@ data KeyoscState = KeyoscState {
 data Input = Input { 
   sensorvals :: [(Int,Int)],
   commandline :: Maybe String,
+  arduinoline :: Maybe String,
   now :: UTCTime
   }
 
+-----------------------------------------------------------------------
+
+sendKeyBzzt :: (O.Message -> IO ()) -> CM.KeySendState -> Int -> Float -> IO () 
+sendKeyBzzt sendfun kss index val = 
+ case (CM.processKeyInput kss index val) of 
+  Just msg -> sendfun msg
+  Nothing -> return ()
+
+sendKey :: KeyoscState -> Int -> Float -> IO ()
+sendKey state index val = 
+  sendKeyBzzt (oscsendfun state) (keysendstate state) index val
+
+keysendfun :: KeyoscState -> (Int -> Float -> IO ())
+keysendfun ks = sendKey ks
 
 -----------------------------------------------------------------------
 -- simple position threshold for osc send.
@@ -177,9 +198,9 @@ thresUpdate input state =
 -- 'Position Threshold send'
 thresSend :: Input -> KeyoscState -> IO ()
 thresSend input state =
- let  sf = (sendfun state)
+ let sf = (keysendfun state)
   in do 
-    mapM_ (\(i,v) -> sf (scaleToOsc v) ((messagelist state) !! i)) (thres_sendlist state)
+    mapM_ (\(i,v) -> sf i (scaleToOsc v)) (thres_sendlist state)
     return ()
 
 -----------------------------------------------------------------------
@@ -241,10 +262,10 @@ overThresUpdate input state =
 -- 'Position Threshold send'
 overThresSend :: Input -> KeyoscState -> IO ()
 overThresSend input state =
- let  sf = (sendfun state)
+ let  sf = (keysendfun state)
       sends = (otsSend (otsstate state))
   in do 
-    mapM_ (\(i,v) -> sf (scaleToOsc v) ((messagelist state) !! i)) sends 
+    mapM_ (\(i,v) -> sf i (scaleToOsc v)) sends 
     return ()
 
 -----------------------------------------------------------------------
@@ -313,8 +334,8 @@ scaleToOsc i = (fromIntegral i) * scalef
 
 maxPrint :: Input -> KeyoscState -> IO ()     
 maxPrint input state = 
-  let sf = (sendfun state) in do 
-    mapM_ (\(i,v) -> sf (scaleToOsc v) ((messagelist state) !! i)) (maxes_sendlist state)
+  let sf = (keysendfun state) in do 
+    mapM_ (\(i,v) -> sf i (scaleToOsc v)) (maxes_sendlist state)
     return ()
 
 toggleMaxPrint :: Input -> KeyoscState -> KeyoscState
@@ -368,8 +389,8 @@ velPosMaxUpdate input prevstate =
             
 velPosMaxSend :: Input -> KeyoscState -> IO ()
 velPosMaxSend input state = do 
- let sf = (sendfun state) in do 
-    mapM_ (\(i,v) -> sf (scaleToOsc v) ((messagelist state) !! i)) (velocity_sendlist state)
+ let sf = (keysendfun state) in do 
+    mapM_ (\(i,v) -> sf i (scaleToOsc v)) (velocity_sendlist state)
     return ()
 
 
@@ -564,8 +585,9 @@ repete state =
   newvals <- getsetvals (sensets state)
   command <- getCommandInput
   now <- getCurrentTime
+  arduinoLine <- (getarduinoline state)
   -- update state
-  let input = Input newvals command now
+  let input = Input newvals command arduinoLine now
       newstate = M.foldl (\state ftn -> (ftn input state)) state (updateftns state)
    in do
     -- do IO based on state.
@@ -790,6 +812,91 @@ printsensors sensors =
   niceprint ((map (\x -> fromIntegral (fd x)) sensors) :: [Int])
   niceprint ((map (\x -> fromIntegral (pin x)) sensors) :: [Int])
 
+getbaselines sensets count appsettings = do
+  -- get initial sensor values for baselines.
+  vals <- getsvmulti sensets 20 (spiDelay (adcSettings appsettings))
+  -- mapM niceprint (map (\vs -> (map (\(i,v) -> v) vs)) vals)
+  return $ meadvals vals
+
+initialuftns appsettings = 
+ M.fromList [
+  ("commands", commandInput)]
+
+initialioftns appsettings = 
+ M.fromList []
+
+{-
+simpleprint :: O.Message -> IO ()
+simpleprint msg = do
+ print msg
+
+-- keyoscSend :: O.UDP -> O.Message -> IO ()
+keyoscSend conn msg 
+  O.sendOSC conn (O.Message str [O.Float amt])
+-}
+
+-- intermediary ftn to optionally print osc messages 
+-- instead of, or in addition to, sending them.
+makeOscSendFun :: O.UDP -> AppSettings -> (O.Message -> IO ())
+makeOscSendFun conn appsets = 
+  if (sendKeyMsgs appsets) 
+    then
+      if (printKeyMsgs appsets) 
+        then
+          (\msg -> do 
+            print msg
+            O.sendOSC conn msg)
+        else
+          O.sendOSC conn
+    else
+      if (printKeyMsgs appsets) 
+        then
+          print 
+        else
+          (\msg -> return ())
+
+-------------------------------------------------------
+-- serial port stuff, for arduino
+-------------------------------------------------------
+
+getaline :: SerialPort -> IO String
+getaline serial = do
+  c <- recv serial 1
+  if B.null c
+    then getaline serial
+    else case (B.head c) of
+      '\r' -> getaline serial
+      '\n' -> return ""
+      c -> do
+        rest <- getaline serial
+        return (c : rest)
+
+dummycheckline :: IO (Maybe String)
+dummycheckline = return Nothing
+
+checkforarduinoline :: MVar String -> IO (Maybe String)
+checkforarduinoline mvar = tryTakeMVar mvar
+
+dumpaline :: SerialPort -> MVar String -> IO ()
+dumpaline serial mvar = do
+  line <- getaline serial
+  putMVar mvar line
+  dumpaline serial mvar
+
+
+makeGetArduinoLine :: AppSettings -> IO (Maybe String)
+makeGetArduinoLine appsettings = 
+  case (arduinoserial appsettings) of
+    (Just serialname) -> do
+      arduline <- newEmptyMVar :: IO (MVar String)
+      serial <- openSerial serialname
+              (defaultSerialSettings { commSpeed = CS115200 })
+      forkIO (dumpaline serial arduline)
+      checkforarduinoline arduline
+    Nothing -> dummycheckline
+
+-----------------------------------------------------------
+
 prefsfile = "keyosc.prefs"
 
 main = 
@@ -803,39 +910,6 @@ main =
         prefs <- (readFile prefsfile)
         nowgo ((read prefs) :: AppSettings)
 
-initialuftns appsettings = 
- M.fromList [
-  ("commands", commandInput)]
-
-initialioftns appsettings = 
- M.fromList []
-
-simpleprint :: Float -> String -> IO ()
-simpleprint a b = do
- print (a,b)
-
--- keyoscSend :: O.UDP -> Int -> String -> IO ()
-keyoscSend conn amt str = do 
-  O.sendOSC conn (O.Message str [O.Float amt])
-
-makeSendFun :: O.UDP -> AppSettings -> (Float -> String -> IO ())
-makeSendFun t appsets = 
-  if (sendKeyMsgs appsets) 
-    then
-      if (printKeyMsgs appsets) 
-        then
-          (\d s -> do 
-            simpleprint d s
-            keyoscSend t d s)
-        else
-          keyoscSend t
-    else
-      if (printKeyMsgs appsets) 
-        then
-          simpleprint
-        else
-          (\d s -> return ())
-
 nowgo appsettings = 
  do 
   putStrLn "keyosc v1.0"
@@ -848,13 +922,14 @@ nowgo appsettings =
   stwing <- readFile (soundmap appsettings)
   now <- getCurrentTime
   let leEtat = KeyoscState sensettings 
-                          (makeSendFun t appsettings) 
-                          ((read stwing) :: [String])
+                          (CM.makeKeySendState ((read stwing) :: CM.KeySendPrefs) )
+                          (makeOscSendFun t appsettings) 
+                          (makeGetArduinoLine appsettings)
+                          []
                           [] 
                           []
                           []
-                          []
-                          (replicate (length baselines) 0)
+                          (replicate (length baselines) 0)  -- maxes
                           baselines 
                           otsstate
                           framerate_count now 0.0 
@@ -866,11 +941,5 @@ nowgo appsettings =
       otsstate = OtsState (take (length baselines) (repeat Nothing)) [] (fromIntegral 0)
    in do 
     repete leEtat
-
-getbaselines sensets count appsettings = do
-  -- get initial sensor values for baselines.
-  vals <- getsvmulti sensets 20 (spiDelay (adcSettings appsettings))
-  -- mapM niceprint (map (\vs -> (map (\(i,v) -> v) vs)) vals)
-  return $ meadvals vals
 
 

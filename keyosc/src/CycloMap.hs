@@ -1,37 +1,43 @@
 module CycloMap where 
 
 import qualified Sound.OSC.FD as O
+import qualified Scales as Scales
 
 ------------------------------------------------------------
 -- mapping arduino and key inputs to osc outputs.
 ------------------------------------------------------------
 
 data KeySendMode = 
-  SampleList { samples :: [String] } |
+  SampleList { samplenames :: [String] } |
   SynthPrefix { prefix :: String,
                 scale :: (Int -> Int)
                }
 
 data KeySendState = KeySendState 
-  { kssSendMode :: KeySendMode,
+  { kssSendModes :: [(Char, KeySendMode)],
+    kssSendMode :: KeySendMode,
     kssStartNote :: Int
   }
 
 data KeySendPrefs = KeySendPrefs { 
-  samples = [String]
-  synth = String
+  samples :: [String],
+  synth :: String
   }
+  deriving (Read, Show)
 
 makeSendModes keysendprefs = 
   let synthprefix = synth keysendprefs
       samplelist = samples keysendprefs
    in 
-    M.fromList
       [ ('a', SynthPrefix synthprefix Scales.chromatic),
         ('b', SynthPrefix synthprefix Scales.major),
         ('c', SynthPrefix synthprefix Scales.hungarianMinor),
         ('d', SynthPrefix synthprefix Scales.majorPentatonic),
         ('e', SampleList samplelist) ]
+
+makeKeySendState keysendprefs = 
+  let modes = (makeSendModes keysendprefs) in
+    KeySendState modes (snd (head modes)) 25
 
 knobmapping = [ ('A',"/arduino/delay/time"),
                 ('B',"/arduino/fm/harmonic")
@@ -43,8 +49,8 @@ buttonmapping = [ ('a',"/arduino/delay/onoff"),
                   ('c',"/arduino/loop")
                 ]
 
-processArduinoLine :: [(Char, KeySendMode)] -> [Char] -> KeySendState -> (KeySendState, Maybe O.Message)
-processArduinoLine sendmodes kss line = 
+processArduinoLine :: KeySendState -> String -> (KeySendState, Maybe O.Message)
+processArduinoLine kss line = 
   case line of 
     ('#':'C':numstring) -> 
        -- adjust start note!  (transpose)
@@ -59,7 +65,7 @@ processArduinoLine sendmodes kss line =
            Nothing -> (kss, Nothing) 
     ('$':nobchar:_) ->
        -- change keysendmode
-       case (lookup nobchar sendmodes) of
+       case (lookup nobchar (kssSendModes kss)) of
          Just ksm -> (kss { kssSendMode = ksm }, Nothing)
          Nothing -> (kss, Nothing)
     ('@':bchar:_) -> 
@@ -68,9 +74,16 @@ processArduinoLine sendmodes kss line =
          Nothing -> (kss, Nothing)
     _ -> (kss, Nothing)
 
--- turn key input into appropriate osc message?       
-processKeyInput KeySendState -> Int -> Float -> O.Message
-processKeyInput kss index val = 
   
+-- turn key input into appropriate osc message, based on 
+-- KeySendState.
+processKeyInput :: KeySendState -> Int -> Float -> Maybe O.Message
+processKeyInput (KeySendState _ (SampleList names) start) index val = 
+  Just $ O.Message (names !! (mod (length names) index)) [(O.Float val)]
+processKeyInput (KeySendState _ (SynthPrefix prefix scale) start) 
+                index val = 
+  Just $ O.Message prefix [O.Int32 (fromIntegral ((scale index) + start)), 
+                           O.Float val]
+
    
 
