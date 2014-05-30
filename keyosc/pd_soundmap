@@ -1,0 +1,30 @@
+KeySendPrefs { 
+  samples = ["/arduino/drums/tr909/0",
+"/arduino/drums/tr909/1",
+"/arduino/drums/tr909/2",
+"/arduino/drums/tr909/3",
+"/arduino/drums/tr909/4",
+"/arduino/drums/tr909/5",
+"/arduino/drums/dundunba/0",
+"/arduino/drums/dundunba/1",
+"/arduino/drums/dundunba/2",
+"/arduino/drums/dundunba/3",
+"/arduino/drums/rx21Latin/0",
+"/arduino/drums/rx21Latin/1",
+"/arduino/drums/rx21Latin/2",
+"/arduino/drums/rx21Latin/3",
+"/arduino/drums/rx21Latin/4",
+"/arduino/drums/rx21Latin/5",
+"/arduino/drums/tabla/0",
+"/arduino/drums/tabla/1",
+"/arduino/drums/tabla/2",
+"/arduino/drums/tabla/3",
+"/arduino/drums/tabla/4",
+"/arduino/drums/tabla/5",
+"/arduino/drums/tabla/6",
+"/arduino/drums/tabla/7"
+]
+, synth = "/arduino/fm/note"
+}
+
+
