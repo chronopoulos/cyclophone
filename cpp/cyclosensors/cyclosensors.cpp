@@ -21,13 +21,79 @@
  * *********************************************************************/
 #include "spidevice.h"
 #include <stdio.h>
-// #include "lo/lo.h"
 #include <sstream>
 #include <iomanip>
+#include <iostream>
 
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <termios.h>
+// #include "lo/lo.h"
 
- 
 using namespace std;
+
+// int main(int argc,char** argv)
+int openserial(const char *aCSerial) 
+{
+        struct termios tio;
+        struct termios stdio;
+        struct termios old_stdio;
+        int tty_fd;
+ 
+        unsigned char c='D';
+        tcgetattr(STDOUT_FILENO,&old_stdio);
+ 
+        // printf("Please start with %s /dev/ttyS1 (for example)\n",argv[0]);
+        memset(&stdio,0,sizeof(stdio));
+        stdio.c_iflag=0;
+        stdio.c_oflag=0;
+        stdio.c_cflag=0;
+        stdio.c_lflag=0;
+        stdio.c_cc[VMIN]=1;
+        stdio.c_cc[VTIME]=0;
+        tcsetattr(STDOUT_FILENO,TCSANOW,&stdio);
+        tcsetattr(STDOUT_FILENO,TCSAFLUSH,&stdio);
+        fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);       // make the reads non-blocking
+ 
+        memset(&tio,0,sizeof(tio));
+        tio.c_iflag=0;
+        tio.c_oflag=0;
+        tio.c_cflag=CS8|CREAD|CLOCAL;           // 8n1, see termios.h for more information
+        tio.c_lflag=0;
+        tio.c_cc[VMIN]=1;
+        tio.c_cc[VTIME]=5;
+ 
+        tty_fd=open(aCSerial, O_RDWR | O_NONBLOCK);      
+        cfsetospeed(&tio,B115200);            // 115200 baud
+        cfsetispeed(&tio,B115200);            // 115200 baud
+ 
+        tcsetattr(tty_fd,TCSANOW,&tio);
+
+        return tty_fd;       
+}
+ 
+/*
+        printf("hit 'q' to x-it");
+        while (c!='q')
+        {
+            // if new data is available on the serial port, print it out
+            if (read(tty_fd,&c,1)>0)
+              write(STDOUT_FILENO,&c,1);              
+            // if new data is available on the console, send it to the serial port
+            // if (read(STDIN_FILENO,&c,1)>0)  write(tty_fd,&c,1);
+            printf("blah");
+        }
+ 
+        close(tty_fd);
+        tcsetattr(STDOUT_FILENO,TCSANOW,&old_stdio);
+ 
+        return EXIT_SUCCESS;
+}
+*/
+
+
 
 int gIThres = 20;
 
@@ -231,9 +297,12 @@ int main(int argc, const char *args[])
 
   cout << setw(4) << setfill('0');
 
+  int tty_fd = openserial("/dev/ACM0");
 
   clock_t l_last = clock();
   int start = 1000;
+
+  char c;
 
   while (true)
   {
@@ -241,6 +310,11 @@ int main(int argc, const char *args[])
     {
       UpdateSensors(lSpi0, lUi0Count, lIrsSpi0Sensors, lIrsSpi0ByPin);
       UpdateSensors(lSpi1, lUi1Count, lIrsSpi1Sensors, lIrsSpi1ByPin);
+
+      // try reading from the serial port each time.
+      if (read(tty_fd,&c,1)>0)
+        write(STDOUT_FILENO,&c,1);              
+ 
     }
 
     clock_t l_now = clock();
