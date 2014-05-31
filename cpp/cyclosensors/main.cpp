@@ -38,14 +38,15 @@ using namespace std;
 int openserial(const char *aCSerial) 
 {
         struct termios tio;
-        struct termios stdio;
-        struct termios old_stdio;
         int tty_fd;
  
-        unsigned char c='D';
+        // unsigned char c='D';
  
         // printf("Please start with %s /dev/ttyS1 (for example)\n",argv[0]);
         /*
+        struct termios stdio;
+        struct termios old_stdio;
+        
         tcgetattr(STDOUT_FILENO,&old_stdio);
         memset(&stdio,0,sizeof(stdio));
         stdio.c_iflag=0;
@@ -97,8 +98,6 @@ int openserial(const char *aCSerial)
 }
 */
 
-
-
 int gIThres = 20;
 
 //assumes little endian
@@ -144,6 +143,29 @@ void setupcontrolword(unsigned char adcindex, unsigned char *data)
     data[1] = 0b01000000 | (adcindex << 7);
 }
 
+class KeySigProc 
+{
+public:
+  KeySigProc()
+    :mIBase(0), mIPrevVal(0), mIPrevVel(0)
+  {
+  }
+  // add the current measure.
+  // if there's a number to send, return true.
+  bool AddMeasure(int aIMeasure, float &aF);
+
+  int GetLastVal() { return mIPrevVal; }
+  
+  void SetBaseline(int aIBaseline) { mIBase = aIBaseline; }
+  int GetBaseline() { return mIBase; }
+
+private:
+  int mIBase;
+  // int mIThres;
+  int mIPrevVal;
+  int mIPrevVel;
+};
+
 class IRSensor
 {
 public:
@@ -152,11 +174,73 @@ public:
   {
     setupcontrolword(aUcInputPin, mUcControlWord);
   }
+
+  KeySigProc mKsp;
+
   unsigned short mUsLast;
-  unsigned short mUsBaseline;
+  // unsigned short mUsBaseline;
   unsigned char mUcControlWord[2];
   const unsigned char mUcInputPin;
 };
+
+// The algorithm:
+//   when velocity stops increasing, 
+//   and value is over the threshold, 
+//   report the previous position value as a value 0.0->1.0
+
+
+bool KeySigProc::AddMeasure(int aIMeasure, float &aF)
+{
+  // current value over thres.
+  int val = aIMeasure;
+  val -= mIBase;
+
+  // current velocity.
+  int vel = val;
+  vel -= mIPrevVal;
+
+  bool ret = false;
+  if (vel <=0 && mIPrevVel > 0 && val > gIThres)
+  {
+    aF = (float)val / 1024.0;
+  }
+
+  mIPrevVal = val;
+  mIPrevVel = vel;
+
+  return ret;
+}
+
+class SerialReader
+{
+public:
+  SerialReader()
+    :mBComplete(false)
+  {}
+  // returns true if this char completes a command (newline)
+  bool AddChar(char aC)
+  {
+    if (aC == '\n')
+    {
+      mBComplete = true;
+      return true;
+    }
+    else if (mBComplete)
+    {
+      mBComplete = false;
+      mSCommand = "";
+    }
+
+    mSCommand.push_back(aC);
+    return false;
+  }
+  const char* GetCommand() const { return mSCommand.c_str(); }
+private:
+  string mSCommand;
+  bool mBComplete;
+
+};
+
 
 void UpdateSensors(spidevice &aSpi, 
 		unsigned int aUiCount, IRSensor aIrsArray[], 
@@ -174,7 +258,7 @@ void UpdateSensors(spidevice &aSpi,
 
     aSpi.spiWriteRead(data, sizeof(data));
 
-    sleep(.001);
+    // sleep(.001);
 
     // ---------------- decode the recieved data ---------------
     // first 4 bits are adc number. 
@@ -188,6 +272,11 @@ void UpdateSensors(spidevice &aSpi,
     //   cout << (int)adcnumber << "\t" << (int)adcvalue << "\t" << diff << "\n";
 
     aIrsByPin[adcnumber]->mUsLast = adcvalue;
+    float lF;
+    if (aIrsByPin[adcnumber]->mKsp.AddMeasure(adcvalue, lF))
+    {
+      cout << lF << endl;
+    }
   }
 
 }
@@ -196,7 +285,7 @@ void setBaselines(unsigned int aUiCount, IRSensor aIrsArray[])
 {
   for (unsigned int i = 0; i < aUiCount; ++i)
   {
-    aIrsArray[i].mUsBaseline = aIrsArray[i].mUsLast;
+    aIrsArray[i].mKsp.SetBaseline(aIrsArray[i].mUsLast);
   }  
 }
 
@@ -214,7 +303,8 @@ void printDiffs(unsigned int aUiCount, IRSensor aIrsArray[])
   for (unsigned int i = 0; i < aUiCount; ++i)
   {
     cout << setw(4) << setfill(' ');
-    cout << aIrsArray[i].mUsLast - aIrsArray[i].mUsBaseline << " ";
+    // cout << aIrsArray[i].mUsLast - aIrsArray[i].mUsBaseline << " ";
+    cout << aIrsArray[i].mKsp.GetLastVal() << " ";
   }  
 }
 
@@ -239,6 +329,8 @@ int main(int argc, const char *args[])
  
   IRSensor lIrsSpi0Sensors[] = 
     {
+       IRSensor(0), 
+       IRSensor(1), 
        IRSensor(2), 
        IRSensor(3), 
        IRSensor(4), 
@@ -248,14 +340,14 @@ int main(int argc, const char *args[])
        IRSensor(8), 
        IRSensor(9), 
        IRSensor(10), 
-       IRSensor(11), 
-       IRSensor(12), 
-       IRSensor(13) 
+       IRSensor(11) 
     };
   unsigned int lUi0Count = sizeof(lIrsSpi0Sensors) / sizeof(IRSensor);
 
   IRSensor lIrsSpi1Sensors[] = 
     {
+       IRSensor(0), 
+       IRSensor(1), 
        IRSensor(2), 
        IRSensor(3), 
        IRSensor(4), 
@@ -265,9 +357,7 @@ int main(int argc, const char *args[])
        IRSensor(8), 
        IRSensor(9), 
        IRSensor(10), 
-       IRSensor(11), 
-       IRSensor(12), 
-       IRSensor(13) 
+       IRSensor(11) 
     };
   unsigned int lUi1Count = sizeof(lIrsSpi1Sensors) / sizeof(IRSensor);
 
@@ -304,9 +394,11 @@ int main(int argc, const char *args[])
   int tty_fd = openserial("/dev/ttyACM0");
 
   clock_t l_last = clock();
-  int start = 50;
+  int start = 1000;
 
   char c;
+
+  SerialReader lSr;
 
   while (true)
   {
@@ -316,10 +408,16 @@ int main(int argc, const char *args[])
       UpdateSensors(lSpi1, lUi1Count, lIrsSpi1Sensors, lIrsSpi1ByPin);
 
       // try reading from the serial port each time.
-      if (read(tty_fd,&c,1)>0)
+      while (read(tty_fd,&c,1)>0)
+      {
         cout << c;
-        // write(STDOUT_FILENO,&c,1);              
- 
+        
+        // add char to command.
+        if (lSr.AddChar(c))
+        {
+          printf(lSr.GetCommand());
+        }
+      }
     }
 
     clock_t l_now = clock();
@@ -330,7 +428,7 @@ int main(int argc, const char *args[])
 
     l_last = l_now;
 
-    // cout << "framerate for: " << start << ": " << lD << endl;
+    cout << "framerate for: " << start << ": " << lD << endl;
 
     printDiffs(lUi0Count, lIrsSpi0Sensors);
     printDiffs(lUi1Count, lIrsSpi1Sensors);
@@ -339,7 +437,7 @@ int main(int argc, const char *args[])
 
     // cout << endl;
 
-    sleep(0.03);
+    // sleep(0.03);
   }
 
   return 0;
