@@ -33,6 +33,7 @@ executable keyosc
                        pretty-show,
                        time,
                        containers,
-                       serialport
+                       serial,
+                       unix
   default-language:    Haskell2010
   ghc-options:         -O

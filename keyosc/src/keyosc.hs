@@ -17,7 +17,8 @@ import Control.Concurrent
 import Control.Concurrent.MVar
 import System.IO
 import System.Directory
-import System.Hardware.Serialport
+import System.Serial
+import System.Posix.Terminal
 import Data.Time.Clock
 import Data.List
 import Data.Maybe
@@ -859,6 +860,7 @@ makeOscSendFun conn appsets =
 -- serial port stuff, for arduino
 -------------------------------------------------------
 
+{-
 getaline :: SerialPort -> IO String
 getaline serial = do
   c <- recv serial 1
@@ -871,9 +873,6 @@ getaline serial = do
         rest <- getaline serial
         return (c : rest)
 
-dummycheckline :: IO (Maybe String)
-dummycheckline = return Nothing
-
 checkforarduinoline :: MVar String -> IO (Maybe String)
 checkforarduinoline mvar = tryTakeMVar mvar
 
@@ -882,17 +881,29 @@ dumpaline serial mvar = do
   line <- getaline serial
   putMVar mvar line
   dumpaline serial mvar
+-}
+
+checkforarduinoline2 :: Handle -> IO (Maybe String)
+checkforarduinoline2 serial = do 
+  ready <- hReady serial
+  if ready 
+    then do
+      line <- hGetLine serial
+      return $ Just line
+    else 
+      return Nothing
+    
+dummycheckline :: IO (Maybe String)
+dummycheckline = return Nothing
 
 
 makeGetArduinoLine :: AppSettings -> IO (Maybe String)
 makeGetArduinoLine appsettings = 
   case (arduinoserial appsettings) of
     (Just serialname) -> do
-      arduline <- newEmptyMVar :: IO (MVar String)
-      serial <- openSerial serialname
-              (defaultSerialSettings { commSpeed = CS115200 })
-      forkIO (dumpaline serial arduline)
-      checkforarduinoline arduline
+      serial <- openSerial serialname B115200 8 One Even Software
+      hSetNewlineMode serial universalNewlineMode
+      checkforarduinoline2 serial
     Nothing -> dummycheckline
 
 -----------------------------------------------------------
