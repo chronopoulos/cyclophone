@@ -8,10 +8,12 @@ import Control.Concurrent.MVar
 -- let port = "COM3"           -- Windows
 -- let port = "/dev/ttyUSB0"   -- Linux
 
+{-
 printLines serial = do
   line <- getaline serial
   print line
   printLines serial
+-}
 
 getaline :: SerialPort -> IO String
 getaline serial = do
@@ -27,14 +29,24 @@ getaline serial = do
 
 spinforresult :: MVar String -> IO ()
 spinforresult line = do
-  putStr "0"
   res <- tryTakeMVar line
+  putStr "0"
   case res of
     Just s -> do
       print s
       spinforresult line
     Nothing -> 
       spinforresult line
+
+spinforresult3 :: IO ()
+spinforresult3 = do
+  putStr "0"
+  spinforresult3
+
+spinforresult2 :: MVar String -> IO ()
+spinforresult2 line = do
+  putStr "0"
+  spinforresult2 line
 
 dumpaline :: SerialPort -> MVar String -> IO ()
 dumpaline serial mvar = do
@@ -62,8 +74,12 @@ main =
       else do
         serial <- openSerial (head args) 
                 (defaultSerialSettings { commSpeed = CS115200 })
-        forkIO (dumpaline serial arduline)
+        putStrLn "blah"
+        threadid <- forkOS (dumpaline serial arduline)
+        putStrLn "blah2"
         spinforresult arduline
+        -- spinforresult2 arduline
+        -- spinforresult3
 
 ------------------------------------------------------------------
 -- single threaded serial read.
