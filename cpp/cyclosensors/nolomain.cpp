@@ -24,6 +24,8 @@
 // #include "lo/lo.h"
 #include <sstream>
 #include <iomanip>
+
+
  
 using namespace std;
 
@@ -253,6 +255,8 @@ int main(int argc, const char *args[])
 
     // printDiffs(lUi0Count, lIrsSpi0Sensors);
     // printDiffs(lUi1Count, lIrsSpi1Sensors);
+
+    // lo_send(pd, "/photodiode", "i", 1023-adcvalue);
 
     cout << endl;
 
