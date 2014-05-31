@@ -13,8 +13,12 @@ int main(int argc,char** argv)
         int tty_fd;
  
         unsigned char c='D';
+        /*
+
+        // code to 'take over' std input and output.
+
         tcgetattr(STDOUT_FILENO,&old_stdio);
- 
+
         printf("Please start with %s /dev/ttyS1 (for example)\n",argv[0]);
         memset(&stdio,0,sizeof(stdio));
         stdio.c_iflag=0;
@@ -26,7 +30,8 @@ int main(int argc,char** argv)
         tcsetattr(STDOUT_FILENO,TCSANOW,&stdio);
         tcsetattr(STDOUT_FILENO,TCSAFLUSH,&stdio);
         fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);       // make the reads non-blocking
- 
+        */
+
         memset(&tio,0,sizeof(tio));
         tio.c_iflag=0;
         tio.c_oflag=0;
@@ -49,7 +54,7 @@ int main(int argc,char** argv)
               write(STDOUT_FILENO,&c,1);              
             // if new data is available on the console, send it to the serial port
             // if (read(STDIN_FILENO,&c,1)>0)  write(tty_fd,&c,1);
-            printf("blah");
+            // printf("blah");
         }
  
         close(tty_fd);
