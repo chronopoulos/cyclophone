@@ -43,9 +43,10 @@ int openserial(const char *aCSerial)
         int tty_fd;
  
         unsigned char c='D';
-        tcgetattr(STDOUT_FILENO,&old_stdio);
  
         // printf("Please start with %s /dev/ttyS1 (for example)\n",argv[0]);
+        /*
+        tcgetattr(STDOUT_FILENO,&old_stdio);
         memset(&stdio,0,sizeof(stdio));
         stdio.c_iflag=0;
         stdio.c_oflag=0;
@@ -55,12 +56,15 @@ int openserial(const char *aCSerial)
         stdio.c_cc[VTIME]=0;
         tcsetattr(STDOUT_FILENO,TCSANOW,&stdio);
         tcsetattr(STDOUT_FILENO,TCSAFLUSH,&stdio);
-        fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);       // make the reads non-blocking
+        // make the reads non-blocking
+        fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);       
+        */
  
         memset(&tio,0,sizeof(tio));
         tio.c_iflag=0;
         tio.c_oflag=0;
-        tio.c_cflag=CS8|CREAD|CLOCAL;           // 8n1, see termios.h for more information
+        // 8n1, see termios.h for more information
+        tio.c_cflag=CS8|CREAD|CLOCAL;           
         tio.c_lflag=0;
         tio.c_cc[VMIN]=1;
         tio.c_cc[VTIME]=5;
@@ -297,10 +301,10 @@ int main(int argc, const char *args[])
 
   cout << setw(4) << setfill('0');
 
-  int tty_fd = openserial("/dev/ACM0");
+  int tty_fd = openserial("/dev/ttyACM0");
 
   clock_t l_last = clock();
-  int start = 1000;
+  int start = 50;
 
   char c;
 
@@ -313,7 +317,8 @@ int main(int argc, const char *args[])
 
       // try reading from the serial port each time.
       if (read(tty_fd,&c,1)>0)
-        write(STDOUT_FILENO,&c,1);              
+        cout << c;
+        // write(STDOUT_FILENO,&c,1);              
  
     }
 
@@ -325,16 +330,16 @@ int main(int argc, const char *args[])
 
     l_last = l_now;
 
-    cout << "framerate for: " << start << ": " << lD << endl;
+    // cout << "framerate for: " << start << ": " << lD << endl;
 
-    // printDiffs(lUi0Count, lIrsSpi0Sensors);
-    // printDiffs(lUi1Count, lIrsSpi1Sensors);
+    printDiffs(lUi0Count, lIrsSpi0Sensors);
+    printDiffs(lUi1Count, lIrsSpi1Sensors);
 
     // lo_send(pd, "/photodiode", "i", 1023-adcvalue);
 
-    cout << endl;
+    // cout << endl;
 
-    // sleep(0.03);
+    sleep(0.03);
   }
 
   return 0;
