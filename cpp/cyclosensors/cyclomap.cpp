@@ -29,6 +29,10 @@ int CalcNote(int aIKeyIndex, const vector<int> &aVScale)
 
 void CycloMap::OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity)
 {
+  aFIntensity *= mFGain;
+  if (aFIntensity > 1.0)
+    aFIntensity = 1.0;
+
   if (mVKeyMaps[mIKeyMap][aIKeyIndex].mBSendNote)
   {
     int lINote = CalcNote(aIKeyIndex, mVScales[mIScale]);

@@ -16,6 +16,7 @@ public:
   mIScale(0), 
   mIBottomStart(20),
   mITopStart(60),
+  mFGain(1.0),
   mIStartNote(mIBottomStart)
   {
     makeDefaultMap();
@@ -59,6 +60,8 @@ public:
   // low note ranges between bottom and top values.
   int mIBottomStart;  
   int mITopStart;
+
+  float mFGain;
 };
 
 

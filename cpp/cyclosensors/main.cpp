@@ -36,6 +36,16 @@
 
 using namespace std;
 
+// --------------------------------------------------------------------
+// global consts.
+// --------------------------------------------------------------------
+
+int gIThres = 50;
+float gFGain = 1.2;     // multiply key intensity by this!
+
+
+// --------------------------------------------------------------------
+
 // int main(int argc,char** argv)
 int openserial(const char *aCSerial) 
 {
@@ -99,8 +109,6 @@ int openserial(const char *aCSerial)
         return EXIT_SUCCESS;
 }
 */
-
-int gIThres = 50;
 
 //assumes little endian
 void printBits(void const * const ptr, size_t const size)
@@ -397,6 +405,7 @@ int main(int argc, const char *args[])
   lo_address pd = lo_address_new("192.168.1.144", "8000");
   CycloMap lCycloMap;
   lCycloMap.makeDefaultMap();
+  lCycloMap.mFGain = gFGain;
 
   // lCycloMap.NoteTest();
 
