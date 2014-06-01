@@ -1,4 +1,5 @@
 #include "cyclomap.h"
+#include "lo/lo.h"
 
 int CalcNote(int aIKeyIndex, const vector<int> &aVScale)
 {
@@ -7,6 +8,19 @@ int CalcNote(int aIKeyIndex, const vector<int> &aVScale)
   int rem = aIKeyIndex - (length * floor);
 
   return aIKeyIndex * 12 + aVScale[rem];
+}
+
+void CycloMap::OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity)
+{
+  if (mVKeyMaps[mIKeyMap][aIKeyIndex].mBSendNote)
+  {
+    int lINote = CalcNote(aIKeyIndex, mVScales[mIScale]);
+    lo_send(aLoAddress, mVKeyMaps[mIKeyMap][aIKeyIndex].mSName.c_str(), "if", lINote, aFIntensity);
+  }
+  else
+  {
+    lo_send(aLoAddress, mVKeyMaps[mIKeyMap][aIKeyIndex].mSName.c_str(), "f", aFIntensity);
+  }
 }
 
 void CycloMap::makeDefaultMap()

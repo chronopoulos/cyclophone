@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include "lo/lo.h"
 
 using namespace std;
 
@@ -14,10 +15,11 @@ public:
 
   void ArduinoCommand(const char *aC);
 
-  void OnKeyHit(int aIKeyIndex, float aFIntensity);
-  void OnKeyPressed(int aIKeyIndex, float aFIntensity);
+  void OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity);
+  // void OnKeyPressed(lo_address *aLoAddress, int aIKeyIndex, float aFIntensity);
   // void OnKeyEnd(int aIKeyIndex, float aFIntensity);
 
+ 
   class KeyDest
   {
   public:
@@ -36,6 +38,7 @@ public:
   };
 
   vector<map<int,KeyDest> > mVKeyMaps;
+  int mIKeyMap;
 
   vector<vector<int> > mVScales;
   int mIScale;

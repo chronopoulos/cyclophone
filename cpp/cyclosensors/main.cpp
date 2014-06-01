@@ -30,8 +30,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
-// #include "lo/lo.h"
+#include "lo/lo.h"
 #include <deque>
+#include "cyclomap.h"
 
 using namespace std;
 
@@ -309,7 +310,8 @@ private:
 
 void UpdateSensors(spidevice &aSpi, 
 		unsigned int aUiCount, IRSensor aIrsArray[], 
-                IRSensor* aIrsByPin[])
+                IRSensor* aIrsByPin[],
+                lo_address aLoAddress = 0, CycloMap *aCm = 0 )
 {
   unsigned char data[2];
   unsigned int adcnumber, adcvalue;
@@ -340,6 +342,9 @@ void UpdateSensors(spidevice &aSpi,
     float lF;
     if (aIrsByPin[adcnumber]->mKsp.AddMeasure(adcvalue, lF))
     {
+      if (aCm && aLoAddress)
+        aCm->OnKeyHit(aLoAddress, i, lF);
+ 
       cout << "value!" << lF << endl;
     }
   }
@@ -375,7 +380,7 @@ void printDiffs(unsigned int aUiCount, IRSensor aIrsArray[])
 
 int main(int argc, const char *args[])
 {
-  cout << "argc: " << argc << endl;
+  // cout << "argc: " << argc << endl;
 
   int sensor = 0;
 
@@ -385,9 +390,11 @@ int main(int argc, const char *args[])
     lIss >> sensor;
   }
  
-  cout << "sensor: " << sensor << endl;
+  // cout << "sensor: " << sensor << endl;
 
-  // lo_address pd = lo_address_new(NULL, "8000");
+  lo_address pd = lo_address_new(NULL, "8000");
+  CycloMap lCycloMap;
+  lCycloMap.makeDefaultMap();
 
   spidevice lSpi0("/dev/spidev0.0", SPI_MODE_0, 20000000, 8);
   spidevice lSpi1("/dev/spidev0.1", SPI_MODE_0, 20000000, 8);
@@ -447,8 +454,8 @@ int main(int argc, const char *args[])
   // baseline values.
   for (i = 0; i < 10; ++i)
   {
-    UpdateSensors(lSpi0, lUi0Count, lIrsSpi0Sensors, lIrsSpi0ByPin);
-    UpdateSensors(lSpi1, lUi1Count, lIrsSpi1Sensors, lIrsSpi1ByPin);
+    UpdateSensors(lSpi0, lUi0Count, lIrsSpi0Sensors, lIrsSpi0ByPin,0,0);
+    UpdateSensors(lSpi1, lUi1Count, lIrsSpi1Sensors, lIrsSpi1ByPin,0,0);
   }
 
   setBaselines(lUi0Count, lIrsSpi0Sensors);
@@ -470,8 +477,8 @@ int main(int argc, const char *args[])
     for (int count = start; count > 0; --count)
     {
       // sleep(.2);
-      UpdateSensors(lSpi0, lUi0Count, lIrsSpi0Sensors, lIrsSpi0ByPin);
-      UpdateSensors(lSpi1, lUi1Count, lIrsSpi1Sensors, lIrsSpi1ByPin);
+      UpdateSensors(lSpi0, lUi0Count, lIrsSpi0Sensors, lIrsSpi0ByPin,pd,&lCycloMap);
+      UpdateSensors(lSpi1, lUi1Count, lIrsSpi1Sensors, lIrsSpi1ByPin,pd,&lCycloMap);
 
       // try reading from the serial port each time.
       while (read(tty_fd,&c,1)>0)
@@ -499,7 +506,6 @@ int main(int argc, const char *args[])
     // printDiffs(lUi0Count, lIrsSpi0Sensors);
     // printDiffs(lUi1Count, lIrsSpi1Sensors);
 
-    // lo_send(pd, "/photodiode", "i", 1023-adcvalue);
 
     // cout << endl;
 
