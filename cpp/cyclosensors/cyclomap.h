@@ -37,7 +37,7 @@ public:
     bool mBSendNote;
   };
 
-  vector<map<int,KeyDest> > mVKeyMaps;
+  vector<vector<KeyDest> > mVKeyMaps;
   int mIKeyMap;
 
   vector<vector<int> > mVScales;
