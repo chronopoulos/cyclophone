@@ -31,52 +31,53 @@
 #include <fcntl.h>
 #include <termios.h>
 // #include "lo/lo.h"
+#include <deque>
 
 using namespace std;
 
 // int main(int argc,char** argv)
 int openserial(const char *aCSerial) 
 {
-        struct termios tio;
-        int tty_fd;
- 
-        // unsigned char c='D';
- 
-        // printf("Please start with %s /dev/ttyS1 (for example)\n",argv[0]);
-        /*
-        struct termios stdio;
-        struct termios old_stdio;
-        
-        tcgetattr(STDOUT_FILENO,&old_stdio);
-        memset(&stdio,0,sizeof(stdio));
-        stdio.c_iflag=0;
-        stdio.c_oflag=0;
-        stdio.c_cflag=0;
-        stdio.c_lflag=0;
-        stdio.c_cc[VMIN]=1;
-        stdio.c_cc[VTIME]=0;
-        tcsetattr(STDOUT_FILENO,TCSANOW,&stdio);
-        tcsetattr(STDOUT_FILENO,TCSAFLUSH,&stdio);
-        // make the reads non-blocking
-        fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);       
-        */
- 
-        memset(&tio,0,sizeof(tio));
-        tio.c_iflag=0;
-        tio.c_oflag=0;
-        // 8n1, see termios.h for more information
-        tio.c_cflag=CS8|CREAD|CLOCAL;           
-        tio.c_lflag=0;
-        tio.c_cc[VMIN]=1;
-        tio.c_cc[VTIME]=5;
- 
-        tty_fd=open(aCSerial, O_RDWR | O_NONBLOCK);      
-        cfsetospeed(&tio,B115200);            // 115200 baud
-        cfsetispeed(&tio,B115200);            // 115200 baud
- 
-        tcsetattr(tty_fd,TCSANOW,&tio);
+  struct termios tio;
+  int tty_fd;
 
-        return tty_fd;       
+  // unsigned char c='D';
+
+  // printf("Please start with %s /dev/ttyS1 (for example)\n",argv[0]);
+  /*
+  struct termios stdio;
+  struct termios old_stdio;
+  
+  tcgetattr(STDOUT_FILENO,&old_stdio);
+  memset(&stdio,0,sizeof(stdio));
+  stdio.c_iflag=0;
+  stdio.c_oflag=0;
+  stdio.c_cflag=0;
+  stdio.c_lflag=0;
+  stdio.c_cc[VMIN]=1;
+  stdio.c_cc[VTIME]=0;
+  tcsetattr(STDOUT_FILENO,TCSANOW,&stdio);
+  tcsetattr(STDOUT_FILENO,TCSAFLUSH,&stdio);
+  // make the reads non-blocking
+  fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);       
+  */
+
+  memset(&tio,0,sizeof(tio));
+  tio.c_iflag=0;
+  tio.c_oflag=0;
+  // 8n1, see termios.h for more information
+  tio.c_cflag=CS8|CREAD|CLOCAL;           
+  tio.c_lflag=0;
+  tio.c_cc[VMIN]=1;
+  tio.c_cc[VTIME]=5;
+
+  tty_fd=open(aCSerial, O_RDWR | O_NONBLOCK);      
+  cfsetospeed(&tio,B115200);            // 115200 baud
+  cfsetispeed(&tio,B115200);            // 115200 baud
+
+  tcsetattr(tty_fd,TCSANOW,&tio);
+
+  return tty_fd;       
 }
  
 /*
@@ -98,7 +99,7 @@ int openserial(const char *aCSerial)
 }
 */
 
-int gIThres = 20;
+int gIThres = 50;
 
 //assumes little endian
 void printBits(void const * const ptr, size_t const size)
@@ -143,6 +144,68 @@ void setupcontrolword(unsigned char adcindex, unsigned char *data)
     data[1] = 0b01000000 | (adcindex << 7);
 }
 
+int gIDequeLength = 10;
+
+class DKeySigProc 
+{
+public:
+  DKeySigProc()
+    :mIBase(0), mIPrevVal(0), mIPrevVel(0)
+  {
+  }
+  // add the current measure.
+  // if there's a number to send, return true.
+  bool AddMeasure(int aIMeasure, float &aF)
+  {
+    // current value over thres.
+    int val = aIMeasure;
+    val -= mIBase;
+
+    // store normalized against baseline.
+    mDPrevs.push_front(val);
+
+    if (mDPrevs.size() > gIDequeLength)
+    {
+      mDPrevs.pop_back();
+    }
+    else
+    {
+      // wait until full count.
+      return false;
+    }
+
+    int prev = mDPrevs.back();
+
+    // current velocity.
+    int vel = val;
+    vel -= prev;
+    
+    bool ret = false;
+    // if (val > gIThres)
+    if (vel <=0 && mIPrevVel > 0 && val > gIThres)
+    {
+      aF = (float)val / 1024.0;
+      ret = true;
+    }
+
+    mIPrevVel = vel;
+    mIPrevVal = val;
+
+    return ret;
+  }
+
+  int GetLastVal() { return mIPrevVal; }
+  
+  void SetBaseline(int aIBaseline) { mIBase = aIBaseline; }
+  int GetBaseline() { return mIBase; }
+
+private:
+  int mIBase;
+  int mIPrevVel;
+  int mIPrevVal;
+  deque<int> mDPrevs;
+};
+
 class KeySigProc 
 {
 public:
@@ -166,6 +229,30 @@ private:
   int mIPrevVel;
 };
 
+bool KeySigProc::AddMeasure(int aIMeasure, float &aF)
+{
+  // current value over thres.
+  int val = aIMeasure;
+  val -= mIBase;
+
+  // current velocity.
+  int vel = val;
+  vel -= mIPrevVal;
+  
+  bool ret = false;
+  // if (val > gIThres)
+  if (vel <=0 && mIPrevVel > 0 && val > gIThres)
+  {
+    aF = (float)val / 1024.0;
+    ret = true;
+  }
+
+  mIPrevVal = val;
+  mIPrevVel = vel;
+
+  return ret;
+}
+
 class IRSensor
 {
 public:
@@ -175,7 +262,7 @@ public:
     setupcontrolword(aUcInputPin, mUcControlWord);
   }
 
-  KeySigProc mKsp;
+  DKeySigProc mKsp;
 
   unsigned short mUsLast;
   // unsigned short mUsBaseline;
@@ -188,28 +275,6 @@ public:
 //   and value is over the threshold, 
 //   report the previous position value as a value 0.0->1.0
 
-
-bool KeySigProc::AddMeasure(int aIMeasure, float &aF)
-{
-  // current value over thres.
-  int val = aIMeasure;
-  val -= mIBase;
-
-  // current velocity.
-  int vel = val;
-  vel -= mIPrevVal;
-
-  bool ret = false;
-  if (vel <=0 && mIPrevVel > 0 && val > gIThres)
-  {
-    aF = (float)val / 1024.0;
-  }
-
-  mIPrevVal = val;
-  mIPrevVel = vel;
-
-  return ret;
-}
 
 class SerialReader
 {
@@ -275,7 +340,7 @@ void UpdateSensors(spidevice &aSpi,
     float lF;
     if (aIrsByPin[adcnumber]->mKsp.AddMeasure(adcvalue, lF))
     {
-      cout << lF << endl;
+      cout << "value!" << lF << endl;
     }
   }
 
@@ -404,6 +469,7 @@ int main(int argc, const char *args[])
   {
     for (int count = start; count > 0; --count)
     {
+      // sleep(.2);
       UpdateSensors(lSpi0, lUi0Count, lIrsSpi0Sensors, lIrsSpi0ByPin);
       UpdateSensors(lSpi1, lUi1Count, lIrsSpi1Sensors, lIrsSpi1ByPin);
 
@@ -415,7 +481,7 @@ int main(int argc, const char *args[])
         // add char to command.
         if (lSr.AddChar(c))
         {
-          printf(lSr.GetCommand());
+          cout << "command received: " << lSr.GetCommand() << endl;
         }
       }
     }
@@ -430,8 +496,8 @@ int main(int argc, const char *args[])
 
     cout << "framerate for: " << start << ": " << lD << endl;
 
-    printDiffs(lUi0Count, lIrsSpi0Sensors);
-    printDiffs(lUi1Count, lIrsSpi1Sensors);
+    // printDiffs(lUi0Count, lIrsSpi0Sensors);
+    // printDiffs(lUi1Count, lIrsSpi1Sensors);
 
     // lo_send(pd, "/photodiode", "i", 1023-adcvalue);
 
