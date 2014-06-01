@@ -391,7 +391,7 @@ int main(int argc, const char *args[])
  
   // cout << "sensor: " << sensor << endl;
 
-  lo_address pd = lo_address_new(NULL, "8000");
+  lo_address pd = lo_address_new("192.168.1.144", "8000");
   CycloMap lCycloMap;
   lCycloMap.makeDefaultMap();
 

@@ -11,7 +11,11 @@ using namespace std;
 class CycloMap
 {
 public:
-  CycloMap() {}
+  CycloMap()
+  :mIKeyMap(0), mIScale(0)
+  {
+    makeDefaultMap();
+  }
 
   void ArduinoCommand(const char *aC, lo_address aLoAddress);
 
