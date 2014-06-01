@@ -348,7 +348,6 @@ void UpdateSensors(spidevice &aSpi,
       cout << "value!" << lF << endl;
     }
   }
-
 }
 
 void setBaselines(unsigned int aUiCount, IRSensor aIrsArray[])
@@ -488,7 +487,8 @@ int main(int argc, const char *args[])
         // add char to command.
         if (lSr.AddChar(c))
         {
-          cout << "command received: " << lSr.GetCommand() << endl;
+          lCycloMap.ArduinoCommand(lSr.GetCommand(), pd);
+          cout << "arduino command received: " << lSr.GetCommand() << endl;
         }
       }
     }

@@ -1,5 +1,7 @@
 #include "cyclomap.h"
 #include "lo/lo.h"
+#include <string.h>
+#include <stdlib.h>
 
 int CalcNote(int aIKeyIndex, const vector<int> &aVScale)
 {
@@ -15,12 +17,101 @@ void CycloMap::OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity
   if (mVKeyMaps[mIKeyMap][aIKeyIndex].mBSendNote)
   {
     int lINote = CalcNote(aIKeyIndex, mVScales[mIScale]);
-    lo_send(aLoAddress, mVKeyMaps[mIKeyMap][aIKeyIndex].mSName.c_str(), "if", lINote, aFIntensity);
+    lo_send(aLoAddress, 
+      mVKeyMaps[mIKeyMap][aIKeyIndex].mSName.c_str(), "if", lINote, aFIntensity);
   }
   else
   {
-    lo_send(aLoAddress, mVKeyMaps[mIKeyMap][aIKeyIndex].mSName.c_str(), "f", aFIntensity);
+    lo_send(aLoAddress, 
+      mVKeyMaps[mIKeyMap][aIKeyIndex].mSName.c_str(), "f", aFIntensity);
   }
+}
+
+void CycloMap::ArduinoCommand(const char *aC, lo_address aLoAddress)
+{
+  int lINob(0);
+  float lF(0.0);
+  int len = strlen(aC);
+  if (len < 2)
+    return;
+
+  switch (aC[0])
+  {
+  case '#':
+    if (len < 3)
+      return;
+
+    // parse the rest of the string as a number.
+    lINob = atoi(aC+2);
+    lF = lINob;
+
+    switch (aC[1])
+    {
+      case 'A':
+          lo_send(aLoAddress, "/arduino/delay/onoff", "f", lF);
+          break;
+       case 'B':
+          lo_send(aLoAddress, "/arduino/fm/harmonic", "f", lF);
+          break;
+       case 'C':
+          // change the start note.
+          mIStartNote = (mITopStart - mIBottomStart) * lF + mIBottomStart;
+          break;
+       default:
+          break; 
+    }
+    return;
+  case '$':
+    switch (aC[1])
+    {
+    case 'a':
+      mIKeyMap = 0;
+      mIScale = 0;
+      break;
+    case 'b':
+      mIKeyMap = 0;
+      mIScale = 1;
+      break;
+    case 'c':
+      mIKeyMap = 0;
+      mIScale = 2;
+      break;
+    case 'd':
+      mIKeyMap = 0;
+      mIScale = 3;
+      break;
+    case 'e':
+      mIKeyMap = 1;
+      mIScale = 0;
+      break;
+    default:
+      return;
+    }
+    break;
+  case '@':
+    switch (aC[1])
+    {
+    case 'a':
+      lo_send(aLoAddress, "/arduino/delay/onoff", "");
+      break;
+    case 'b':
+      lo_send(aLoAddress, "/arduino/kill/on", "");
+      break;
+    case 'B':
+      lo_send(aLoAddress, "/arduino/kill/off", "");
+      break;
+    case 'c':
+      lo_send(aLoAddress, "/arduino/loop", "");
+      break;
+    default:
+      return;
+    }
+    break;
+  default:
+    break;
+  }
+  
+  return;
 }
 
 void CycloMap::makeDefaultMap()

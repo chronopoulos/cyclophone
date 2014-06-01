@@ -13,7 +13,7 @@ class CycloMap
 public:
   CycloMap() {}
 
-  void ArduinoCommand(const char *aC);
+  void ArduinoCommand(const char *aC, lo_address aLoAddress);
 
   void OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity);
   // void OnKeyPressed(lo_address *aLoAddress, int aIKeyIndex, float aFIntensity);
@@ -53,6 +53,7 @@ public:
   int mIBottomStart;  // 
   int mITopStart;
 };
+
 
 int CalcNote(int aIKeyIndex, const vector<int> &aVScale);
 
