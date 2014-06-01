@@ -70,7 +70,7 @@ void CycloMap::ArduinoCommand(const char *aC, lo_address aLoAddress)
     switch (aC[1])
     {
        case 'A':
-          lo_send(aLoAddress, "/arduino/delay/onoff", "f", lF);
+          lo_send(aLoAddress, "/arduino/delay/time", "f", lF * 1000.0);
           break;
        case 'B':
           lo_send(aLoAddress, "/arduino/fm/harmonic", "f", lF);
