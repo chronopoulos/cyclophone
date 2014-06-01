@@ -119,6 +119,15 @@ void CycloMap::makeDefaultMap()
   mVKeyMaps.clear();
   vector<KeyDest> lV;
 
+  KeyDest lKd("/arduino/fm/note", true);
+
+  for (int lI = 0; lI < 24; ++lI)
+    lV.push_back(lKd);
+
+  mVKeyMaps.push_back(lV);
+
+  lV.clear();
+
   lV.push_back(KeyDest("/arduino/drums/tr909/0", false));
   lV.push_back(KeyDest("/arduino/drums/tr909/1", false));
   lV.push_back(KeyDest("/arduino/drums/tr909/2", false));
@@ -143,15 +152,6 @@ void CycloMap::makeDefaultMap()
   lV.push_back(KeyDest("/arduino/drums/tabla/5", false));
   lV.push_back(KeyDest("/arduino/drums/tabla/6", false));
   lV.push_back(KeyDest("/arduino/drums/tabla/7", false));
-
-  mVKeyMaps.push_back(lV);
-
-  lV.clear();
-
-  KeyDest lKd("/arduino/fm/note", true);
-
-  for (int lI = 0; lI < 24; ++lI)
-    lV.push_back(lKd);
 
   mVKeyMaps.push_back(lV);
 
