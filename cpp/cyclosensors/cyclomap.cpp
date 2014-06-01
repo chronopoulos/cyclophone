@@ -3,13 +3,28 @@
 #include <string.h>
 #include <stdlib.h>
 
+
+void CycloMap::NoteTest()
+{
+  cout << "Note Test" << endl;
+
+  for (int lIS = 0; lIS < mVScales.size(); ++lIS)
+  {
+    cout << "Scale " << lIS << endl;
+    for (int lI = 0; lI < 100; ++lI)
+    {
+      cout << lI << " " << CalcNote(lI, mVScales[lIS]) << endl;
+    }
+  }
+}
+
 int CalcNote(int aIKeyIndex, const vector<int> &aVScale)
 {
   int length = aVScale.size();
   int floor = aIKeyIndex / length;
   int rem = aIKeyIndex - (length * floor);
 
-  return aIKeyIndex * 12 + aVScale[rem];
+  return floor * 12 + aVScale[rem];
 }
 
 void CycloMap::OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity)
@@ -17,6 +32,8 @@ void CycloMap::OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity
   if (mVKeyMaps[mIKeyMap][aIKeyIndex].mBSendNote)
   {
     int lINote = CalcNote(aIKeyIndex, mVScales[mIScale]);
+    lINote += mIStartNote;
+    cout << "sending: key " << aIKeyIndex << " note " << lINote << " intensity " << aFIntensity << endl;
     lo_send(aLoAddress, 
       mVKeyMaps[mIKeyMap][aIKeyIndex].mSName.c_str(), "if", lINote, aFIntensity);
   }
@@ -44,10 +61,11 @@ void CycloMap::ArduinoCommand(const char *aC, lo_address aLoAddress)
     // parse the rest of the string as a number.
     lINob = atoi(aC+2);
     lF = lINob;
+    lF /= 1024.0;
 
     switch (aC[1])
     {
-      case 'A':
+       case 'A':
           lo_send(aLoAddress, "/arduino/delay/onoff", "f", lF);
           break;
        case 'B':

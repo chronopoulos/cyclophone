@@ -12,10 +12,16 @@ class CycloMap
 {
 public:
   CycloMap()
-  :mIKeyMap(0), mIScale(0)
+  :mIKeyMap(0), 
+  mIScale(0), 
+  mIBottomStart(20),
+  mITopStart(60),
+  mIStartNote(mIBottomStart)
   {
     makeDefaultMap();
   }
+
+  void NoteTest();
 
   void ArduinoCommand(const char *aC, lo_address aLoAddress);
 
@@ -49,12 +55,9 @@ public:
 
   void makeDefaultMap();
 
-//   inline int CalcNote(int aIKeyIndex) { CalcNote(aIKeyIndex, mVScales[mIScale]); }
-
-  void WriteToStream(ostream &aOs);
-
   int mIStartNote;  // current lowest note of cyclophone.
-  int mIBottomStart;  // 
+  // low note ranges between bottom and top values.
+  int mIBottomStart;  
   int mITopStart;
 };
 
