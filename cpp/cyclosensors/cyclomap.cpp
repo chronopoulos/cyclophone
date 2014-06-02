@@ -178,6 +178,7 @@ void CycloMap::makeDefaultMap()
 
   mVKeyMaps.push_back(lV);
 
+  int chromaticScale[] = {0,1,2,3,4,5,6,7,8,9,10,11};
   int majorScale[] = {0,2,4,5,7,9,11};
   int minorScale[] = {0,2,3,5,7,8,10};
   int harmonicMinorScale[] = {0,2,3,5,7,8,11};
@@ -186,14 +187,15 @@ void CycloMap::makeDefaultMap()
   int minorPentatonicScale[] = {0,3,5,7,10};
   int diminishedScale[] = {0,2,3,5,6,8,9,11};
 
+  mVScales.push_back(std::vector<int>(chromaticScale, chromaticScale + sizeof(chromaticScale) / sizeof(int) ));
   mVScales.push_back(std::vector<int>(majorScale, majorScale + sizeof(majorScale) / sizeof(int) ));
-  mVScales.push_back(std::vector<int>(minorScale, minorScale + sizeof(minorScale) / sizeof(int) ));
-  mVScales.push_back(std::vector<int>(harmonicMinorScale, 
-        harmonicMinorScale + sizeof(harmonicMinorScale) / sizeof(int) ));
   mVScales.push_back(std::vector<int>(hungarianMinorScale, 
         hungarianMinorScale + sizeof(hungarianMinorScale) / sizeof(int) ));
   mVScales.push_back(std::vector<int>(majorPentatonicScale, 
         majorPentatonicScale + sizeof(majorPentatonicScale) / sizeof(int) ));
+  mVScales.push_back(std::vector<int>(minorScale, minorScale + sizeof(minorScale) / sizeof(int) ));
+  mVScales.push_back(std::vector<int>(harmonicMinorScale, 
+        harmonicMinorScale + sizeof(harmonicMinorScale) / sizeof(int) ));
   mVScales.push_back(std::vector<int>(minorPentatonicScale, 
         minorPentatonicScale + sizeof(minorPentatonicScale) / sizeof(int) ));
   mVScales.push_back(std::vector<int>(diminishedScale, 
