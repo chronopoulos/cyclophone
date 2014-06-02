@@ -37,6 +37,7 @@ void CycloMap::OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity
   {
     int lINote = CalcNote(aIKeyIndex, mVScales[mIScale]);
     lINote += mIStartNote;
+
     cout << "sending: key " << aIKeyIndex << " note " << lINote << " intensity " << aFIntensity << endl;
     lo_send(aLoAddress, 
       mVKeyMaps[mIKeyMap][aIKeyIndex].mSName.c_str(), "if", lINote, aFIntensity);
@@ -70,7 +71,7 @@ void CycloMap::ArduinoCommand(const char *aC, lo_address aLoAddress)
     switch (aC[1])
     {
        case 'A':
-          lo_send(aLoAddress, "/arduino/delay/time", "f", lF * 1000.0);
+          lo_send(aLoAddress, "/arduino/delay/time", "f", lF); 
           break;
        case 'B':
           lo_send(aLoAddress, "/arduino/fm/harmonic", "f", lF);
