@@ -43,7 +43,6 @@ using namespace std;
 int gIThres = 50;
 float gFGain = 1.2;     // multiply key intensity by this!
 
-
 // --------------------------------------------------------------------
 
 // int main(int argc,char** argv)
@@ -414,36 +413,36 @@ int main(int argc, const char *args[])
  
   IRSensor lIrsSpi0Sensors[] = 
     {
-       IRSensor(0), 
-       IRSensor(1), 
-       IRSensor(2), 
-       IRSensor(3), 
-       IRSensor(4), 
-       IRSensor(5), 
-       IRSensor(6), 
-       IRSensor(7), 
-       IRSensor(8), 
        IRSensor(9), 
-       IRSensor(10), 
-       IRSensor(11) 
+       IRSensor(8), 
+       IRSensor(7), 
+       IRSensor(6), 
+       IRSensor(5), 
+       IRSensor(4), 
+       IRSensor(3), 
+       IRSensor(2), 
+       IRSensor(1), 
+       IRSensor(0), 
+       IRSensor(11), 
+       IRSensor(10) 
     };
   unsigned int lUi0Count = sizeof(lIrsSpi0Sensors) / sizeof(IRSensor);
 
   IRSensor lIrsSpi1Sensors[] = 
     {
-       IRSensor(0), 
-       IRSensor(1), 
-       IRSensor(2), 
-       IRSensor(3), 
-       IRSensor(4), 
-       IRSensor(5), 
-       IRSensor(6), 
-       IRSensor(7), 
-       IRSensor(8), 
        IRSensor(9), 
-       IRSensor(10), 
-       IRSensor(11) 
-    };
+       IRSensor(8), 
+       IRSensor(7), 
+       IRSensor(6), 
+       IRSensor(5), 
+       IRSensor(4), 
+       IRSensor(3), 
+       IRSensor(2), 
+       IRSensor(1), 
+       IRSensor(0), 
+       IRSensor(11), 
+       IRSensor(10) 
+   };
   unsigned int lUi1Count = sizeof(lIrsSpi1Sensors) / sizeof(IRSensor);
 
   unsigned int i;
