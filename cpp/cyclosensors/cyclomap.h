@@ -14,11 +14,11 @@ public:
   CycloMap()
   :mIKeyMap(0), 
   mIScale(0), 
-  mIBottomStart(20),
+  mIBottomStart(0),
   mITopStart(60),
-  mFGain(1.0),
-  mIStartNote(mIBottomStart)
+  mFGain(1.0)
   {
+    mIStartNote = mIBottomStart;
     makeDefaultMap();
   }
 
