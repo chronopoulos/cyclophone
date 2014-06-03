@@ -4,18 +4,15 @@
 #include <stdlib.h>
 
 
-void CycloMap::NoteTest()
+void CycloMap::PrintScale(int aIScale)
 {
-  cout << "Note Test" << endl;
-
-  for (int lIS = 0; lIS < mVScales.size(); ++lIS)
-  {
-    cout << "Scale " << lIS << endl;
-    for (int lI = 0; lI < 100; ++lI)
+    cout << "Scale " << aIScale << ": ";
+    for (int lI = 0; lI < mVScales[aIScale].size(); ++lI)
     {
-      cout << lI << " " << CalcNote(lI, mVScales[lIS]) << endl;
+      cout << mVScales[aIScale][lI] << " ";
     }
-  }
+
+    cout << endl;
 }
 
 int CalcNote(int aIKeyIndex, const vector<int> &aVScale)
@@ -38,7 +35,7 @@ void CycloMap::OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity
     int lINote = CalcNote(aIKeyIndex, mVScales[mIScale]);
     lINote += mIStartNote;
 
-    cout << "sending: key " << aIKeyIndex << " note " << lINote << " intensity " << aFIntensity << endl;
+    // cout << "sending: key " << aIKeyIndex << " note " << lINote << " intensity " << aFIntensity << endl;
     lo_send(aLoAddress, 
       mVKeyMaps[mIKeyMap][aIKeyIndex].mSName.c_str(), "if", lINote, aFIntensity);
   }
@@ -110,6 +107,7 @@ void CycloMap::ArduinoCommand(const char *aC, lo_address aLoAddress)
     default:
       return;
     }
+    PrintScale(mIScale);
     break;
   case '@':
     switch (aC[1])
@@ -193,13 +191,14 @@ void CycloMap::makeDefaultMap()
         hungarianMinorScale + sizeof(hungarianMinorScale) / sizeof(int) ));
   mVScales.push_back(std::vector<int>(majorPentatonicScale, 
         majorPentatonicScale + sizeof(majorPentatonicScale) / sizeof(int) ));
-  mVScales.push_back(std::vector<int>(minorScale, minorScale + sizeof(minorScale) / sizeof(int) ));
   mVScales.push_back(std::vector<int>(harmonicMinorScale, 
         harmonicMinorScale + sizeof(harmonicMinorScale) / sizeof(int) ));
   mVScales.push_back(std::vector<int>(minorPentatonicScale, 
         minorPentatonicScale + sizeof(minorPentatonicScale) / sizeof(int) ));
   mVScales.push_back(std::vector<int>(diminishedScale, 
         diminishedScale + sizeof(diminishedScale) / sizeof(int) ));
+
+  // mVScales.push_back(std::vector<int>(minorScale, minorScale + sizeof(minorScale) / sizeof(int) ));
 
  }
 

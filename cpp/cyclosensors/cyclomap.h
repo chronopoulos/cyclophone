@@ -22,7 +22,7 @@ public:
     makeDefaultMap();
   }
 
-  void NoteTest();
+  void PrintScale(int aIScale); 
 
   void ArduinoCommand(const char *aC, lo_address aLoAddress);
 
