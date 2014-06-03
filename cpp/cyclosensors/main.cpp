@@ -32,6 +32,7 @@
 #include <termios.h>
 #include "lo/lo.h"
 #include <deque>
+#include <set>
 #include "cyclomap.h"
 
 using namespace std;
@@ -40,7 +41,8 @@ using namespace std;
 // global consts.
 // --------------------------------------------------------------------
 
-int gIThres = 50;
+// int gIThres = 150;
+int gIThres = 100;
 float gFGain = 1.2;     // multiply key intensity by this!
 
 // --------------------------------------------------------------------
@@ -214,6 +216,67 @@ private:
   deque<int> mDPrevs;
 };
 
+int gIDynabaseTurns = 1000;
+int gIDynabaseBandSize = 10;
+
+
+// if key goes to new steady value, then establish new baseline.
+// steady value is within X points for more than N turns.
+class DynabaseKeySig
+{
+public:
+  DynabaseKeySig()
+    :mISum(0) 
+  {
+  }
+  // add the current measure.
+  // if there's a number to send, return true.
+  bool AddMeasure(int aIMeasure, int &aINewBaseline)
+  {
+    mISum += aIMeasure;
+
+    // store raw vals
+    mDVals.push_front(aIMeasure);
+    mMsSortedVals.insert(aIMeasure);
+
+    if (mDVals.size() > gIDynabaseTurns)
+    {
+      int lI = mDVals.back();
+      mDVals.pop_back();
+      multiset<int>::iterator lIter = mMsSortedVals.find(lI);
+      mMsSortedVals.erase(lIter);
+      mISum -= lI;
+    }
+    else
+    {
+      // wait until full count.
+      return false;
+    }
+
+    // are min and max within the band?
+    if (mMsSortedVals.size() > 1 && *(mMsSortedVals.rbegin()) - *(mMsSortedVals.begin()) < gIDynabaseBandSize)
+    {
+      // new baseline is average of all vals.
+      aINewBaseline = mISum / mDVals.size();
+
+      cout << "mDVals.size() = " << mDVals.size() << " mMsSortedVals.size() = " << mMsSortedVals.size() << endl;
+      return true;
+    }
+    else
+    {
+      // no new baseline.
+      return false;     
+    }
+    return false;
+    
+ }
+
+private:
+  int mISum;
+  deque<int> mDVals;
+  multiset<int> mMsSortedVals;
+};
+
 class KeySigProc 
 {
 public:
@@ -271,6 +334,7 @@ public:
   }
 
   DKeySigProc mKsp;
+  DynabaseKeySig mDks;
 
   unsigned short mUsLast;
   // unsigned short mUsBaseline;
@@ -348,6 +412,17 @@ void UpdateSensors(spidevice &aSpi,
     // if (diff > gIThres) 
     //   cout << (int)adcnumber << "\t" << (int)adcvalue << "\t" << diff << "\n";
 
+    int lIBaseline;
+    if (aIrsByPin[adcnumber]->mDks.AddMeasure(adcvalue, lIBaseline))
+    {
+      cout << "new baseline : " << aUiKeyOffset + i << " " << lIBaseline << endl;
+
+      // set the new baseline in the KeySigProc obj.
+      aIrsByPin[adcnumber]->mKsp.SetBaseline(lIBaseline);
+
+      // cout << "value!" << lF << endl;
+    }
+
     aIrsByPin[adcnumber]->mUsLast = adcvalue;
     float lF;
     if (aIrsByPin[adcnumber]->mKsp.AddMeasure(adcvalue, lF))
@@ -355,7 +430,7 @@ void UpdateSensors(spidevice &aSpi,
       if (aCm && aLoAddress)
         aCm->OnKeyHit(aLoAddress, i + aUiKeyOffset, lF);
  
-      cout << "value!" << lF << endl;
+      // cout << "value!" << lF << endl;
     }
   }
 }
@@ -401,7 +476,8 @@ int main(int argc, const char *args[])
  
   // cout << "sensor: " << sensor << endl;
 
-  lo_address pd = lo_address_new("192.168.1.144", "8000");
+  // lo_address pd = lo_address_new("192.168.1.144", "8000");
+  lo_address pd = lo_address_new("100.100.100.193", "8000");
   CycloMap lCycloMap;
   lCycloMap.makeDefaultMap();
   lCycloMap.mFGain = gFGain;
@@ -516,8 +592,8 @@ int main(int argc, const char *args[])
 
     cout << "framerate for: " << start << ": " << lD << endl;
 
-    // printDiffs(lUi0Count, lIrsSpi0Sensors);
-    // printDiffs(lUi1Count, lIrsSpi1Sensors);
+    printDiffs(lUi0Count, lIrsSpi0Sensors);
+    printDiffs(lUi1Count, lIrsSpi1Sensors);
 
 
     // cout << endl;
