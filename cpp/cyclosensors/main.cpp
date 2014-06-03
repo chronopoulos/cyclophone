@@ -154,7 +154,7 @@ void setupcontrolword(unsigned char adcindex, unsigned char *data)
     data[1] = 0b01000000 | (adcindex << 7);
 }
 
-int gIDequeLength = 10;
+int gIDequeLength = 5;
 
 class DKeySigProc 
 {
@@ -217,7 +217,7 @@ private:
 };
 
 int gIDynabaseTurns = 1000;
-int gIDynabaseBandSize = 10;
+int gIDynabaseBandSize = 35;
 
 
 // if key goes to new steady value, then establish new baseline.
@@ -259,7 +259,7 @@ public:
       // new baseline is average of all vals.
       aINewBaseline = mISum / mDVals.size();
 
-      cout << "mDVals.size() = " << mDVals.size() << " mMsSortedVals.size() = " << mMsSortedVals.size() << endl;
+      // cout << "mDVals.size() = " << mDVals.size() << " mMsSortedVals.size() = " << mMsSortedVals.size() << endl;
       return true;
     }
     else
@@ -415,7 +415,7 @@ void UpdateSensors(spidevice &aSpi,
     int lIBaseline;
     if (aIrsByPin[adcnumber]->mDks.AddMeasure(adcvalue, lIBaseline))
     {
-      cout << "new baseline : " << aUiKeyOffset + i << " " << lIBaseline << endl;
+      // cout << "new baseline : " << aUiKeyOffset + i << " " << lIBaseline << endl;
 
       // set the new baseline in the KeySigProc obj.
       aIrsByPin[adcnumber]->mKsp.SetBaseline(lIBaseline);
