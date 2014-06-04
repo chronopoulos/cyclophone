@@ -160,20 +160,29 @@ class DKeySigProc
 {
 public:
   DKeySigProc()
-    :mIBase(0), mIPrevVal(0), mIPrevVel(0)
+    :mIBase(0), mIPrevVal(0), mIPrevVel(0),
+    mBGotHit(false), mBGotContinuous(false)
   {
   }
+
   // add the current measure.
   // if there's a number to send, return true.
-  bool AddMeasure(int aIMeasure, float &aF)
+  void AddMeasure(int aIMeasure)
   {
     // current value over thres.
     int val = aIMeasure;
     val -= mIBase;
 
+    // got continuous value?  if over thres.
+    mBGotContinuous = val > gIThres;
+
     // store normalized against baseline.
     mDPrevs.push_front(val);
 
+    // start with assuming no hit.
+    mBGotHit = false;
+
+    // if deque isn't full, no hit.
     if (mDPrevs.size() > gIDequeLength)
     {
       mDPrevs.pop_back();
@@ -181,27 +190,37 @@ public:
     else
     {
       // wait until full count.
-      return false;
+      return;
     }
 
+    // current velocity is front of deque minus back of deque.
     int prev = mDPrevs.back();
-
-    // current velocity.
     int vel = val;
     vel -= prev;
     
-    bool ret = false;
     // if (val > gIThres)
     if (vel <=0 && mIPrevVel > 0 && val > gIThres)
     {
-      aF = (float)val / 1024.0;
-      ret = true;
+      mBGotHit = true;
     }
 
     mIPrevVel = vel;
     mIPrevVal = val;
+  }
 
-    return ret;
+  bool GetHitVal(float &aF)
+  {
+    if (mBGotHit)
+      aF = (float)mIPrevVal / 1024.0;
+
+    return mBGotHit;
+  }
+  bool GetContinuousVal(float &aF)
+  {
+    if (mBGotContinuous)
+      aF = (float)mIPrevVal / 1024.0;
+
+    return mBGotContinuous;
   }
 
   int GetLastVal() { return mIPrevVal; }
@@ -214,6 +233,9 @@ private:
   int mIPrevVel;
   int mIPrevVal;
   deque<int> mDPrevs;
+
+  bool mBGotHit;
+  bool mBGotContinuous;
 };
 
 int gIDynabaseTurns = 1000;
@@ -423,7 +445,8 @@ void UpdateSensors(spidevice &aSpi,
 
     aIrsByPin[adcnumber]->mUsLast = adcvalue;
     float lF;
-    if (aIrsByPin[adcnumber]->mKsp.AddMeasure(adcvalue, lF))
+    aIrsByPin[adcnumber]->mKsp.AddMeasure(adcvalue);
+    if (aIrsByPin[adcnumber]->mKsp.GetHitVal(lF))
     {
       if (aCm && aLoAddress)
         aCm->OnKeyHit(aLoAddress, i + aUiKeyOffset, lF);
