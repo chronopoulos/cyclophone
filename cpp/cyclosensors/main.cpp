@@ -337,7 +337,6 @@ public:
   DynabaseKeySig mDks;
 
   unsigned short mUsLast;
-  // unsigned short mUsBaseline;
   unsigned char mUcControlWord[2];
   const unsigned char mUcInputPin;
 };
@@ -346,7 +345,6 @@ public:
 //   when velocity stops increasing, 
 //   and value is over the threshold, 
 //   report the previous position value as a value 0.0->1.0
-
 
 class SerialReader
 {
@@ -443,6 +441,15 @@ void setBaselines(unsigned int aUiCount, IRSensor aIrsArray[])
   }  
 }
 
+void printBaselines(unsigned int aUiCount, IRSensor aIrsArray[])
+{
+  for (unsigned int i = 0; i < aUiCount; ++i)
+  {
+    cout << setw(4) << setfill(' ');
+    cout << aIrsArray[i].mKsp.GetBaseline() << " ";
+  }  
+}
+
 void printVals(unsigned int aUiCount, IRSensor aIrsArray[])
 {
   for (unsigned int i = 0; i < aUiCount; ++i)
@@ -457,7 +464,6 @@ void printDiffs(unsigned int aUiCount, IRSensor aIrsArray[])
   for (unsigned int i = 0; i < aUiCount; ++i)
   {
     cout << setw(4) << setfill(' ');
-    // cout << aIrsArray[i].mUsLast - aIrsArray[i].mUsBaseline << " ";
     cout << aIrsArray[i].mKsp.GetLastVal() << " ";
   }  
 }
@@ -592,11 +598,14 @@ int main(int argc, const char *args[])
 
     cout << "framerate for: " << start << ": " << lD << endl;
 
+    printBaselines(lUi0Count, lIrsSpi0Sensors);
+    printBaselines(lUi1Count, lIrsSpi1Sensors);
+    cout << endl;
     printDiffs(lUi0Count, lIrsSpi0Sensors);
     printDiffs(lUi1Count, lIrsSpi1Sensors);
+    cout << endl;
 
 
-    // cout << endl;
 
     // sleep(0.03);
   }
