@@ -153,12 +153,14 @@ void setupcontrolword(unsigned char adcindex, unsigned char *data)
 }
 
 int gIDequeLength = 10;
+int gIPrevHitCountdownStart = 500;   // was about 200 in haskell, w 580 framerate
+int gIPrevHitThres = 350;
 
 class DKeySigProc 
 {
 public:
   DKeySigProc()
-    :mIBase(0), mIPrevVal(0), mIPrevVel(0)
+    :mIBase(0), mIPrevVal(0), mIPrevVel(0), mIPrevHitVal(0), mIPrevHitCountdown(0)
   {
   }
   // add the current measure.
@@ -189,15 +191,32 @@ public:
     vel -= prev;
     
     bool ret = false;
+    if (mIPrevHitCountdown > 0)
+    { 
+      --mIPrevHitCountdown;
+    }
     // if (val > gIThres)
     if (vel <=0 && mIPrevVel > 0 && val > gIThres)
     {
-      aF = (float)val / 1024.0;
-      ret = true;
+      //   logic for rejection based on 'prevhit'.  
+      //  supposed to reject secondary peaks right after big peaks.  
+      if (mIPrevHitCountdown > 0 && 
+          mIPrevHitVal - val > gIPrevHitThres)
+      {
+        // reject! 
+      }
+      else
+      {
+        mIPrevHitVal = val;
+        mIPrevHitCountdown = gIPrevHitCountdownStart;
+        aF = (float)val / 1024.0;
+        ret = true;
+      }
     }
 
     mIPrevVel = vel;
     mIPrevVal = val;
+
 
     return ret;
   }
@@ -211,6 +230,8 @@ private:
   int mIBase;
   int mIPrevVel;
   int mIPrevVal;
+  int mIPrevHitVal;
+  int mIPrevHitCountdown;
   deque<int> mDPrevs;
 };
 

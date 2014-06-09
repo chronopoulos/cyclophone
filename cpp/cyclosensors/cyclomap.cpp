@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-
 void CycloMap::NoteTest()
 {
   cout << "Note Test" << endl;
