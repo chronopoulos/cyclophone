@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-
 void CycloMap::PrintScale(int aIScale)
 {
     cout << "Scale " << aIScale << ": ";
@@ -25,6 +24,28 @@ int CalcNote(int aIKeyIndex, const vector<int> &aVScale)
 }
 
 void CycloMap::OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity)
+{
+  aFIntensity *= mFGain;
+  if (aFIntensity > 1.0)
+    aFIntensity = 1.0;
+
+  if (mVKeyMaps[mIKeyMap][aIKeyIndex].mBSendNote)
+  {
+    int lINote = CalcNote(aIKeyIndex, mVScales[mIScale]);
+    lINote += mIStartNote;
+
+    // cout << "sending: key " << aIKeyIndex << " note " << lINote << " intensity " << aFIntensity << endl;
+    lo_send(aLoAddress, 
+      mVKeyMaps[mIKeyMap][aIKeyIndex].mSName.c_str(), "if", lINote, aFIntensity);
+  }
+  else
+  {
+    lo_send(aLoAddress, 
+      mVKeyMaps[mIKeyMap][aIKeyIndex].mSName.c_str(), "f", aFIntensity);
+  }
+}
+
+void CycloMap::OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFIntensity)
 {
   aFIntensity *= mFGain;
   if (aFIntensity > 1.0)
@@ -140,7 +161,7 @@ void CycloMap::makeDefaultMap()
   mVKeyMaps.clear();
   vector<KeyDest> lV;
 
-  KeyDest lKd("/arduino/fm/note", true);
+  KeyDest lKd("/arduino/fm/note", true, true, false);
 
   for (int lI = 0; lI < 24; ++lI)
     lV.push_back(lKd);
@@ -149,30 +170,30 @@ void CycloMap::makeDefaultMap()
 
   lV.clear();
 
-  lV.push_back(KeyDest("/arduino/drums/tr909/0", false));
-  lV.push_back(KeyDest("/arduino/drums/tr909/1", false));
-  lV.push_back(KeyDest("/arduino/drums/tr909/2", false));
-  lV.push_back(KeyDest("/arduino/drums/tr909/3", false));
-  lV.push_back(KeyDest("/arduino/drums/tr909/4", false));
-  lV.push_back(KeyDest("/arduino/drums/tr909/5", false));
-  lV.push_back(KeyDest("/arduino/drums/dundunba/0", false));
-  lV.push_back(KeyDest("/arduino/drums/dundunba/1", false));
-  lV.push_back(KeyDest("/arduino/drums/dundunba/2", false));
-  lV.push_back(KeyDest("/arduino/drums/dundunba/3", false));
-  lV.push_back(KeyDest("/arduino/drums/rx21Latin/0", false));
-  lV.push_back(KeyDest("/arduino/drums/rx21Latin/1", false));
-  lV.push_back(KeyDest("/arduino/drums/rx21Latin/2", false));
-  lV.push_back(KeyDest("/arduino/drums/rx21Latin/3", false));
-  lV.push_back(KeyDest("/arduino/drums/rx21Latin/4", false));
-  lV.push_back(KeyDest("/arduino/drums/rx21Latin/5", false));
-  lV.push_back(KeyDest("/arduino/drums/tabla/0", false));
-  lV.push_back(KeyDest("/arduino/drums/tabla/1", false));
-  lV.push_back(KeyDest("/arduino/drums/tabla/2", false));
-  lV.push_back(KeyDest("/arduino/drums/tabla/3", false));
-  lV.push_back(KeyDest("/arduino/drums/tabla/4", false));
-  lV.push_back(KeyDest("/arduino/drums/tabla/5", false));
-  lV.push_back(KeyDest("/arduino/drums/tabla/6", false));
-  lV.push_back(KeyDest("/arduino/drums/tabla/7", false));
+  lV.push_back(KeyDest("/arduino/drums/tr909/0",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/tr909/1",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/tr909/2",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/tr909/3",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/tr909/4",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/tr909/5",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/dundunba/0",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/dundunba/1",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/dundunba/2",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/dundunba/3",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/rx21Latin/0",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/rx21Latin/1",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/rx21Latin/2",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/rx21Latin/3",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/rx21Latin/4",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/rx21Latin/5",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/tabla/0",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/tabla/1",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/tabla/2",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/tabla/3",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/tabla/4",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/tabla/5",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/tabla/6",false, true, false));
+  lV.push_back(KeyDest("/arduino/drums/tabla/7",false, true, false));
 
   mVKeyMaps.push_back(lV);
 
