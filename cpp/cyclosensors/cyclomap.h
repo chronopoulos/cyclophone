@@ -22,30 +22,47 @@ public:
     makeDefaultMap();
   }
 
-  void NoteTest();
+  void PrintScale(int aIScale); 
 
   void ArduinoCommand(const char *aC, lo_address aLoAddress);
 
   void OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity);
-  // void OnKeyPressed(lo_address *aLoAddress, int aIKeyIndex, float aFIntensity);
-  // void OnKeyEnd(int aIKeyIndex, float aFIntensity);
-
+  void OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFIntensity);
  
   class KeyDest
   {
   public:
-    KeyDest() :mBSendNote(false) {}
-    KeyDest(const char *aCName, bool aBSendNote) :mSName(aCName), mBSendNote(aBSendNote) {}
-    KeyDest(const KeyDest &aKd) :mSName(aKd.mSName), mBSendNote(aKd.mBSendNote) {}
+    KeyDest() 
+      :mBSendNote(false), 
+      mBSendHits(false), 
+      mBSendContinuous(false) {}
+     KeyDest(const char *aCName, bool aBSendNote, 
+             bool aBSendHits, bool aBSendContinuous) 
+      :mSName(aCName), 
+      mBSendNote(aBSendNote), 
+      mBSendHits(aBSendHits), 
+      mBSendContinuous(aBSendContinuous) {}
+    KeyDest(const KeyDest &aKd) 
+      :mSName(aKd.mSName), 
+      mBSendNote(aKd.mBSendNote), 
+      mBSendHits(aKd.mBSendHits),
+      mBSendContinuous(aKd.mBSendContinuous) {}
     KeyDest& operator=(const KeyDest &aKd)
     {
       mSName = aKd.mSName;
       mBSendNote = aKd.mBSendNote;
+      mBSendHits = aKd.mBSendHits;
+      mBSendContinuous = aKd.mBSendContinuous;
       return *this;
     }
     virtual ~KeyDest() {}
     string mSName;
+    // send note number or just name?
     bool mBSendNote;
+    // send 'hits'?
+    bool mBSendHits;
+    // send continuous position update messages?
+    bool mBSendContinuous;
   };
 
   vector<vector<KeyDest> > mVKeyMaps;

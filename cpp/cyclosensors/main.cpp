@@ -32,6 +32,7 @@
 #include <termios.h>
 #include "lo/lo.h"
 #include <deque>
+#include <set>
 #include "cyclomap.h"
 
 using namespace std;
@@ -40,7 +41,8 @@ using namespace std;
 // global consts.
 // --------------------------------------------------------------------
 
-int gIThres = 50;
+// int gIThres = 150;
+int gIThres = 100;
 float gFGain = 1.2;     // multiply key intensity by this!
 
 // --------------------------------------------------------------------
@@ -152,7 +154,7 @@ void setupcontrolword(unsigned char adcindex, unsigned char *data)
     data[1] = 0b01000000 | (adcindex << 7);
 }
 
-int gIDequeLength = 10;
+int gIDequeLength = 5;
 int gIPrevHitCountdownStart = 500;   // was about 200 in haskell, w 580 framerate
 int gIPrevHitThres = 350;
 
@@ -160,20 +162,30 @@ class DKeySigProc
 {
 public:
   DKeySigProc()
-    :mIBase(0), mIPrevVal(0), mIPrevVel(0), mIPrevHitVal(0), mIPrevHitCountdown(0)
+    :mIBase(0), mIPrevVal(0), mIPrevVel(0),
+    mIPrevHitVal(0), mIPrevHitCountdown(0),
+    mBGotHit(false), mBGotContinuous(false)
   {
   }
+
   // add the current measure.
   // if there's a number to send, return true.
-  bool AddMeasure(int aIMeasure, float &aF)
+  void AddMeasure(int aIMeasure)
   {
     // current value over thres.
     int val = aIMeasure;
     val -= mIBase;
 
+    // got continuous value?  if over thres.
+    mBGotContinuous = val > gIThres;
+
     // store normalized against baseline.
     mDPrevs.push_front(val);
 
+    // start with assuming no hit.
+    mBGotHit = false;
+
+    // if deque isn't full, no hit.
     if (mDPrevs.size() > gIDequeLength)
     {
       mDPrevs.pop_back();
@@ -181,12 +193,11 @@ public:
     else
     {
       // wait until full count.
-      return false;
+      return;
     }
 
+    // current velocity is front of deque minus back of deque.
     int prev = mDPrevs.back();
-
-    // current velocity.
     int vel = val;
     vel -= prev;
     
@@ -209,16 +220,27 @@ public:
       {
         mIPrevHitVal = val;
         mIPrevHitCountdown = gIPrevHitCountdownStart;
-        aF = (float)val / 1024.0;
-        ret = true;
+        mBGotHit = true;
       }
-    }
+   }
 
     mIPrevVel = vel;
     mIPrevVal = val;
+  }
 
+  bool GetHitVal(float &aF)
+  {
+    if (mBGotHit)
+      aF = (float)mIPrevVal / 1024.0;
 
-    return ret;
+    return mBGotHit;
+  }
+  bool GetContinuousVal(float &aF)
+  {
+    if (mBGotContinuous)
+      aF = (float)mIPrevVal / 1024.0;
+
+    return mBGotContinuous;
   }
 
   int GetLastVal() { return mIPrevVal; }
@@ -233,6 +255,70 @@ private:
   int mIPrevHitVal;
   int mIPrevHitCountdown;
   deque<int> mDPrevs;
+
+  bool mBGotHit;
+  bool mBGotContinuous;
+};
+
+int gIDynabaseTurns = 1000;
+int gIDynabaseBandSize = 35;
+
+
+// if key goes to new steady value, then establish new baseline.
+// steady value is within X points for more than N turns.
+class DynabaseKeySig
+{
+public:
+  DynabaseKeySig()
+    :mISum(0) 
+  {
+  }
+  // add the current measure.
+  // if there's a number to send, return true.
+  bool AddMeasure(int aIMeasure, int &aINewBaseline)
+  {
+    mISum += aIMeasure;
+
+    // store raw vals
+    mDVals.push_front(aIMeasure);
+    mMsSortedVals.insert(aIMeasure);
+
+    if (mDVals.size() > gIDynabaseTurns)
+    {
+      int lI = mDVals.back();
+      mDVals.pop_back();
+      multiset<int>::iterator lIter = mMsSortedVals.find(lI);
+      mMsSortedVals.erase(lIter);
+      mISum -= lI;
+    }
+    else
+    {
+      // wait until full count.
+      return false;
+    }
+
+    // are min and max within the band?
+    if (mMsSortedVals.size() > 1 && *(mMsSortedVals.rbegin()) - *(mMsSortedVals.begin()) < gIDynabaseBandSize)
+    {
+      // new baseline is average of all vals.
+      aINewBaseline = mISum / mDVals.size();
+
+      // cout << "mDVals.size() = " << mDVals.size() << " mMsSortedVals.size() = " << mMsSortedVals.size() << endl;
+      return true;
+    }
+    else
+    {
+      // no new baseline.
+      return false;     
+    }
+    return false;
+    
+ }
+
+private:
+  int mISum;
+  deque<int> mDVals;
+  multiset<int> mMsSortedVals;
 };
 
 class KeySigProc 
@@ -292,9 +378,9 @@ public:
   }
 
   DKeySigProc mKsp;
+  DynabaseKeySig mDks;
 
   unsigned short mUsLast;
-  // unsigned short mUsBaseline;
   unsigned char mUcControlWord[2];
   const unsigned char mUcInputPin;
 };
@@ -303,7 +389,6 @@ public:
 //   when velocity stops increasing, 
 //   and value is over the threshold, 
 //   report the previous position value as a value 0.0->1.0
-
 
 class SerialReader
 {
@@ -369,14 +454,26 @@ void UpdateSensors(spidevice &aSpi,
     // if (diff > gIThres) 
     //   cout << (int)adcnumber << "\t" << (int)adcvalue << "\t" << diff << "\n";
 
+    int lIBaseline;
+    if (aIrsByPin[adcnumber]->mDks.AddMeasure(adcvalue, lIBaseline))
+    {
+      // cout << "new baseline : " << aUiKeyOffset + i << " " << lIBaseline << endl;
+
+      // set the new baseline in the KeySigProc obj.
+      aIrsByPin[adcnumber]->mKsp.SetBaseline(lIBaseline);
+
+      // cout << "value!" << lF << endl;
+    }
+
     aIrsByPin[adcnumber]->mUsLast = adcvalue;
     float lF;
-    if (aIrsByPin[adcnumber]->mKsp.AddMeasure(adcvalue, lF))
+    aIrsByPin[adcnumber]->mKsp.AddMeasure(adcvalue);
+    if (aIrsByPin[adcnumber]->mKsp.GetHitVal(lF))
     {
       if (aCm && aLoAddress)
         aCm->OnKeyHit(aLoAddress, i + aUiKeyOffset, lF);
  
-      cout << "value!" << lF << endl;
+      // cout << "value!" << lF << endl;
     }
   }
 }
@@ -386,6 +483,15 @@ void setBaselines(unsigned int aUiCount, IRSensor aIrsArray[])
   for (unsigned int i = 0; i < aUiCount; ++i)
   {
     aIrsArray[i].mKsp.SetBaseline(aIrsArray[i].mUsLast);
+  }  
+}
+
+void printBaselines(unsigned int aUiCount, IRSensor aIrsArray[])
+{
+  for (unsigned int i = 0; i < aUiCount; ++i)
+  {
+    cout << setw(4) << setfill(' ');
+    cout << aIrsArray[i].mKsp.GetBaseline() << " ";
   }  
 }
 
@@ -403,7 +509,6 @@ void printDiffs(unsigned int aUiCount, IRSensor aIrsArray[])
   for (unsigned int i = 0; i < aUiCount; ++i)
   {
     cout << setw(4) << setfill(' ');
-    // cout << aIrsArray[i].mUsLast - aIrsArray[i].mUsBaseline << " ";
     cout << aIrsArray[i].mKsp.GetLastVal() << " ";
   }  
 }
@@ -422,7 +527,8 @@ int main(int argc, const char *args[])
  
   // cout << "sensor: " << sensor << endl;
 
-  lo_address pd = lo_address_new("192.168.1.144", "8000");
+  // lo_address pd = lo_address_new("192.168.1.144", "8000");
+  lo_address pd = lo_address_new("100.100.100.193", "8000");
   CycloMap lCycloMap;
   lCycloMap.makeDefaultMap();
   lCycloMap.mFGain = gFGain;
@@ -537,11 +643,14 @@ int main(int argc, const char *args[])
 
     cout << "framerate for: " << start << ": " << lD << endl;
 
-    // printDiffs(lUi0Count, lIrsSpi0Sensors);
-    // printDiffs(lUi1Count, lIrsSpi1Sensors);
+    printBaselines(lUi0Count, lIrsSpi0Sensors);
+    printBaselines(lUi1Count, lIrsSpi1Sensors);
+    cout << endl;
+    printDiffs(lUi0Count, lIrsSpi0Sensors);
+    printDiffs(lUi1Count, lIrsSpi1Sensors);
+    cout << endl;
 
 
-    // cout << endl;
 
     // sleep(0.03);
   }
