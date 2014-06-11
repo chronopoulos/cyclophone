@@ -1,0 +1,9 @@
+TargetIpAddress 192.168.1.145
+TargetPort 8000
+Thres 35
+Gain 1.2
+DequeLength 5
+PrevHitThres 350
+PrevHitCountdownStart 100
+DynabaseTurns 1000
+DynabaseBandSize 35

@@ -42,6 +42,9 @@ using namespace std;
 // global consts.
 // --------------------------------------------------------------------
 
+string gSTargetIpAddress = "127.0.0.1";     // address of sound server
+string gSTargetPort = "8000";          // port of sound server
+
 int gIThres = 35;
 float gFGain = 1.2;     // multiply key intensity by this!
 
@@ -57,6 +60,8 @@ int gIDynabaseBandSize = 35;
 
 void WriteSettings(ostream &aOs)
 {
+  aOs << "TargetIpAddress" << " " << gSTargetIpAddress << endl;
+  aOs << "TargetPort" << " " << gSTargetPort << endl;
   aOs << "Thres" << " " << gIThres << endl; 
   aOs << "Gain" << " " << gFGain << endl; 
   aOs << "DequeLength" << " " << gIDequeLength << endl; 
@@ -68,6 +73,16 @@ void WriteSettings(ostream &aOs)
 
 void UpdateSetting(string aSName, string aSVal)
 {
+  if (aSName == "TargetIpAddress")
+  {
+    gSTargetIpAddress = aSVal; 
+    return;
+  }
+  if (aSName == "TargetPort")
+  {
+    gSTargetPort = aSVal;
+    return;
+  }
   if (aSName == "Thres")
   {
     gIThres = atoi(aSVal.c_str());
@@ -564,8 +579,7 @@ int main(int argc, const char *args[])
  
   // cout << "sensor: " << sensor << endl;
 
-  lo_address pd = lo_address_new("192.168.1.145", "8000");
-  // lo_address pd = lo_address_new("100.100.100.193", "8000");
+  lo_address pd = lo_address_new(gSTargetIpAddress.c_str(), gSTargetPort.c_str());
   CycloMap lCycloMap;
   lCycloMap.makeDefaultMap();
   lCycloMap.mFGain = gFGain;
