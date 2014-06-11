@@ -22,6 +22,7 @@
 #include "spidevice.h"
 #include <stdio.h>
 #include <sstream>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 
@@ -41,37 +42,86 @@ using namespace std;
 // global consts.
 // --------------------------------------------------------------------
 
-int gIThres = 25;
+int gIThres = 35;
 float gFGain = 1.2;     // multiply key intensity by this!
+
+// deque length for determining velocity (current val - last in deque)
+int gIDequeLength = 5;
+// secondary peak elimination 
+int gIPrevHitCountdownStart = 100;   // was about 200 in haskell, w 580 framerate
+int gIPrevHitThres = 350;
+
+// 'dynabase' parms.
+int gIDynabaseTurns = 1000;
+int gIDynabaseBandSize = 35;
+
+void WriteSettings(ostream &aOs)
+{
+  aOs << "Thres" << " " << gIThres << endl; 
+  aOs << "Gain" << " " << gFGain << endl; 
+  aOs << "DequeLength" << " " << gIDequeLength << endl; 
+  aOs << "PrevHitThres" << " " << gIPrevHitThres << endl; 
+  aOs << "PrevHitCountdownStart" << " " << gIPrevHitCountdownStart << endl; 
+  aOs << "DynabaseTurns" << " " << gIDynabaseTurns << endl; 
+  aOs << "DynabaseBandSize" << " " << gIDynabaseBandSize << endl; 
+}
+
+void UpdateSetting(string aSName, string aSVal)
+{
+  if (aSName == "Thres")
+  {
+    gIThres = atoi(aSVal.c_str());
+    return;
+  }
+  if (aSName == "Gain")
+  {
+    gFGain = atof(aSVal.c_str());
+    return;
+  }
+  if (aSName == "DequeLength")
+  {
+    gIDequeLength = atoi(aSVal.c_str());
+    return;
+  }
+  if (aSName == "PrevHitThres")
+  {
+    gIPrevHitThres = atoi(aSVal.c_str());
+    return;
+  }
+  if (aSName == "PrevHitCountdownStart")
+  {
+    gIPrevHitCountdownStart = atoi(aSVal.c_str());
+    return;
+  }
+  if (aSName == "DynabaseTurns")
+  {
+    gIDynabaseTurns = atoi(aSVal.c_str());
+    return;
+  }
+  if (aSName == "DynabaseBandSize")
+  {
+    gIDynabaseBandSize = atoi(aSVal.c_str());
+    return;
+  }
+}
+
+void ReadSettings(istream &aIs)
+{
+  while (!aIs.eof())
+  {
+    string lSName, lSVal;
+    aIs >> lSName >> lSVal;
+    
+    UpdateSetting(lSName, lSVal);
+  }
+}
 
 // --------------------------------------------------------------------
 
-// int main(int argc,char** argv)
 int openserial(const char *aCSerial) 
 {
   struct termios tio;
   int tty_fd;
-
-  // unsigned char c='D';
-
-  // printf("Please start with %s /dev/ttyS1 (for example)\n",argv[0]);
-  /*
-  struct termios stdio;
-  struct termios old_stdio;
-  
-  tcgetattr(STDOUT_FILENO,&old_stdio);
-  memset(&stdio,0,sizeof(stdio));
-  stdio.c_iflag=0;
-  stdio.c_oflag=0;
-  stdio.c_cflag=0;
-  stdio.c_lflag=0;
-  stdio.c_cc[VMIN]=1;
-  stdio.c_cc[VTIME]=0;
-  tcsetattr(STDOUT_FILENO,TCSANOW,&stdio);
-  tcsetattr(STDOUT_FILENO,TCSAFLUSH,&stdio);
-  // make the reads non-blocking
-  fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);       
-  */
 
   memset(&tio,0,sizeof(tio));
   tio.c_iflag=0;
@@ -91,25 +141,6 @@ int openserial(const char *aCSerial)
   return tty_fd;       
 }
  
-/*
-        printf("hit 'q' to x-it");
-        while (c!='q')
-        {
-            // if new data is available on the serial port, print it out
-            if (read(tty_fd,&c,1)>0)
-              write(STDOUT_FILENO,&c,1);              
-            // if new data is available on the console, send it to the serial port
-            // if (read(STDIN_FILENO,&c,1)>0)  write(tty_fd,&c,1);
-            printf("blah");
-        }
- 
-        close(tty_fd);
-        tcsetattr(STDOUT_FILENO,TCSANOW,&old_stdio);
- 
-        return EXIT_SUCCESS;
-}
-*/
-
 //assumes little endian
 void printBits(void const * const ptr, size_t const size)
 {
@@ -152,10 +183,6 @@ void setupcontrolword(unsigned char adcindex, unsigned char *data)
     // first digit is least sig. bit of adc index.
     data[1] = 0b01000000 | (adcindex << 7);
 }
-
-int gIDequeLength = 5;
-int gIPrevHitCountdownStart = 500;   // was about 200 in haskell, w 580 framerate
-int gIPrevHitThres = 350;
 
 class DKeySigProc 
 {
@@ -214,9 +241,11 @@ public:
           mIPrevHitVal - val > gIPrevHitThres)
       {
         // reject! 
+        // cout << "rejected: " << val << " " << mIPrevHitVal << " " << mIPrevHitCountdown << endl;
       }
       else
       {
+        // cout << "accepted: " << val << " " << mIPrevHitVal << " " << mIPrevHitCountdown << endl;
         mIPrevHitVal = val;
         mIPrevHitCountdown = gIPrevHitCountdownStart;
         mBGotHit = true;
@@ -258,10 +287,6 @@ private:
   bool mBGotHit;
   bool mBGotContinuous;
 };
-
-int gIDynabaseTurns = 1000;
-int gIDynabaseBandSize = 35;
-
 
 // if key goes to new steady value, then establish new baseline.
 // steady value is within X points for more than N turns.
@@ -515,6 +540,19 @@ void printDiffs(unsigned int aUiCount, IRSensor aIrsArray[])
 int main(int argc, const char *args[])
 {
   // cout << "argc: " << argc << endl;
+
+  // read settings file
+
+  ifstream lIfs("sensorsettings.txt");
+  if (lIfs.is_open())
+  {
+    ReadSettings(lIfs);
+  }
+  else
+  {
+    ofstream lOfs("sensorsettings.txt");
+    WriteSettings(lOfs);
+  }
 
   int sensor = 0;
 

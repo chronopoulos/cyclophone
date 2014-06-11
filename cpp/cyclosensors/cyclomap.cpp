@@ -40,6 +40,7 @@ void CycloMap::OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity
   }
   else
   {
+    // cout << "sending: key " << aIKeyIndex << " intensity " << aFIntensity << endl;
     lo_send(aLoAddress, 
       mVKeyMaps[mIKeyMap][aIKeyIndex].mSName.c_str(), "f", aFIntensity);
   }
