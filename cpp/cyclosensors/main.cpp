@@ -41,8 +41,7 @@ using namespace std;
 // global consts.
 // --------------------------------------------------------------------
 
-// int gIThres = 150;
-int gIThres = 100;
+int gIThres = 25;
 float gFGain = 1.2;     // multiply key intensity by this!
 
 // --------------------------------------------------------------------
@@ -527,8 +526,8 @@ int main(int argc, const char *args[])
  
   // cout << "sensor: " << sensor << endl;
 
-  // lo_address pd = lo_address_new("192.168.1.144", "8000");
-  lo_address pd = lo_address_new("100.100.100.193", "8000");
+  lo_address pd = lo_address_new("192.168.1.145", "8000");
+  // lo_address pd = lo_address_new("100.100.100.193", "8000");
   CycloMap lCycloMap;
   lCycloMap.makeDefaultMap();
   lCycloMap.mFGain = gFGain;
