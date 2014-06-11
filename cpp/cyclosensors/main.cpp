@@ -205,7 +205,8 @@ public:
   DKeySigProc()
     :mIBase(0), mIPrevVal(0), mIPrevVel(0),
     mIPrevHitVal(0), mIPrevHitCountdown(0),
-    mBGotHit(false), mBGotContinuous(false)
+    mBGotHit(false), mBGotContinuous(false),
+    mBThresCrossed(true)
   {
   }
 
@@ -217,8 +218,16 @@ public:
     int val = aIMeasure;
     val -= mIBase;
 
-    // got continuous value?  if over thres.
-    mBGotContinuous = val > gIThres;
+    if (val > gIThres)
+    {
+      // got continuous value?  if over thres.
+      mBGotContinuous = val > gIThres;
+    }
+    else
+    {
+      // if under thres, then reset the zero-crossed flag.
+      mBThresCrossed = val < gIThres;
+    }
 
     // store normalized against baseline.
     mDPrevs.push_front(val);
@@ -237,17 +246,22 @@ public:
       return;
     }
 
-    // current velocity is front of deque minus back of deque.
-    int prev = mDPrevs.back();
-    int vel = val;
-    vel -= prev;
-    
     bool ret = false;
     if (mIPrevHitCountdown > 0)
     { 
       --mIPrevHitCountdown;
     }
-    // if (val > gIThres)
+
+    // we don't allow any hits until zero is crossed.  
+    if (!mBThresCrossed)
+      return;
+
+    // current velocity is front of deque minus back of deque.
+    int prev = mDPrevs.back();
+    int vel = val;
+    vel -= prev;
+    
+   // if (val > gIThres)
     if (vel <=0 && mIPrevVel > 0 && val > gIThres)
     {
       //   logic for rejection based on 'prevhit'.  
@@ -264,6 +278,8 @@ public:
         mIPrevHitVal = val;
         mIPrevHitCountdown = gIPrevHitCountdownStart;
         mBGotHit = true;
+        // will stay false until value goes under thres.
+        mBThresCrossed = false;
       }
    }
 
@@ -301,6 +317,8 @@ private:
 
   bool mBGotHit;
   bool mBGotContinuous;
+
+  bool mBThresCrossed;
 };
 
 // if key goes to new steady value, then establish new baseline.
