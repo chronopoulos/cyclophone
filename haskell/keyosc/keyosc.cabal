@@ -20,8 +20,8 @@ executable keyosc
   main-is:            keyosc.hs
   hs-source-dirs:     src
   other-modules:      Spidev, Scales, CycloMap
-  --extra-lib-dirs:      /home/bburdette/code/cyclophone/keyosc/C
-  extra-lib-dirs:      /home/ccrma/cyclophone/keyosc/C
+  --extra-lib-dirs:      /home/bburdette/code/cyclophone/haskell/keyosc/C
+  extra-lib-dirs:      /home/ccrma/cyclophone/haskell/keyosc/C
   extra-libraries:     spidevice
   -- other-extensions:    
   build-depends:       base, 
