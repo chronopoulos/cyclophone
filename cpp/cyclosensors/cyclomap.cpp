@@ -3,7 +3,151 @@
 #include <string.h>
 #include <stdlib.h>
 
-void CycloMap::PrintScale(int aIScale)
+// --------------------------------------------------------------------
+
+void BasicMap::OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity)
+{
+  if (!mBSendHits)
+    return;
+
+  aFIntensity *= mFGain;
+  if (aFIntensity > 1.0)
+    aFIntensity = 1.0;
+
+  lo_send(aLoAddress, "keyh", "if", aIKeyIndex, aFIntensity);
+}
+
+void BasicMap::OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFIntensity)
+{
+  if (!mBSendContinuous)
+    return;
+
+  aFIntensity *= mFGain;
+  if (aFIntensity > 1.0)
+    aFIntensity = 1.0;
+
+  lo_send(aLoAddress, "keyc", "if", aIKeyIndex, aFIntensity);
+}
+
+void BasicMap::OnArduinoCommand(const char *aC, lo_address aLoAddress)
+{
+  int lINob(0);
+  float lF(0.0);
+  int len = strlen(aC);
+  if (len < 2)
+    return;
+
+  // 3 analog knobs, 3 arcade buttons, 1 5-way switch.
+
+
+  switch (aC[0])
+  {
+  case '#':
+    {
+      // Its one of the knobs.
+      if (len < 3)
+        return;
+
+      // parse the rest of the string as a number.
+      lINob = atoi(aC+2);
+      lF = lINob;
+      lF /= 1024.0;
+
+      int lIKnobIndex = -1;
+      switch (aC[1])
+      {
+         case 'A':
+            lIKnobIndex = 0;
+            break;
+         case 'B':
+            lIKnobIndex = 1;
+            break;
+         case 'C':
+            lIKnobIndex = 2;
+            break;
+         default:
+            return;   // invalid.
+      }
+
+      lo_send(aLoAddress, "/knob", "if", lIKnobIndex, lF);
+      break;
+    }
+  case '$':
+    {
+      // its the center switch.
+      int lIPos = -1;
+      switch (aC[1])
+      {
+      case 'a':
+        lIPos = 0;
+        break;
+      case 'b':
+        lIPos = 1;
+        break;
+      case 'c':
+        lIPos = 2;
+        break;
+      case 'd':
+        lIPos = 3;
+        break;
+      case 'e':
+        lIPos = 4;
+        break;
+      default:
+        return;  // invalid.
+      }
+      lo_send(aLoAddress, "/switch", "i", lIPos);
+      break;
+    }
+  case '@':
+    {
+      int lIButton;
+      int lIOn;
+      // its a button.
+      switch (aC[1])
+      {
+      case 'a':
+        lIButton = 0;
+        lIOn = 1;
+        break;
+      case 'A':
+        lIButton = 0;
+        lIOn = 0;
+        break;
+      case 'b':
+        lIButton = 1;
+        lIOn = 1;
+        break;
+      case 'B':
+        lIButton = 1;
+        lIOn = 0;
+        break;
+      case 'c':
+        lIButton = 2;
+        lIOn = 1;
+        break;
+      case 'C':
+        lIButton = 2;
+        lIOn = 0;
+        break;
+     default:
+        return;
+      }
+      
+      lo_send(aLoAddress, "/button", "ii", lIButton, lIOn);
+      break;
+    }
+  default:
+    break;
+  }
+}
+
+
+// --------------------------------------------------------------------
+// PdMap.
+// --------------------------------------------------------------------
+
+void PdMap::PrintScale(int aIScale)
 {
     cout << "Scale " << aIScale << ": ";
     for (int lI = 0; lI < mVScales[aIScale].size(); ++lI)
@@ -23,7 +167,7 @@ int CalcNote(int aIKeyIndex, const vector<int> &aVScale)
   return floor * 12 + aVScale[rem];
 }
 
-void CycloMap::OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity)
+void PdMap::OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity)
 {
   aFIntensity *= mFGain;
   if (aFIntensity > 1.0)
@@ -46,7 +190,7 @@ void CycloMap::OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity
   }
 }
 
-void CycloMap::OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFIntensity)
+void PdMap::OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFIntensity)
 {
   aFIntensity *= mFGain;
   if (aFIntensity > 1.0)
@@ -68,7 +212,7 @@ void CycloMap::OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFInten
   }
 }
 
-void CycloMap::ArduinoCommand(const char *aC, lo_address aLoAddress)
+void PdMap::OnArduinoCommand(const char *aC, lo_address aLoAddress)
 {
   int lINob(0);
   float lF(0.0);
@@ -157,7 +301,7 @@ void CycloMap::ArduinoCommand(const char *aC, lo_address aLoAddress)
   return;
 }
 
-void CycloMap::makeDefaultMap()
+void PdMap::makeDefaultMap()
 {
   mVKeyMaps.clear();
   vector<KeyDest> lV;
@@ -224,14 +368,3 @@ void CycloMap::makeDefaultMap()
 
  }
 
-/*
-void CycloMap::WriteToStream(ostream &aOs)
-{
-  aOs << "keymaps" << endl;
-  aOs << mVKeyMaps << endl;
-  aOs << "scales" << endl;
-  aOs << mVScales;
-  aOs << "scale" << mIScale << endl;
-  aOs << "start" << mIStartNote << endl;
-}
-*/

@@ -8,10 +8,44 @@
 
 using namespace std;
 
+// abstract class, ancestor of maps.
 class CycloMap
 {
 public:
-  CycloMap()
+
+  virtual void SetGain(float aF) = 0;
+
+  virtual void OnArduinoCommand(const char *aC, lo_address aLoAddress) = 0;
+  virtual void OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity) = 0;
+  virtual void OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFIntensity) = 0;
+};
+
+// map that just sends the key messages and button/knob messages, 
+// no interpretation, no modes or scales. 
+class BasicMap : public CycloMap
+{
+public:
+  BasicMap()
+  :mFGain(1.0), mBSendHits(true), mBSendContinuous(false)
+  {} 
+
+  void SetGain(float aF) { mFGain = aF; } 
+  
+  float mFGain;
+
+  bool mBSendHits;
+  bool mBSendContinuous;
+  
+  void OnArduinoCommand(const char *aC, lo_address aLoAddress);
+  void OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity);
+  void OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFIntensity);
+};
+
+// Map for the PD patch used at apo 2014, maker faire, etc.
+class PdMap : public CycloMap
+{
+public:
+  PdMap()
   :mIKeyMap(0), 
   mIScale(0), 
   mIBottomStart(0),
@@ -22,10 +56,11 @@ public:
     makeDefaultMap();
   }
 
+  void SetGain(float aF) { mFGain = aF; } 
+  
   void PrintScale(int aIScale); 
 
-  void ArduinoCommand(const char *aC, lo_address aLoAddress);
-
+  void OnArduinoCommand(const char *aC, lo_address aLoAddress);
   void OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity);
   void OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFIntensity);
  

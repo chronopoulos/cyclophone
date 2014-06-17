@@ -58,6 +58,9 @@ int gIPrevHitThres = 350;
 int gIDynabaseTurns = 1000;
 int gIDynabaseBandSize = 35;
 
+// PdMap or BasicMap
+string gSMapType = "BasicMap";
+
 void WriteSettings(ostream &aOs)
 {
   aOs << "TargetIpAddress" << " " << gSTargetIpAddress << endl;
@@ -69,6 +72,7 @@ void WriteSettings(ostream &aOs)
   aOs << "PrevHitCountdownStart" << " " << gIPrevHitCountdownStart << endl; 
   aOs << "DynabaseTurns" << " " << gIDynabaseTurns << endl; 
   aOs << "DynabaseBandSize" << " " << gIDynabaseBandSize << endl; 
+  aOs << "MapType" << " " << gSMapType << endl;
 }
 
 void UpdateSetting(string aSName, string aSVal)
@@ -116,6 +120,11 @@ void UpdateSetting(string aSName, string aSVal)
   if (aSName == "DynabaseBandSize")
   {
     gIDynabaseBandSize = atoi(aSVal.c_str());
+    return;
+  }
+  if (aSName == "MapType")
+  {
+    gSMapType = aSVal;
     return;
   }
 }
@@ -579,12 +588,18 @@ int main(int argc, const char *args[])
  
   // cout << "sensor: " << sensor << endl;
 
-  lo_address pd = lo_address_new(gSTargetIpAddress.c_str(), gSTargetPort.c_str());
-  CycloMap lCycloMap;
-  lCycloMap.makeDefaultMap();
-  lCycloMap.mFGain = gFGain;
+  lo_address lotarget = lo_address_new(gSTargetIpAddress.c_str(), gSTargetPort.c_str());
+  CycloMap *lCycloMap;
+  if (gSMapType == "PdMap")
+  {
+    lCycloMap = new PdMap; 
+  }
+  else
+  {
+    lCycloMap = new BasicMap;
+  }
 
-  // lCycloMap.NoteTest();
+  lCycloMap->SetGain(gFGain);
 
   spidevice lSpi0("/dev/spidev0.0", SPI_MODE_0, 20000000, 8);
   spidevice lSpi1("/dev/spidev0.1", SPI_MODE_0, 20000000, 8);
@@ -667,8 +682,10 @@ int main(int argc, const char *args[])
     for (int count = start; count > 0; --count)
     {
       // sleep(.2);
-      UpdateSensors(lSpi0, lUi0Count, 0, lIrsSpi0Sensors, lIrsSpi0ByPin,pd,&lCycloMap);
-      UpdateSensors(lSpi1, lUi1Count, lUi0Count, lIrsSpi1Sensors, lIrsSpi1ByPin,pd,&lCycloMap);
+      UpdateSensors(lSpi0, lUi0Count, 0, lIrsSpi0Sensors, lIrsSpi0ByPin,
+        lotarget,lCycloMap);
+      UpdateSensors(lSpi1, lUi1Count, lUi0Count, lIrsSpi1Sensors, lIrsSpi1ByPin,
+        lotarget,lCycloMap);
 
       // try reading from the serial port each time.
       while (read(tty_fd,&c,1)>0)
@@ -678,7 +695,7 @@ int main(int argc, const char *args[])
         // add char to command.
         if (lSr.AddChar(c))
         {
-          lCycloMap.ArduinoCommand(lSr.GetCommand(), pd);
+          lCycloMap->OnArduinoCommand(lSr.GetCommand(), lotarget);
           cout << "arduino command received: " << lSr.GetCommand() << endl;
         }
       }
@@ -700,10 +717,6 @@ int main(int argc, const char *args[])
     printDiffs(lUi0Count, lIrsSpi0Sensors);
     printDiffs(lUi1Count, lIrsSpi1Sensors);
     cout << endl;
-
-
-
-    // sleep(0.03);
   }
 
   return 0;
