@@ -6,7 +6,7 @@ import Control.Monad
 import Control.Monad.Fix
 import Sound.SC3
 import qualified Sound.OSC.FD as OSC
-
+import qualified Sound.SC3.Server.Command.Float as F
 import qualified Data.Map as M
 import qualified Data.Set as S
 
@@ -17,11 +17,17 @@ import Treein
 
 -- make a synth from the sample..  'graph' type.
 -- actually is synthdef?
-makeSynth fname bufno =
+
+readBuf fname bufno = 
   withSC3 (do
-    async (b_allocRead bufno fname 0 0)
-    return $ synth (out 0 ((playBuf 1 AR (constant bufno) 1.0 1 0 NoLoop RemoveSynth) * (control KR "amp" 0.5)))
-    )
+    async (b_allocRead bufno fname 0 0))
+
+makeSynth bufno = 
+    synth (out 0 ((playBuf 1 AR (constant bufno) 1.0 1 0 NoLoop RemoveSynth) 
+                  * (control KR (show bufno ++ "amp") 0.5)))
+
+-- get the node ID of the synth, to use for adjustment messages.
+
 
 stopp = 
  withSC3 (do {reset
@@ -40,10 +46,10 @@ fn2on rootdir oscprefix fname =
 
 loadSample :: String -> String -> Int -> IO (String, SampleStuff)
 loadSample filename oscname bufno = do
-  synth <- makeSynth filename bufno
-  return (oscname, SampleStuff synth bufno)
+  readBuf filename bufno
+  return (oscname, SampleStuff (makeSynth bufno) bufno)
 
-newtype SynthMap = Synthmap (M.Map String SampleStuff)
+-- newtype SynthMap = Synthmap (M.Map String SampleStuff)
 
 synthmap :: [String] -> String -> String -> IO (M.Map String SampleStuff)
 synthmap filenames rootdir oscprefix = do
@@ -51,7 +57,6 @@ synthmap filenames rootdir oscprefix = do
                             loadSample fname (fn2on rootdir oscprefix fname) bufno)
                          (zip filenames [0..]))
   return $ M.fromList leest
-
 
 main = do 
  args <- getArgs
@@ -82,11 +87,10 @@ main = do
 --    1) send volume adjustment (to zero) or cancel playback.
 --    2) make the key inactive.
 data SoundState = SoundState {
-  soundchannels :: S.Set String
+  activeKeys :: S.Set Int
   }
 
-{-
-startoscloop :: String -> Int -> M.Map String Mix.Chunk -> SoundState -> IO ()
+startoscloop :: String -> Int -> M.Map String SampleStuff -> SoundState -> IO ()
 startoscloop ip port soundmap soundstate = do
   OSC.withTransport (OSC.udpServer ip port) (oscloop soundmap soundstate)
     
@@ -100,54 +104,84 @@ oscloop soundmap soundstate fd = do
     Nothing -> 
       oscloop soundmap soundstate fd
 
+-- key, knob, or button index.
+getoscindex :: OSC.Message -> Maybe Int
+getoscindex msg = 
+  let lst = OSC.messageDatum msg
+    in case lst of
+      ((OSC.Int32 x):xs) -> Just $ fromIntegral x
+      _ -> Nothing
+
 -- expecting 0 to 1.0
 getoscamt :: OSC.Message -> Maybe Float
 getoscamt msg = 
   let lst = OSC.messageDatum msg
     in case lst of
-      ((OSC.Float x):xs) -> Just x
+      (_ : (OSC.Float x):xs) -> Just x
       _ -> Nothing
 
-computevolume :: Float -> Int
-computevolume fl = 
-  if fl < 0 
-    then 0
-    else if fl > 1.0 
-      then 128
-      else floor (fl * 128.0)
-  
+-- for key index, get sound. 
+getsound :: Maybe Int -> M.Map String SampleStuff -> Maybe (String, SampleStuff)
+getsound (Just index) soundmap =
+  if ((M.size soundmap) == 0) then 
+    Nothing
+  else
+    Just $ M.elemAt (rem index (M.size soundmap)) soundmap 
+getsound Nothing _ = Nothing
+
+
+-- if its a key, look up synth using the key index.
+-- is this something that changes during the program?
+-- ultimately how should it work?
+--    turning knobs and stuff should change the available sounds.  duh.
+--    for samples, have a directory of directories.  each directory is a bank of sounds.
+--    assoc sounds with pitches?
+--    one way, have index file in directory.
+--    or, just go alpha
+--    or, name the sounds according to their notes.
+--    another way, have a big index file that maps to sounds that could be anywhere.
+--    or local to the dir where the index is.  
+--    could have multiple index files for different things.  don't have to move samples
+--    and, can reuse samples.  
+-- could use graph specification in configs??
+
+
+-- if its not a key, do something else, for now ignore.  
+
 -- if sound does not exist and volume is positive, create a channel playing the sound at the given volume.
 -- if sound exists and volume is positive, change the volume.
 -- if sound exists and volume is zero, fade it and remove from soundstate.
-onoscmessage :: M.Map String Mix.Chunk -> SoundState -> OSC.Message -> IO SoundState
+onoscmessage :: M.Map String SampleStuff -> SoundState -> OSC.Message -> IO SoundState
 onoscmessage soundmap soundstate msg = do
   -- print msg
-  let soundname = OSC.messageAddress msg 
-      sound = M.lookup soundname soundmap
-      chan = getSoundChan soundstate soundname
-      amt = getoscamt msg 
-   in case (sound, chan, amt) of 
-    (Just s, Just c, Just a) -> 
+  let msgtext = OSC.messageAddress msg 
+      idx = getoscindex msg 
+      amt = getoscamt msg
+      sound = getsound idx soundmap
+   in case (msgtext, idx, amt, sound) of 
+    ("keyc", Just i, Just a, Just (name, sstuff)) -> 
      if (a > 0.0) 
-      then do
-        -- print $ "setvol: " ++ (show (computevolume a))
-        Mix.volume c (computevolume a)
-        return soundstate
-      else do
-        -- print $ "fadeout "
-        -- Mix.fadeOutChannel c 250
-        Mix.haltChannel c 
-        return $ removeSoundChan soundstate soundname
-    (Just s, Nothing, Just a) -> 
-      if (a > 0.0)
-        then do
-          chan <- Mix.playChannel anyChannel s 0
-          -- print $ "playchan, setvol: " ++ (show (computevolume a))
-          Mix.volume chan (computevolume a)
-          return $ addSoundChan soundstate soundname chan
+      then 
+        if (S.member i (activeKeys soundstate)) then
+          do
+            -- set the volume.
+            withSC3 (send (F.n_set1 (-1) (show (s_bufId sstuff) ++ "amp") a))
+            -- no change to soundstate.
+            return soundstate
         else
-          return soundstate
-    (Nothing, _, _) -> 
+          do 
+            -- set the volume.
+            withSC3 (send (F.n_set1 (-1) (show (s_bufId sstuff) ++ "amp") a))
+            -- start sample.
+            withSC3 (play (s_synth sstuff))
+            -- add to active keys.
+            return $ soundstate { activeKeys = (S.insert i (activeKeys soundstate)) }
+      else do
+        -- set volume to zero, and/or stop playback.
+        withSC3 (send (F.n_set1 (-1) (show (s_bufId sstuff) ++ "amp") a))
+        -- remove key from active set.
+        return $ soundstate { activeKeys = (S.delete i (activeKeys soundstate)) }
+    (_,_,_,_) -> 
+      -- for anything else, ignore.
       return soundstate
 
--}
