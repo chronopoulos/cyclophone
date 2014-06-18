@@ -26,7 +26,7 @@ class BasicMap : public CycloMap
 {
 public:
   BasicMap()
-  :mFGain(1.0), mBSendHits(true), mBSendContinuous(false)
+  :mFGain(1.0), mBSendHits(false), mBSendContinuous(true)
   {} 
 
   void SetGain(float aF) { mFGain = aF; } 
