@@ -21,6 +21,7 @@ public:
   virtual void OnArduinoCommand(const char *aC, lo_address aLoAddress) = 0;
   virtual void OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity) = 0;
   virtual void OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFIntensity) = 0;
+  virtual void OnKeyEnd(lo_address aLoAddress, int aIKeyIndex) = 0;
 };
 
 // map that just sends the key messages and button/knob messages, 
@@ -29,7 +30,7 @@ class BasicMap : public CycloMap
 {
 public:
   BasicMap()
-  :mBSendHits(false), mBSendContinuous(true)
+  :mBSendHits(false), mBSendContinuous(true), mBSendEnds(true)
   {} 
 
   //void SetGain(float aF) { mFGain = aF; } 
@@ -38,10 +39,12 @@ public:
  
   bool mBSendHits;
   bool mBSendContinuous;
+  bool mBSendEnds;
   
   void OnArduinoCommand(const char *aC, lo_address aLoAddress);
   void OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity);
   void OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFIntensity);
+  void OnKeyEnd(lo_address aLoAddress, int aIKeyIndex);
 };
 
 // Map for the PD patch used at apo 2014, maker faire, etc.
@@ -63,6 +66,7 @@ public:
   void OnArduinoCommand(const char *aC, lo_address aLoAddress);
   void OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity);
   void OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFIntensity);
+  void OnKeyEnd(lo_address aLoAddress, int aIKeyIndex) {}
  
   class KeyDest
   {

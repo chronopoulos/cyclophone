@@ -29,6 +29,15 @@ void BasicMap::OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFInten
   lo_send(aLoAddress, "keyc", "if", aIKeyIndex, aFIntensity);
 }
 
+void BasicMap::OnKeyEnd(lo_address aLoAddress, int aIKeyIndex)
+{
+  if (!mBSendEnds)
+    return;
+
+  lo_send(aLoAddress, "keye", "i", aIKeyIndex);
+}
+
+
 void BasicMap::OnArduinoCommand(const char *aC, lo_address aLoAddress)
 {
   int lINob(0);
@@ -51,7 +60,7 @@ void BasicMap::OnArduinoCommand(const char *aC, lo_address aLoAddress)
       // parse the rest of the string as a number.
       lINob = atoi(aC+2);
       lF = lINob;
-      lF /= 1024.0;
+      lF /= 1023.0;
 
       int lIKnobIndex = -1;
       switch (aC[1])
@@ -232,7 +241,7 @@ void PdMap::OnArduinoCommand(const char *aC, lo_address aLoAddress)
     // parse the rest of the string as a number.
     lINob = atoi(aC+2);
     lF = lINob;
-    lF /= 1024.0;
+    lF /= 1023.0;
 
     switch (aC[1])
     {

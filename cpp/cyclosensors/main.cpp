@@ -63,6 +63,7 @@ string gSMapType = "BasicMap";
 
 bool gBSendHits = true;
 bool gBSendContinuous = false;
+bool gBSendEnds = false;
 
 void WriteSettings(ostream &aOs)
 {
@@ -77,6 +78,7 @@ void WriteSettings(ostream &aOs)
   aOs << "DynabaseBandSize" << " " << gIDynabaseBandSize << endl; 
   aOs << "SendHits" << " " << gBSendHits << endl;
   aOs << "SendContinuous" << " " << gBSendContinuous << endl;
+  aOs << "SendEnds" << " " << gBSendEnds << endl;
   aOs << "MapType" << " " << gSMapType << endl;
 }
 
@@ -135,6 +137,11 @@ void UpdateSetting(string aSName, string aSVal)
   if (aSName == "SendContinuous")
   {
     gBSendContinuous = atoi(aSVal.c_str());
+    return;
+  }
+  if (aSName == "SendEnds")
+  {
+    gBSendEnds = atoi(aSVal.c_str());
     return;
   }
   if (aSName == "MapType")
@@ -229,8 +236,8 @@ public:
   DKeySigProc()
     :mIBase(0), mIPrevVal(0), mIPrevVel(0),
     mIPrevHitVal(0), mIPrevHitCountdown(0),
-    mBGotHit(false), mBGotContinuous(false),
-    mBThresCrossed(true)
+    mBGotHit(false), mBOverThres(false), mBGotEnd(false),
+    mBHitAllowed(true)
   {
   }
 
@@ -242,12 +249,17 @@ public:
     int val = aIMeasure;
     val -= mIBase;
 
-    // got continuous value?  if over thres.
-    mBGotContinuous = val > gIThres;
+    bool lBOverThres = val > gIThres;
+
+    // if it was over thre, but now its not, then 'got end'
+    // ie end of a period of over-threshold-ness
+    mBGotEnd = !lBOverThres && mBOverThres;
+
+    mBOverThres = lBOverThres; 
     // if under thres, then thres crossed.
-    if (!mBGotContinuous)
-      mBThresCrossed = true;
-    // but if not crossed, do nothing.
+    if (!mBOverThres)
+      mBHitAllowed = true;
+    // but if over thres, don't update. 
 
     // store normalized against baseline.
     mDPrevs.push_front(val);
@@ -273,7 +285,7 @@ public:
     }
 
     // we don't allow any hits until zero is crossed.  
-    if (!mBThresCrossed)
+    if (!mBHitAllowed)
       return;
 
     // current velocity is front of deque minus back of deque.
@@ -299,7 +311,7 @@ public:
         mIPrevHitCountdown = gIPrevHitCountdownStart;
         mBGotHit = true;
         // will stay false until value goes under thres.
-        mBThresCrossed = false;
+        mBHitAllowed = false;
       }
    }
 
@@ -307,20 +319,21 @@ public:
     mIPrevVal = val;
   }
 
-  bool GetHitVal(float &aF)
+  inline bool GetHitVal(float &aF)
   {
     if (mBGotHit)
-      aF = (float)mIPrevVal / 1024.0;
+      aF = (float)mIPrevVal / 1023.0;
 
     return mBGotHit;
   }
-  bool GetContinuousVal(float &aF)
+  inline bool GetContinuousVal(float &aF)
   {
-    if (mBGotContinuous)
-      aF = (float)mIPrevVal / 1024.0;
+    if (mBOverThres)
+      aF = (float)mIPrevVal / 1023.0;
 
-    return mBGotContinuous;
+    return mBOverThres;
   }
+  inline bool GetEnd() { return mBGotEnd; }
 
   int GetLastVal() { return mIPrevVal; }
   
@@ -336,9 +349,10 @@ private:
   deque<int> mDPrevs;
 
   bool mBGotHit;
-  bool mBGotContinuous;
+  bool mBOverThres;
+  bool mBGotEnd;
 
-  bool mBThresCrossed;
+  bool mBHitAllowed;
 };
 
 // if key goes to new steady value, then establish new baseline.
@@ -435,7 +449,7 @@ bool KeySigProc::AddMeasure(int aIMeasure, float &aF)
   // if (val > gIThres)
   if (vel <=0 && mIPrevVel > 0 && val > gIThres)
   {
-    aF = (float)val / 1024.0;
+    aF = (float)val / 1023.0;
     ret = true;
   }
 
@@ -559,6 +573,15 @@ void UpdateSensors(spidevice &aSpi,
  
       // cout << "value!" << lF << endl;
     }
+    if (aIrsByPin[adcnumber]->mKsp.GetEnd())
+    {
+      if (aCm && aLoAddress)
+        aCm->OnKeyEnd(aLoAddress, i + aUiKeyOffset);
+
+      cout << "end!" << endl;
+ 
+      // cout << "value!" << lF << endl;
+    }
   }
 }
 
@@ -635,6 +658,7 @@ int main(int argc, const char *args[])
     BasicMap *lBm= new BasicMap; 
     lBm->mBSendHits = gBSendHits;
     lBm->mBSendContinuous = gBSendContinuous;
+    lBm->mBSendEnds = gBSendEnds;
     lCycloMap = lBm; 
   }
 

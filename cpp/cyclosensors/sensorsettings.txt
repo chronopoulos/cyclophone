@@ -9,4 +9,5 @@ DynabaseTurns 1000
 DynabaseBandSize 35
 SendHits 0
 SendContinuous 1
+SendEnds 1
 MapType BasicMap
