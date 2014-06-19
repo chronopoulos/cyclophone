@@ -40,7 +40,7 @@ public:
   bool mBSendHits;
   bool mBSendContinuous;
   bool mBSendEnds;
-  
+
   void OnArduinoCommand(const char *aC, lo_address aLoAddress);
   void OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity);
   void OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFIntensity);

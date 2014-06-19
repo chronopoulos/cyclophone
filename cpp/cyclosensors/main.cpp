@@ -65,6 +65,8 @@ bool gBSendHits = true;
 bool gBSendContinuous = false;
 bool gBSendEnds = false;
 
+int gIContinuousCount = 1;    // send continuous update every N turns.
+
 void WriteSettings(ostream &aOs)
 {
   aOs << "TargetIpAddress" << " " << gSTargetIpAddress << endl;
@@ -79,6 +81,7 @@ void WriteSettings(ostream &aOs)
   aOs << "SendHits" << " " << gBSendHits << endl;
   aOs << "SendContinuous" << " " << gBSendContinuous << endl;
   aOs << "SendEnds" << " " << gBSendEnds << endl;
+  aOs << "ContinuousCount" << " " << gIContinuousCount << endl;
   aOs << "MapType" << " " << gSMapType << endl;
 }
 
@@ -142,6 +145,11 @@ void UpdateSetting(string aSName, string aSVal)
   if (aSName == "SendEnds")
   {
     gBSendEnds = atoi(aSVal.c_str());
+    return;
+  }
+  if (aSName == "ContinuousCount")
+  {
+    gIContinuousCount = atoi(aSVal.c_str());
     return;
   }
   if (aSName == "MapType")
@@ -237,6 +245,7 @@ public:
     :mIBase(0), mIPrevVal(0), mIPrevVel(0),
     mIPrevHitVal(0), mIPrevHitCountdown(0),
     mBGotHit(false), mBOverThres(false), mBGotEnd(false),
+    mIContinuousCount(gIContinuousCount),
     mBHitAllowed(true)
   {
   }
@@ -328,8 +337,11 @@ public:
   }
   inline bool GetContinuousVal(float &aF)
   {
-    if (mBOverThres)
+    if (mBOverThres && --mIContinuousCount == 0)
+    {
       aF = (float)mIPrevVal / 1023.0;
+      mIContinuousCount = gIContinuousCount;
+    }
 
     return mBOverThres;
   }
@@ -351,6 +363,8 @@ private:
   bool mBGotHit;
   bool mBOverThres;
   bool mBGotEnd;
+
+  int mIContinuousCount;
 
   bool mBHitAllowed;
 };
