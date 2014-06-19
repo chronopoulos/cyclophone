@@ -62,7 +62,6 @@ synthmap filenames rootdir oscprefix = do
 
 main = do 
  args <- getArgs
- print "main"
  if (length args /= 4) 
     then do
       print "syntax:"
@@ -157,7 +156,7 @@ getsound Nothing _ = Nothing
 onoscmessage :: M.Map String SampleStuff -> SoundState -> OSC.Message -> IO SoundState
 onoscmessage soundmap soundstate msg = do
   -- print $ "osc message: " ++ (show msg)
-  print $ "osc message: " ++ OSC.messageAddress msg 
+  -- print $ "osc message: " ++ OSC.messageAddress msg 
   let msgtext = OSC.messageAddress msg 
       idx = getoscindex msg 
       amt = getoscamt msg
@@ -167,7 +166,7 @@ onoscmessage soundmap soundstate msg = do
     ("keyc", Just i, Just a, Just (name, sstuff)) -> 
      if (S.member i (activeKeys soundstate)) then
         do
-          print $ "adjactive: " ++ (show i) ++ " " ++ (show a)
+          -- print $ "adjactive: " ++ (show i) ++ " " ++ (show a)
           -- print "here" 
           -- set the volume.
           withSC3 (send (F.n_set1 node (show (s_bufId sstuff) ++ "amp") a))
@@ -175,17 +174,17 @@ onoscmessage soundmap soundstate msg = do
           return soundstate
       else
         do
-          print $ "start inactive: " ++ (show i) ++ " " ++ (show a)
+          -- print $ "start inactive: " ++ (show i) ++ " " ++ (show a)
           -- print "there" 
           -- set the volume.
           withSC3 (send (F.n_set1 node (show (s_bufId sstuff) ++ "amp") a))
           -- start sample.
           withSC3 (play (s_synth sstuff))
-          print (s_synth sstuff)
+          -- print (s_synth sstuff)
           -- add to active keys.
           return $ soundstate { activeKeys = (S.insert i (activeKeys soundstate)) }
     ("keye", Just i, _, Just (name, sstuff)) -> do 
-        print "stopping"
+        -- print "stopping"
         -- set volume to zero, and/or stop playback.
         withSC3 (send (F.n_set1 node (show (s_bufId sstuff) ++ "amp") 0))
         -- remove key from active set.
