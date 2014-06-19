@@ -294,37 +294,39 @@ public:
     }
 
     // we don't allow any hits until zero is crossed.  
-    if (!mBHitAllowed)
-      return;
-
-    // current velocity is front of deque minus back of deque.
-    int prev = mDPrevs.back();
-    int vel = val;
-    vel -= prev;
-    
-   // if (val > gIThres)
-    if (vel <=0 && mIPrevVel > 0 && val > gIThres)
+    if (mBHitAllowed)
     {
-      //   logic for rejection based on 'prevhit'.  
-      //  supposed to reject secondary peaks right after big peaks.  
-      if (mIPrevHitCountdown > 0 && 
-          mIPrevHitVal - val > gIPrevHitThres)
-      {
-        // reject! 
-        // cout << "rejected: " << val << " " << mIPrevHitVal << " " << mIPrevHitCountdown << endl;
-      }
-      else
-      {
-        // cout << "accepted: " << val << " " << mIPrevHitVal << " " << mIPrevHitCountdown << endl;
-        mIPrevHitVal = val;
-        mIPrevHitCountdown = gIPrevHitCountdownStart;
-        mBGotHit = true;
-        // will stay false until value goes under thres.
-        mBHitAllowed = false;
-      }
-   }
 
-    mIPrevVel = vel;
+      // current velocity is front of deque minus back of deque.
+      int prev = mDPrevs.back();
+      int vel = val;
+      vel -= prev;
+      
+     // if (val > gIThres)
+      if (vel <=0 && mIPrevVel > 0 && val > gIThres)
+      {
+        //   logic for rejection based on 'prevhit'.  
+        //  supposed to reject secondary peaks right after big peaks.  
+        if (mIPrevHitCountdown > 0 && 
+            mIPrevHitVal - val > gIPrevHitThres)
+        {
+          // reject! 
+          // cout << "rejected: " << val << " " << mIPrevHitVal << " " << mIPrevHitCountdown << endl;
+        }
+        else
+        {
+          // cout << "accepted: " << val << " " << mIPrevHitVal << " " << mIPrevHitCountdown << endl;
+          mIPrevHitVal = val;
+          mIPrevHitCountdown = gIPrevHitCountdownStart;
+          mBGotHit = true;
+          // will stay false until value goes under thres.
+          mBHitAllowed = false;
+        }
+      }
+
+      mIPrevVel = vel;
+    }
+
     mIPrevVal = val;
   }
 
