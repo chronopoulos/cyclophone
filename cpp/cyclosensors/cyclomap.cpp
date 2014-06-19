@@ -192,6 +192,9 @@ void PdMap::OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity)
 
 void PdMap::OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFIntensity)
 {
+  return;
+
+
   aFIntensity *= mFGain;
   if (aFIntensity > 1.0)
     aFIntensity = 1.0;

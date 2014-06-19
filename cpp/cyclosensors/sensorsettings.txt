@@ -1,4 +1,4 @@
-TargetIpAddress 192.168.1.145
+TargetIpAddress 192.168.123.101
 TargetPort 8000
 Thres 35
 Gain 1.5
@@ -7,3 +7,6 @@ PrevHitThres 350
 PrevHitCountdownStart 100
 DynabaseTurns 1000
 DynabaseBandSize 35
+SendHits 0
+SendContinuous 1
+MapType BasicMap

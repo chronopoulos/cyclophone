@@ -61,6 +61,9 @@ int gIDynabaseBandSize = 35;
 // PdMap or BasicMap
 string gSMapType = "BasicMap";
 
+bool gBSendHits = true;
+bool gBSendContinuous = false;
+
 void WriteSettings(ostream &aOs)
 {
   aOs << "TargetIpAddress" << " " << gSTargetIpAddress << endl;
@@ -72,6 +75,8 @@ void WriteSettings(ostream &aOs)
   aOs << "PrevHitCountdownStart" << " " << gIPrevHitCountdownStart << endl; 
   aOs << "DynabaseTurns" << " " << gIDynabaseTurns << endl; 
   aOs << "DynabaseBandSize" << " " << gIDynabaseBandSize << endl; 
+  aOs << "SendHits" << " " << gBSendHits << endl;
+  aOs << "SendContinuous" << " " << gBSendContinuous << endl;
   aOs << "MapType" << " " << gSMapType << endl;
 }
 
@@ -120,6 +125,16 @@ void UpdateSetting(string aSName, string aSVal)
   if (aSName == "DynabaseBandSize")
   {
     gIDynabaseBandSize = atoi(aSVal.c_str());
+    return;
+  }
+  if (aSName == "SendHits")
+  {
+    gBSendHits = atoi(aSVal.c_str());
+    return;
+  }
+  if (aSName == "SendContinuous")
+  {
+    gBSendContinuous = atoi(aSVal.c_str());
     return;
   }
   if (aSName == "MapType")
@@ -617,11 +632,18 @@ int main(int argc, const char *args[])
   }
   else
   {
-    lCycloMap = new BasicMap;
+    BasicMap *lBm= new BasicMap; 
+    lBm->mBSendHits = gBSendHits;
+    lBm->mBSendContinuous = gBSendContinuous;
+    lCycloMap = lBm; 
   }
 
+  lCycloMap->mFGain = gFGain;
+  /*
   lCycloMap->SetGain(gFGain);
-
+  lCycloMap->SetHits(gBHits);
+  lCycloMap->SetContinuous(gBContinuous);
+  */
   spidevice lSpi0("/dev/spidev0.0", SPI_MODE_0, 20000000, 8);
   spidevice lSpi1("/dev/spidev0.1", SPI_MODE_0, 20000000, 8);
  

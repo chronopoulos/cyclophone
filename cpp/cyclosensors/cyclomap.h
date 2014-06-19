@@ -12,8 +12,11 @@ using namespace std;
 class CycloMap
 {
 public:
+  CycloMap()
+    :mFGain(1.0)
+  {}
 
-  virtual void SetGain(float aF) = 0;
+  float mFGain;
 
   virtual void OnArduinoCommand(const char *aC, lo_address aLoAddress) = 0;
   virtual void OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity) = 0;
@@ -26,13 +29,13 @@ class BasicMap : public CycloMap
 {
 public:
   BasicMap()
-  :mFGain(1.0), mBSendHits(false), mBSendContinuous(true)
+  :mBSendHits(false), mBSendContinuous(true)
   {} 
 
-  void SetGain(float aF) { mFGain = aF; } 
-  
-  float mFGain;
-
+  //void SetGain(float aF) { mFGain = aF; } 
+  //void SetSendHits(bool aB) { mBSendHits = aB; } 
+  //void SetSendContinuous(bool aB) { mBSendContinuous = aB; } 
+ 
   bool mBSendHits;
   bool mBSendContinuous;
   
@@ -49,15 +52,12 @@ public:
   :mIKeyMap(0), 
   mIScale(0), 
   mIBottomStart(0),
-  mITopStart(60),
-  mFGain(1.0)
+  mITopStart(60)
   {
     mIStartNote = mIBottomStart;
     makeDefaultMap();
   }
 
-  void SetGain(float aF) { mFGain = aF; } 
-  
   void PrintScale(int aIScale); 
 
   void OnArduinoCommand(const char *aC, lo_address aLoAddress);
@@ -69,7 +69,7 @@ public:
   public:
     KeyDest() 
       :mBSendNote(false), 
-      mBSendHits(false), 
+      mBSendHits(true), 
       mBSendContinuous(false) {}
      KeyDest(const char *aCName, bool aBSendNote, 
              bool aBSendHits, bool aBSendContinuous) 
@@ -113,7 +113,6 @@ public:
   int mIBottomStart;  
   int mITopStart;
 
-  float mFGain;
 };
 
 
