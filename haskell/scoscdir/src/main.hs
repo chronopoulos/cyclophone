@@ -156,35 +156,38 @@ getsound Nothing _ = Nothing
 -- if sound exists and volume is zero, fade it and remove from soundstate.
 onoscmessage :: M.Map String SampleStuff -> SoundState -> OSC.Message -> IO SoundState
 onoscmessage soundmap soundstate msg = do
-  print $ "osc message: " ++ (show msg)
+  -- print $ "osc message: " ++ (show msg)
+  print $ "osc message: " ++ OSC.messageAddress msg 
   let msgtext = OSC.messageAddress msg 
       idx = getoscindex msg 
       amt = getoscamt msg
       sound = getsound idx soundmap
+      node = 1
    in case (msgtext, idx, amt, sound) of 
     ("keyc", Just i, Just a, Just (name, sstuff)) -> 
-     if (a > 0.0) 
-      then 
-        if (S.member i (activeKeys soundstate)) then
-          do
-            print "here" 
-            -- set the volume.
-            withSC3 (send (F.n_set1 (-1) (show (s_bufId sstuff) ++ "amp") a))
-            -- no change to soundstate.
-            return soundstate
-        else
-          do
-            print "there" 
-            -- set the volume.
-            withSC3 (send (F.n_set1 (-1) (show (s_bufId sstuff) ++ "amp") a))
-            -- start sample.
-            withSC3 (play (s_synth sstuff))
-            -- add to active keys.
-            return $ soundstate { activeKeys = (S.insert i (activeKeys soundstate)) }
-      else do
+     if (S.member i (activeKeys soundstate)) then
+        do
+          print $ "adjactive: " ++ (show i) ++ " " ++ (show a)
+          -- print "here" 
+          -- set the volume.
+          withSC3 (send (F.n_set1 node (show (s_bufId sstuff) ++ "amp") a))
+          -- no change to soundstate.
+          return soundstate
+      else
+        do
+          print $ "start inactive: " ++ (show i) ++ " " ++ (show a)
+          -- print "there" 
+          -- set the volume.
+          withSC3 (send (F.n_set1 node (show (s_bufId sstuff) ++ "amp") a))
+          -- start sample.
+          withSC3 (play (s_synth sstuff))
+          print (s_synth sstuff)
+          -- add to active keys.
+          return $ soundstate { activeKeys = (S.insert i (activeKeys soundstate)) }
+    ("keye", Just i, _, Just (name, sstuff)) -> do 
         print "stopping"
         -- set volume to zero, and/or stop playback.
-        withSC3 (send (F.n_set1 (-1) (show (s_bufId sstuff) ++ "amp") a))
+        withSC3 (send (F.n_set1 node (show (s_bufId sstuff) ++ "amp") 0))
         -- remove key from active set.
         return $ soundstate { activeKeys = (S.delete i (activeKeys soundstate)) }
     (_,_,_,_) -> do 
