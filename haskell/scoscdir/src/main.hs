@@ -1,3 +1,5 @@
+module Main where
+
 import System.Directory
 import System.Environment
 import Data.List.Split
@@ -42,7 +44,7 @@ data SampleStuff = SampleStuff {
 fn2on :: String -> String -> String -> String
 fn2on rootdir oscprefix fname = 
   let len = length rootdir in
-    oscprefix ++ (take len fname)
+    oscprefix ++ (drop len fname)
 
 loadSample :: String -> String -> Int -> IO (String, SampleStuff)
 loadSample filename oscname bufno = do
@@ -60,20 +62,21 @@ synthmap filenames rootdir oscprefix = do
 
 main = do 
  args <- getArgs
+ print "main"
  if (length args /= 4) 
     then do
       print "syntax:"
       print "scoscdir <ip> <port> <oscprefix> <sample directory>"
     else do
       slist <- treein (args !! 3)
+      print slist
       smap <- synthmap slist (args !! 3) (args !! 2) 
       putStrLn $ ppShow $ M.keys smap
       let port = OSC.readMaybe (args !! 1) :: (Maybe Int)
           ip = (args !! 0)
           soundstate = SoundState S.empty 
        in case port of
-         -- Just p -> startoscloop ip p soundmap soundstate 
-         Just p -> print "start"
+         Just p -> startoscloop ip p smap soundstate 
          Nothing -> putStrLn $ "Invalid port: " ++ (args !! 0) 
 
 -- track active sounds.
@@ -153,7 +156,7 @@ getsound Nothing _ = Nothing
 -- if sound exists and volume is zero, fade it and remove from soundstate.
 onoscmessage :: M.Map String SampleStuff -> SoundState -> OSC.Message -> IO SoundState
 onoscmessage soundmap soundstate msg = do
-  -- print msg
+  print $ "osc message: " ++ (show msg)
   let msgtext = OSC.messageAddress msg 
       idx = getoscindex msg 
       amt = getoscamt msg
@@ -164,12 +167,14 @@ onoscmessage soundmap soundstate msg = do
       then 
         if (S.member i (activeKeys soundstate)) then
           do
+            print "here" 
             -- set the volume.
             withSC3 (send (F.n_set1 (-1) (show (s_bufId sstuff) ++ "amp") a))
             -- no change to soundstate.
             return soundstate
         else
-          do 
+          do
+            print "there" 
             -- set the volume.
             withSC3 (send (F.n_set1 (-1) (show (s_bufId sstuff) ++ "amp") a))
             -- start sample.
@@ -177,11 +182,13 @@ onoscmessage soundmap soundstate msg = do
             -- add to active keys.
             return $ soundstate { activeKeys = (S.insert i (activeKeys soundstate)) }
       else do
+        print "stopping"
         -- set volume to zero, and/or stop playback.
         withSC3 (send (F.n_set1 (-1) (show (s_bufId sstuff) ++ "amp") a))
         -- remove key from active set.
         return $ soundstate { activeKeys = (S.delete i (activeKeys soundstate)) }
-    (_,_,_,_) -> 
+    (_,_,_,_) -> do 
       -- for anything else, ignore.
+      print "ignore"
       return soundstate
 
