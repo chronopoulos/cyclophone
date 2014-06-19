@@ -12,12 +12,16 @@ using namespace std;
 class CycloMap
 {
 public:
+  CycloMap()
+    :mFGain(1.0)
+  {}
 
-  virtual void SetGain(float aF) = 0;
+  float mFGain;
 
   virtual void OnArduinoCommand(const char *aC, lo_address aLoAddress) = 0;
   virtual void OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity) = 0;
   virtual void OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFIntensity) = 0;
+  virtual void OnKeyEnd(lo_address aLoAddress, int aIKeyIndex) = 0;
 };
 
 // map that just sends the key messages and button/knob messages, 
@@ -26,19 +30,21 @@ class BasicMap : public CycloMap
 {
 public:
   BasicMap()
-  :mFGain(1.0), mBSendHits(false), mBSendContinuous(true)
+  :mBSendHits(false), mBSendContinuous(true), mBSendEnds(true)
   {} 
 
-  void SetGain(float aF) { mFGain = aF; } 
-  
-  float mFGain;
-
+  //void SetGain(float aF) { mFGain = aF; } 
+  //void SetSendHits(bool aB) { mBSendHits = aB; } 
+  //void SetSendContinuous(bool aB) { mBSendContinuous = aB; } 
+ 
   bool mBSendHits;
   bool mBSendContinuous;
+  bool mBSendEnds;
   
   void OnArduinoCommand(const char *aC, lo_address aLoAddress);
   void OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity);
   void OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFIntensity);
+  void OnKeyEnd(lo_address aLoAddress, int aIKeyIndex);
 };
 
 // Map for the PD patch used at apo 2014, maker faire, etc.
@@ -49,27 +55,25 @@ public:
   :mIKeyMap(0), 
   mIScale(0), 
   mIBottomStart(0),
-  mITopStart(60),
-  mFGain(1.0)
+  mITopStart(60)
   {
     mIStartNote = mIBottomStart;
     makeDefaultMap();
   }
 
-  void SetGain(float aF) { mFGain = aF; } 
-  
   void PrintScale(int aIScale); 
 
   void OnArduinoCommand(const char *aC, lo_address aLoAddress);
   void OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity);
   void OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFIntensity);
+  void OnKeyEnd(lo_address aLoAddress, int aIKeyIndex) {}
  
   class KeyDest
   {
   public:
     KeyDest() 
       :mBSendNote(false), 
-      mBSendHits(false), 
+      mBSendHits(true), 
       mBSendContinuous(false) {}
      KeyDest(const char *aCName, bool aBSendNote, 
              bool aBSendHits, bool aBSendContinuous) 
@@ -113,7 +117,6 @@ public:
   int mIBottomStart;  
   int mITopStart;
 
-  float mFGain;
 };
 
 
