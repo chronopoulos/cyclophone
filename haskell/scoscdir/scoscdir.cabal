@@ -19,6 +19,7 @@ executable scoscdir
   hs-source-dirs:     src
   main-is:            main.hs
   other-modules:      Treein
+  ghc-options:        -O2
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base, 
