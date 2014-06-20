@@ -2,7 +2,7 @@
 
 jackd -m -p 32 -d dummy &
 sleep 1
-alsa_out -q1 2>&1 > /dev/null &
+alsa_out -d hw:1,0 -q1 2>&1 > /dev/null &
 sleep 1
 scsynth -u 57110 &
 sleep 1
