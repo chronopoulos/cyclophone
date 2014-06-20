@@ -75,7 +75,9 @@ main = do
           ip = (args !! 0)
           soundstate = SoundState S.empty 
        in case port of
-         Just p -> startoscloop ip p smap soundstate 
+         Just p -> do 
+            withSC3 (reset)
+            startoscloop ip p smap soundstate 
          Nothing -> putStrLn $ "Invalid port: " ++ (args !! 0) 
 
 -- track active sounds.
