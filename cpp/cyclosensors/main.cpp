@@ -56,7 +56,9 @@ int gIPrevHitThres = 350;
 
 // 'dynabase' parms.
 int gIDynabaseTurns = 1000;
-int gIDynabaseBandSize = 35;
+float gFDynabaseTurnsInverse = 1.0 / (float)gIDynabaseTurns;    
+float gFDynabaseBandSize = 35;
+float gFDynabaseBandSizeSquared = gFDynabaseBandSize * gFDynabaseBandSize;    
 
 // PdMap or BasicMap
 string gSMapType = "BasicMap";
@@ -77,7 +79,7 @@ void WriteSettings(ostream &aOs)
   aOs << "PrevHitThres" << " " << gIPrevHitThres << endl; 
   aOs << "PrevHitCountdownStart" << " " << gIPrevHitCountdownStart << endl; 
   aOs << "DynabaseTurns" << " " << gIDynabaseTurns << endl; 
-  aOs << "DynabaseBandSize" << " " << gIDynabaseBandSize << endl; 
+  aOs << "DynabaseBandSize" << " " << gFDynabaseBandSize << endl; 
   aOs << "SendHits" << " " << gBSendHits << endl;
   aOs << "SendContinuous" << " " << gBSendContinuous << endl;
   aOs << "SendEnds" << " " << gBSendEnds << endl;
@@ -125,11 +127,13 @@ void UpdateSetting(string aSName, string aSVal)
   if (aSName == "DynabaseTurns")
   {
     gIDynabaseTurns = atoi(aSVal.c_str());
+    gFDynabaseTurnsInverse = 1.0 / (float)gIDynabaseTurns;
     return;
   }
   if (aSName == "DynabaseBandSize")
   {
-    gIDynabaseBandSize = atoi(aSVal.c_str());
+    gFDynabaseBandSize = atof(aSVal.c_str());
+    gFDynabaseBandSizeSquared = gFDynabaseBandSize * gFDynabaseBandSize;
     return;
   }
   if (aSName == "SendHits")
@@ -385,18 +389,23 @@ public:
   bool AddMeasure(int aIMeasure, int &aINewBaseline)
   {
     mISum += aIMeasure;
+    
+    int lISq = aIMeasure * aIMeasure;
+
+    mISquaredSum += lISq;
 
     // store raw vals
     mDVals.push_front(aIMeasure);
-    mMsSortedVals.insert(aIMeasure);
+
+    // subtract the old vals to update sums.
 
     if (mDVals.size() > gIDynabaseTurns)
     {
       int lI = mDVals.back();
+      lISq = lI * lI;
       mDVals.pop_back();
-      multiset<int>::iterator lIter = mMsSortedVals.find(lI);
-      mMsSortedVals.erase(lIter);
       mISum -= lI;
+      mISquaredSum -= lISq;
     }
     else
     {
@@ -404,9 +413,19 @@ public:
       return false;
     }
 
-    // are min and max within the band?
-    if (mMsSortedVals.size() > 1 && *(mMsSortedVals.rbegin()) - *(mMsSortedVals.begin()) < gIDynabaseBandSize)
+    // variance = 1/N * sum (( Xi - avg) ^ 2)  for all Xi, avg = avg of all Xi.
+    //          = 1/N * sum ( Xi ^ 2 ) - avg^2
+    //          = 
+
+    // calc the variance.
+    mFVariance = mISquaredSum;
+    mFVariance *= gFDynabaseTurnsInverse;
+    mFVariance -= mISum * mISum;
+
+    // is variance within the band?
+    if (mFVariance < gFDynabaseBandSizeSquared)
     {
+      cout << "updating with variance: " << mFVariance << " less than " << gFDynabaseBandSizeSquared << endl;
       // new baseline is average of all vals.
       aINewBaseline = mISum / mDVals.size();
 
@@ -424,8 +443,11 @@ public:
 
 private:
   int mISum;
+  int mISquaredSum;
+
+  float mFVariance;
+
   deque<int> mDVals;
-  multiset<int> mMsSortedVals;
 };
 
 class KeySigProc 
