@@ -350,9 +350,11 @@ public:
     {
       aF = (float)mIPrevVal / 1023.0;
       mIContinuousCount = gIContinuousCount;
-    }
 
-    return mBOverThres;
+      return true;
+    }
+    else
+      return false;
   }
   inline bool GetEnd() { return mBGotEnd; }
 
