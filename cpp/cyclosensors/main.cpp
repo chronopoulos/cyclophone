@@ -607,15 +607,11 @@ void UpdateSensors(spidevice &aSpi,
     {
       if (aCm && aLoAddress)
         aCm->OnKeyHit(aLoAddress, i + aUiKeyOffset, lF);
- 
-      // cout << "value!" << lF << endl;
     }
     if (aIrsByPin[adcnumber]->mKsp.GetContinuousVal(lF))
     {
       if (aCm && aLoAddress)
         aCm->OnContinuous(aLoAddress, i + aUiKeyOffset, lF);
- 
-      // cout << "value!" << lF << endl;
     }
     if (aIrsByPin[adcnumber]->mKsp.GetEnd())
     {
@@ -623,8 +619,6 @@ void UpdateSensors(spidevice &aSpi,
         aCm->OnKeyEnd(aLoAddress, i + aUiKeyOffset);
 
       cout << "end!" << endl;
- 
-      // cout << "value!" << lF << endl;
     }
   }
 }
