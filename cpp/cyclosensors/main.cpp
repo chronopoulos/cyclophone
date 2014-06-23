@@ -56,8 +56,10 @@ int gIPrevHitThres = 350;
 
 // 'dynabase' parms.
 int gIDynabaseTurns = 1000;
-float gFDynabaseTurnsInverse = 1.0 / (float)gIDynabaseTurns;    
 float gFDynabaseBandSize = 35;
+
+float gFDynabaseTurns = gIDynabaseTurns;
+float gFDynabaseTurnsInverse2 = 1.0 / (gFDynabaseTurns * gFDynabaseTurns);
 float gFDynabaseBandSizeSquared = gFDynabaseBandSize * gFDynabaseBandSize;    
 
 // PdMap or BasicMap
@@ -127,7 +129,8 @@ void UpdateSetting(string aSName, string aSVal)
   if (aSName == "DynabaseTurns")
   {
     gIDynabaseTurns = atoi(aSVal.c_str());
-    gFDynabaseTurnsInverse = 1.0 / (float)gIDynabaseTurns;
+    gFDynabaseTurns = gIDynabaseTurns;
+    gFDynabaseTurnsInverse2 = 1.0 / (gFDynabaseTurns * gFDynabaseTurns);
     return;
   }
   if (aSName == "DynabaseBandSize")
@@ -381,31 +384,31 @@ class DynabaseKeySig
 {
 public:
   DynabaseKeySig()
-    :mISum(0) 
+    :mFSum(0) 
   {
   }
   // add the current measure.
   // if there's a number to send, return true.
-  bool AddMeasure(int aIMeasure, int &aINewBaseline)
+  bool AddMeasure(float aFMeasure, int &aINewBaseline)
   {
-    mISum += aIMeasure;
+    mFSum += aFMeasure;
     
-    int lISq = aIMeasure * aIMeasure;
+    float lFSq = aFMeasure * aFMeasure;
 
-    mISquaredSum += lISq;
+    mFSquaredSum += lFSq;
 
     // store raw vals
-    mDVals.push_front(aIMeasure);
+    mDVals.push_front(aFMeasure);
 
     // subtract the old vals to update sums.
 
     if (mDVals.size() > gIDynabaseTurns)
     {
-      int lI = mDVals.back();
-      lISq = lI * lI;
+      float lF = mDVals.back();
+      lFSq = lF * lF;
       mDVals.pop_back();
-      mISum -= lI;
-      mISquaredSum -= lISq;
+      mFSum -= lF;
+      mFSquaredSum -= lFSq;
     }
     else
     {
@@ -418,16 +421,17 @@ public:
     //          = 
 
     // calc the variance.
-    mFVariance = mISquaredSum;
-    mFVariance *= gFDynabaseTurnsInverse;
-    mFVariance -= mISum * mISum;
+    mFVariance = (gFDynabaseTurns * mFSquaredSum - mFSum * mFSum) * gFDynabaseTurnsInverse2;
 
     // is variance within the band?
     if (mFVariance < gFDynabaseBandSizeSquared)
     {
-      cout << "updating with variance: " << mFVariance << " less than " << gFDynabaseBandSizeSquared << endl;
+      // cout << mFSquaredSum << " " << mFSum << " " << sqrt(mFVariance) << endl;
+      // cout << mFSquaredSum << " " << mFSum << " " << endl;
+
+      // cout << "updating with variance: " << mFVariance << " less than " << gFDynabaseBandSizeSquared << endl;
       // new baseline is average of all vals.
-      aINewBaseline = mISum / mDVals.size();
+      aINewBaseline = mFSum / mDVals.size();
 
       // cout << "mDVals.size() = " << mDVals.size() << " mMsSortedVals.size() = " << mMsSortedVals.size() << endl;
       return true;
@@ -442,12 +446,12 @@ public:
  }
 
 private:
-  int mISum;
-  int mISquaredSum;
+  float mFSum;
+  float mFSquaredSum;
 
   float mFVariance;
 
-  deque<int> mDVals;
+  deque<float> mDVals;
 };
 
 class KeySigProc 

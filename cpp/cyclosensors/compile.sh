@@ -1,2 +1,2 @@
 #!/bin/bash
-g++ -o cyclosensors main.cpp spidevice.cpp cyclomap.cpp -llo
+g++ -O2 -o cyclosensors main.cpp spidevice.cpp cyclomap.cpp -llo
