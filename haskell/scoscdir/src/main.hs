@@ -6,6 +6,7 @@ import Data.List.Split
 import Text.Show.Pretty
 import Control.Monad
 import Control.Monad.Fix
+import GHC.Float
 import Sound.SC3
 import qualified Sound.OSC.FD as OSC
 import qualified Sound.SC3.Server.Command.Float as F
@@ -30,9 +31,16 @@ makeSynth bufno =
                   * (control KR (show bufno ++ "amp") 0.5)))
 -}
 
+gNodeOffset = 100
+
 -- substitute buffer playback with simple oscillator.
 readBuf fname bufno = 
   return ()
+
+makeSynthDef :: String-> Int -> Synthdef 
+makeSynthDef name bufno = 
+    synthdef name (out 0 ((sinOsc AR (200 + 20 * (constant bufno)) 0 * 0.1)
+                          * (control KR "amp" 0.5)))
 
 makeSynth :: Int -> Graph 
 makeSynth bufno = 
@@ -48,7 +56,7 @@ stopp =
              ;async (b_free 0)})
 
 data SampleStuff = SampleStuff {
-  s_synth :: Graph,
+  s_synth :: Synthdef,
   s_bufId :: Int
   }
 
@@ -60,10 +68,11 @@ fn2on rootdir oscprefix fname =
 loadSample :: String -> String -> Int -> IO (String, SampleStuff)
 loadSample filename oscname bufno = do
   readBuf filename bufno
-  return (oscname, SampleStuff (makeSynth bufno) bufno)
-
--- newtype SynthMap = Synthmap (M.Map String SampleStuff)
-
+  let syn = (makeSynthDef ("def" ++ (show bufno)) bufno) 
+   in do
+    withSC3 (async (d_recv syn))
+    return (oscname, SampleStuff syn bufno)
+ 
 synthmap :: [String] -> String -> String -> IO (M.Map String SampleStuff)
 synthmap filenames rootdir oscprefix = do
   leest <- sequence (map (\(fname, bufno) -> 
@@ -80,7 +89,9 @@ main = do
     else do
       slist <- treein (args !! 3)
       print slist
-      withSC3 (send (g_new [(1, AddToTail, 0)]))
+      withSC3 reset
+      -- withSC3 (send (g_new [(1, AddToTail, 0)]))
+      -- read in the buffers, create synthdefs
       smap <- synthmap slist (args !! 3) (args !! 2) 
       putStrLn $ ppShow $ M.keys smap
       let port = OSC.readMaybe (args !! 1) :: (Maybe Int)
@@ -88,7 +99,6 @@ main = do
           soundstate = SoundState S.empty 
        in case port of
          Just p -> do 
-            -- withSC3 (reset)
             startoscloop ip p smap soundstate 
          Nothing -> putStrLn $ "Invalid port: " ++ (args !! 0) 
 
@@ -180,10 +190,10 @@ onoscmessage soundmap soundstate msg = do
     ("keyc", Just i, Just a, Just (name, sstuff)) -> 
      if (S.member i (activeKeys soundstate)) then
         do
-          -- print $ "adjactive: " ++ (show i) ++ " " ++ (show a)
+          print $ "setvolactive: " ++ (show i) ++ " " ++ (show a)
           -- print "here" 
           -- set the volume.
-          withSC3 (send (F.n_set1 node (show (s_bufId sstuff) ++ "amp") a))
+          withSC3 (send (F.n_set1 (i + gNodeOffset) "amp" a))
           -- no change to soundstate.
           return soundstate
       else
@@ -191,9 +201,12 @@ onoscmessage soundmap soundstate msg = do
           print $ "start inactive: " ++ (show i) ++ " " ++ (show a)
           -- print "there" 
           -- set the volume.
-          withSC3 (send (F.n_set1 node (show (s_bufId sstuff) ++ "amp") a))
+          -- create synth.
+          withSC3 (send (s_new ("def" ++ (show i)) (i + gNodeOffset) AddToTail 1 [("amp", (float2Double a))]))
+          -- withSC3 (play 
+          -- withSC3 (send (F.n_set1 node (show (s_bufId sstuff) ++ "amp") a))
           -- start sample.
-          withSC3 (play (s_synth sstuff))
+          -- withSC3 (play (s_synth sstuff))
           -- print (s_synth sstuff)
           -- add to active keys.
           return $ soundstate { activeKeys = (S.insert i (activeKeys soundstate)) }
@@ -203,7 +216,10 @@ onoscmessage soundmap soundstate msg = do
         -- withSC3 (send (F.n_set1 node (show (s_bufId sstuff) ++ "amp") 0))
         -- remove key from active set.
         -- return $ soundstate { activeKeys = (S.delete i (activeKeys soundstate)) }
-        return soundstate
+        print $ "freeing: " ++ (show i)
+        withSC3 (send (n_free [(gNodeOffset + i)]))
+        return $ soundstate { activeKeys = (S.delete i (activeKeys soundstate)) }
+        -- return soundstate
     (_,_,_,_) -> do 
       -- for anything else, ignore.
       print "ignore"
