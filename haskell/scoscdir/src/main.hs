@@ -20,12 +20,23 @@ import Treein
 -- make a synth from the sample..  'graph' type.
 -- actually is synthdef?
 
+{-
 readBuf fname bufno = 
   withSC3 (do
     async (b_allocRead bufno fname 0 0))
 
 makeSynth bufno = 
     synth (out 0 ((playBuf 1 AR (constant bufno) 1.0 1 0 NoLoop RemoveSynth) 
+                  * (control KR (show bufno ++ "amp") 0.5)))
+-}
+
+-- substitute buffer playback with simple oscillator.
+readBuf fname bufno = 
+  return ()
+
+makeSynth :: Int -> Graph 
+makeSynth bufno = 
+    synth (out 0 ((sinOsc AR (200 + 20 * (constant bufno)) 0 * 0.1)
                   * (control KR (show bufno ++ "amp") 0.5)))
 
 -- get the node ID of the synth, to use for adjustment messages.
@@ -69,6 +80,7 @@ main = do
     else do
       slist <- treein (args !! 3)
       print slist
+      withSC3 (send (g_new [(1, AddToTail, 0)]))
       smap <- synthmap slist (args !! 3) (args !! 2) 
       putStrLn $ ppShow $ M.keys smap
       let port = OSC.readMaybe (args !! 1) :: (Maybe Int)
@@ -76,7 +88,7 @@ main = do
           soundstate = SoundState S.empty 
        in case port of
          Just p -> do 
-            withSC3 (reset)
+            -- withSC3 (reset)
             startoscloop ip p smap soundstate 
          Nothing -> putStrLn $ "Invalid port: " ++ (args !! 0) 
 
@@ -176,7 +188,7 @@ onoscmessage soundmap soundstate msg = do
           return soundstate
       else
         do
-          -- print $ "start inactive: " ++ (show i) ++ " " ++ (show a)
+          print $ "start inactive: " ++ (show i) ++ " " ++ (show a)
           -- print "there" 
           -- set the volume.
           withSC3 (send (F.n_set1 node (show (s_bufId sstuff) ++ "amp") a))
@@ -188,9 +200,10 @@ onoscmessage soundmap soundstate msg = do
     ("keye", Just i, _, Just (name, sstuff)) -> do 
         -- print "stopping"
         -- set volume to zero, and/or stop playback.
-        withSC3 (send (F.n_set1 node (show (s_bufId sstuff) ++ "amp") 0))
+        -- withSC3 (send (F.n_set1 node (show (s_bufId sstuff) ++ "amp") 0))
         -- remove key from active set.
-        return $ soundstate { activeKeys = (S.delete i (activeKeys soundstate)) }
+        -- return $ soundstate { activeKeys = (S.delete i (activeKeys soundstate)) }
+        return soundstate
     (_,_,_,_) -> do 
       -- for anything else, ignore.
       print "ignore"
