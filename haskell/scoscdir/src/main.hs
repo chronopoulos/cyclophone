@@ -21,18 +21,17 @@ import Treein
 -- make a synth from the sample..  'graph' type.
 -- actually is synthdef?
 
-{-
 readBuf fname bufno = 
   withSC3 (do
     async (b_allocRead bufno fname 0 0))
 
-makeSynth bufno = 
-    synth (out 0 ((playBuf 1 AR (constant bufno) 1.0 1 0 NoLoop RemoveSynth) 
-                  * (control KR (show bufno ++ "amp") 0.5)))
--}
+makeSynthDef name bufno = 
+    synthdef name (out 0 ((playBuf 1 AR (constant bufno) 1.0 1 0 NoLoop RemoveSynth) 
+                         * (control KR "amp" 0.5)))
 
 gNodeOffset = 100
 
+{-
 -- substitute buffer playback with simple oscillator.
 readBuf fname bufno = 
   return ()
@@ -46,6 +45,7 @@ makeSynth :: Int -> Graph
 makeSynth bufno = 
     synth (out 0 ((sinOsc AR (200 + 20 * (constant bufno)) 0 * 0.1)
                   * (control KR (show bufno ++ "amp") 0.5)))
+-}
 
 -- get the node ID of the synth, to use for adjustment messages.
 
