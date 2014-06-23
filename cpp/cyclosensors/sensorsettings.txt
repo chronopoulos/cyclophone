@@ -1,12 +1,12 @@
-TargetIpAddress 192.168.123.101
+TargetIpAddress 192.168.123.144
 TargetPort 8000
 Thres 35
 Gain 1.5
-DequeLength 5
+DequeLength 10
 PrevHitThres 350
 PrevHitCountdownStart 100
 DynabaseTurns 1000
-DynabaseBandSize 35
+DynabaseBandSize 10
 SendHits 0
 SendContinuous 1
 SendEnds 1
