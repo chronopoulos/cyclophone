@@ -26,7 +26,7 @@ readBuf fname bufno =
     async (b_allocRead bufno fname 0 0))
 
 makeSynthDef name bufno = 
-    synthdef name (out 0 ((playBuf 1 AR (constant bufno) 1.0 1 0 NoLoop RemoveSynth) 
+    synthdef name (out 1 ((playBuf 1 AR (constant bufno) 1.0 1 0 NoLoop RemoveSynth) 
                          * (control KR "amp" 0.5)))
 
 gNodeOffset = 100
