@@ -3,6 +3,9 @@ module Main where
 import System.Directory
 import System.Environment
 import Data.List.Split
+import qualified Data.Text as T
+-- import System.FilePath
+import qualified Filesystem.Path.CurrentOS as FP
 import Text.Show.Pretty
 import Control.Monad
 import Control.Monad.Fix
@@ -12,6 +15,8 @@ import qualified Sound.OSC.FD as OSC
 import qualified Sound.SC3.Server.Command.Float as F
 import qualified Data.Map as M
 import qualified Data.Set as S
+
+import Data.Ratio
 
 import Treein
 
@@ -59,41 +64,63 @@ data SampleStuff = SampleStuff {
   s_synth :: Synthdef,
   s_bufId :: Int
   }
+  deriving (Show)
 
-fn2on :: String -> String -> String -> String
-fn2on rootdir oscprefix fname = 
-  let len = length rootdir in
-    oscprefix ++ (drop len fname)
+-- loading the samples.
 
-loadSample :: String -> String -> Int -> IO (String, SampleStuff)
-loadSample filename oscname bufno = do
-  readBuf filename bufno
-  let syn = (makeSynthDef ("def" ++ (show bufno)) bufno) 
+data SampMap = SampMap {
+    sm_rootdir :: T.Text,
+    sm_notemap :: [(Rational, T.Text)]
+  }
+  deriving (Show, Read)
+
+-- blah = SampMap "blah" [(1,"blah2"), (2, "dsfa")]
+
+loadSamp :: FP.FilePath -> Rational -> Int -> IO (Rational, SampleStuff)
+loadSamp filename note bufno = 
+ let fn = (FP.encodeString filename) in do
+  readBuf fn bufno
+  let syn = (makeSynthDef fn bufno) 
    in do
     withSC3 (async (d_recv syn))
-    return (oscname, SampleStuff syn bufno)
- 
-synthmap :: [String] -> String -> String -> IO (M.Map String SampleStuff)
-synthmap filenames rootdir oscprefix = do
-  leest <- sequence (map (\(fname, bufno) -> 
-                            loadSample fname (fn2on rootdir oscprefix fname) bufno)
-                         (zip filenames [0..]))
-  return $ M.fromList leest
+    return (note, SampleStuff syn bufno)
 
+loadSampMap :: FP.FilePath -> Int -> IO (M.Map Rational SampleStuff)
+loadSampMap smapfile bufstart = do
+  smapst <- readFile (FP.encodeString smapfile)
+  let smap = read smapst :: SampMap
+      rewt = (FP.append smapfile 
+                        (FP.fromText (sm_rootdir smap))) in
+   if (FP.valid rewt) then do
+    lst <- sequence (map 
+              (\((nt, fn), bufidx) -> 
+                  readsamp 
+                    rewt  
+                    fn nt bufidx)
+              (zip (sm_notemap smap) [bufstart..]))
+    return $ M.fromList lst
+   else
+    return M.empty
+   where
+    readsamp rtd fn nt idx = 
+      let file = FP.append rtd (FP.fromText fn) in 
+        loadSamp file nt idx 
+
+gBufStart = 25
+ 
 main = do 
  args <- getArgs
  if (length args /= 4) 
     then do
       print "syntax:"
-      print "scoscdir <ip> <port> <oscprefix> <sample directory>"
+      print "scoscdir <ip> <port> <sample mapfile>"
     else do
-      slist <- treein (args !! 3)
-      print slist
+      -- slist <- treein (args !! 3)
       withSC3 reset
       -- withSC3 (send (g_new [(1, AddToTail, 0)]))
       -- read in the buffers, create synthdefs
-      smap <- synthmap slist (args !! 3) (args !! 2) 
-      putStrLn $ ppShow $ M.keys smap
+      smap <- loadSampMap (FP.decodeString (args !! 2)) gBufStart
+      putStrLn $ ppShow smap
       let port = OSC.readMaybe (args !! 1) :: (Maybe Int)
           ip = (args !! 0)
           soundstate = SoundState S.empty 
@@ -116,11 +143,12 @@ data SoundState = SoundState {
   activeKeys :: S.Set Int
   }
 
-startoscloop :: String -> Int -> M.Map String SampleStuff -> SoundState -> IO ()
+startoscloop :: String -> Int -> M.Map Rational SampleStuff -> SoundState -> IO ()
 startoscloop ip port soundmap soundstate = do
   OSC.withTransport (OSC.udpServer ip port) (oscloop soundmap soundstate)
     
--- oscloop :: M.Map String Mix.Chunk -> SoundState -> IO ()
+oscloop :: (OSC.Transport t) => M.Map Rational SampleStuff -> SoundState -> 
+                                t -> IO ()
 oscloop soundmap soundstate fd = do
   msg <- OSC.recvMessage fd
   case msg of 
@@ -147,7 +175,7 @@ getoscamt msg =
       _ -> Nothing
 
 -- for key index, get sound. 
-getsound :: Maybe Int -> M.Map String SampleStuff -> Maybe (String, SampleStuff)
+getsound :: Maybe Int -> M.Map Rational SampleStuff -> Maybe (Rational, SampleStuff)
 getsound (Just index) soundmap =
   if ((M.size soundmap) == 0) then 
     Nothing
@@ -177,7 +205,7 @@ getsound Nothing _ = Nothing
 -- if sound does not exist and volume is positive, create a channel playing the sound at the given volume.
 -- if sound exists and volume is positive, change the volume.
 -- if sound exists and volume is zero, fade it and remove from soundstate.
-onoscmessage :: M.Map String SampleStuff -> SoundState -> OSC.Message -> IO SoundState
+onoscmessage :: M.Map Rational SampleStuff -> SoundState -> OSC.Message -> IO SoundState
 onoscmessage soundmap soundstate msg = do
   -- print $ "osc message: " ++ (show msg)
   -- print $ "osc message: " ++ OSC.messageAddress msg 

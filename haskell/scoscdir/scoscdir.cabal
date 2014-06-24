@@ -24,6 +24,9 @@ executable scoscdir
   -- other-extensions:    
   build-depends:       base, 
                        directory,
+                       filepath,
+                       text,
+                       system-filepath,
                        split,
                        pretty-show,
                        containers,
