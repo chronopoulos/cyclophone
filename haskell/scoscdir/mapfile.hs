@@ -1,5 +1,5 @@
 SampMap {
-    sm_rootdir = "/home/ccrma/cyclophone_samples/mellotron/Cello"
+    sm_rootdir = "/home/ccrma/cyclophone_samples/mellotron/Woodwind2"
   , sm_notemap = [
     (43 % 12, "G2.wav"),
     (44 % 12, "G#2.wav"),
