@@ -80,7 +80,7 @@ loadSamp :: FP.FilePath -> Rational -> Int -> IO (Rational, SampleStuff)
 loadSamp filename note bufno = 
  let fn = (FP.encodeString filename) in do
   readBuf fn bufno
-  let syn = (makeSynthDef fn bufno) 
+  let syn = (makeSynthDef ("def" ++ (show bufno)) bufno) 
    in do
     withSC3 (async (d_recv syn))
     return (note, SampleStuff syn bufno)
@@ -106,7 +106,7 @@ loadSampMap smapfile bufstart = do
       let file = FP.append rtd (FP.fromText fn) in 
         loadSamp file nt idx 
 
-gBufStart = 25
+gBufStart = 0 
  
 main = do 
  args <- getArgs
@@ -120,7 +120,7 @@ main = do
       -- withSC3 (send (g_new [(1, AddToTail, 0)]))
       -- read in the buffers, create synthdefs
       smap <- loadSampMap (FP.decodeString (args !! 2)) gBufStart
-      putStrLn $ ppShow smap
+      -- putStrLn $ ppShow smap
       let port = OSC.readMaybe (args !! 1) :: (Maybe Int)
           ip = (args !! 0)
           soundstate = SoundState S.empty 
