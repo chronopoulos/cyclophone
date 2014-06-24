@@ -110,7 +110,7 @@ gBufStart = 25
  
 main = do 
  args <- getArgs
- if (length args /= 4) 
+ if (length args /= 3) 
     then do
       print "syntax:"
       print "scoscdir <ip> <port> <sample mapfile>"
