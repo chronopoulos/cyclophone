@@ -78,7 +78,7 @@ void BasicMap::OnArduinoCommand(const char *aC, lo_address aLoAddress)
             return;   // invalid.
       }
 
-      lo_send(aLoAddress, "/knob", "if", lIKnobIndex, lF);
+      lo_send(aLoAddress, "knob", "if", lIKnobIndex, lF);
       break;
     }
   case '$':
@@ -105,7 +105,7 @@ void BasicMap::OnArduinoCommand(const char *aC, lo_address aLoAddress)
       default:
         return;  // invalid.
       }
-      lo_send(aLoAddress, "/switch", "i", lIPos);
+      lo_send(aLoAddress, "switch", "i", lIPos);
       break;
     }
   case '@':
@@ -143,7 +143,7 @@ void BasicMap::OnArduinoCommand(const char *aC, lo_address aLoAddress)
         return;
       }
       
-      lo_send(aLoAddress, "/button", "ii", lIButton, lIOn);
+      lo_send(aLoAddress, "button", "ii", lIButton, lIOn);
       break;
     }
   default:
