@@ -74,7 +74,11 @@ data SampMap = SampMap {
   }
   deriving (Show, Read)
 
--- blah = SampMap "blah" [(1,"blah2"), (2, "dsfa")]
+data SampMapItem = SMap SampMap | SMapFile T.Text
+ deriving (Show, Read)
+
+-- tests = [SMap blah, SMapFile (T.pack "/thisisapth")]
+-- blah = SampMap (T.pack "blah") [(1,(T.pack "blah2")), (2, (T.pack "dsfa"))]
 
 loadSamp :: FP.FilePath -> Rational -> Int -> IO (Rational, SampleStuff)
 loadSamp filename note bufno = 
@@ -85,11 +89,23 @@ loadSamp filename note bufno =
     withSC3 (async (d_recv syn))
     return (note, SampleStuff syn bufno)
 
-loadSampMap :: FP.FilePath -> Int -> IO (M.Map Rational SampleStuff)
-loadSampMap smapfile bufstart = do
-  smapst <- readFile (FP.encodeString smapfile)
-  let smap = read smapst :: SampMap
-      rewt = (FP.append smapfile 
+loadSampMapItems :: [SampMapItem] -> IO [SampMap]
+loadSampMapItems (itm:rest) = 
+ case itm of 
+  SMap smap -> do
+    smaprest <- loadSampMapItems rest
+    return $ smap : smaprest 
+  SMapFile file -> do
+    str <- readFile (T.unpack file)
+    smaprest <- loadSampMapItems rest
+    return $ ((read str) :: SampMap) : smaprest 
+loadSampMapItems [] = return []
+
+-- pass in the sampmap, and the directory containing the file that 
+-- contains the sampmap.  that dir is used to 
+loadSampMap :: FP.FilePath -> SampMap -> Int -> IO (M.Map Rational SampleStuff)
+loadSampMap smapfiledir smap bufstart = do
+  let rewt = (FP.append smapfiledir
                         (FP.fromText (sm_rootdir smap))) in
    if (FP.valid rewt) then do
     lst <- sequence (map 
@@ -119,15 +135,28 @@ main = do
       withSC3 reset
       -- withSC3 (send (g_new [(1, AddToTail, 0)]))
       -- read in the buffers, create synthdefs
-      smap <- loadSampMap (FP.decodeString (args !! 2)) gBufStart
-      -- putStrLn $ ppShow smap
-      let port = OSC.readMaybe (args !! 1) :: (Maybe Int)
-          ip = (args !! 0)
-          soundstate = SoundState S.empty 
-       in case port of
-         Just p -> do 
-            startoscloop ip p smap soundstate 
-         Nothing -> putStrLn $ "Invalid port: " ++ (args !! 0) 
+      sml_str <- readFile (args !! 2)
+      smaplist <- loadSampMapItems ((read sml_str) :: [SampMapItem])
+      if (length smaplist) == 0 then
+        print "empty sound map file!"
+      else do
+        samples <- loadSampMap (FP.decodeString (args !! 2)) 
+                               (head smaplist) 
+                               gBufStart
+        -- putStrLn $ ppShow smap
+        let port = OSC.readMaybe (args !! 1) :: (Maybe Int)
+            ip = (args !! 0)
+            soundstate = SoundState {
+              ss_activeKeys = S.empty,
+              ss_samples = samples,
+              ss_sampmapIndex = 0 ,
+              ss_sampmaps = smaplist ,
+              ss_sampmaprootdir = (FP.decodeString (args !! 2)) 
+              }
+         in case port of
+           Just p -> do   
+              startoscloop ip p soundstate 
+           Nothing -> putStrLn $ "Invalid port: " ++ (args !! 0) 
 
 -- track active sounds.
 -- if a key receives a positive value, and it is inactive, then
@@ -140,23 +169,26 @@ main = do
 --    1) send volume adjustment (to zero) or cancel playback.
 --    2) make the key inactive.
 data SoundState = SoundState {
-  activeKeys :: S.Set Int
+  ss_activeKeys :: S.Set Int,
+  ss_samples :: M.Map Rational SampleStuff,
+  ss_sampmapIndex :: Int,
+  ss_sampmaps :: [SampMap],
+  ss_sampmaprootdir :: FP.FilePath
   }
 
-startoscloop :: String -> Int -> M.Map Rational SampleStuff -> SoundState -> IO ()
-startoscloop ip port soundmap soundstate = do
-  OSC.withTransport (OSC.udpServer ip port) (oscloop soundmap soundstate)
+startoscloop :: String -> Int -> SoundState -> IO ()
+startoscloop ip port soundstate = do
+  OSC.withTransport (OSC.udpServer ip port) (oscloop soundstate)
     
-oscloop :: (OSC.Transport t) => M.Map Rational SampleStuff -> SoundState -> 
-                                t -> IO ()
-oscloop soundmap soundstate fd = do
+oscloop :: (OSC.Transport t) => SoundState -> t -> IO ()
+oscloop soundstate fd = do
   msg <- OSC.recvMessage fd
   case msg of 
     Just msg -> do 
-      newsoundstate <- onoscmessage soundmap soundstate msg
-      oscloop soundmap newsoundstate fd
+      newsoundstate <- onoscmessage soundstate msg
+      oscloop newsoundstate fd
     Nothing -> 
-      oscloop soundmap soundstate fd
+      oscloop soundstate fd
 
 -- key, knob, or button index.
 getoscindex :: OSC.Message -> Maybe Int
@@ -205,18 +237,19 @@ getsound Nothing _ = Nothing
 -- if sound does not exist and volume is positive, create a channel playing the sound at the given volume.
 -- if sound exists and volume is positive, change the volume.
 -- if sound exists and volume is zero, fade it and remove from soundstate.
-onoscmessage :: M.Map Rational SampleStuff -> SoundState -> OSC.Message -> IO SoundState
-onoscmessage soundmap soundstate msg = do
+onoscmessage :: SoundState -> OSC.Message -> IO SoundState
+onoscmessage soundstate msg = do
   -- print $ "osc message: " ++ (show msg)
   -- print $ "osc message: " ++ OSC.messageAddress msg 
-  let msgtext = OSC.messageAddress msg 
+  let soundmap = ss_samples soundstate
+      msgtext = OSC.messageAddress msg 
       idx = getoscindex msg 
       amt = getoscamt msg
       sound = getsound idx soundmap
       node = 1
    in case (msgtext, idx, amt, sound) of 
     ("keyc", Just i, Just a, Just (name, sstuff)) -> 
-     if (S.member i (activeKeys soundstate)) then
+     if (S.member i (ss_activeKeys soundstate)) then
         do
           print $ "setvolactive: " ++ (show i) ++ " " ++ (show a)
           -- print "here" 
@@ -237,17 +270,29 @@ onoscmessage soundmap soundstate msg = do
           -- withSC3 (play (s_synth sstuff))
           -- print (s_synth sstuff)
           -- add to active keys.
-          return $ soundstate { activeKeys = (S.insert i (activeKeys soundstate)) }
+          return $ soundstate { ss_activeKeys = (S.insert i (ss_activeKeys soundstate)) }
     ("keye", Just i, _, Just (name, sstuff)) -> do 
         -- print "stopping"
         -- set volume to zero, and/or stop playback.
         -- withSC3 (send (F.n_set1 node (show (s_bufId sstuff) ++ "amp") 0))
         -- remove key from active set.
-        -- return $ soundstate { activeKeys = (S.delete i (activeKeys soundstate)) }
+        -- return $ soundstate { ss_activeKeys = (S.delete i (ss_activeKeys soundstate)) }
         print $ "freeing: " ++ (show i)
         withSC3 (send (n_free [(gNodeOffset + i)]))
-        return $ soundstate { activeKeys = (S.delete i (activeKeys soundstate)) }
+        return $ soundstate { ss_activeKeys = (S.delete i (ss_activeKeys soundstate)) }
         -- return soundstate
+    ("knob", Just i, Just a, _) -> do
+      print $ "knob " ++ (show i)
+      case i of 
+        0 -> let
+          index = floor $ (a / 1024.0) * 
+                          (fromIntegral (length (ss_sampmaps soundstate)))
+          in do
+         sm <- loadSampMap (ss_sampmaprootdir soundstate) 
+                           ((ss_sampmaps soundstate) !! index) 
+                           gBufStart
+         return $ soundstate { ss_samples = sm, ss_sampmapIndex = index }
+        _ -> return soundstate
     (_,_,_,_) -> do 
       -- for anything else, ignore.
       print "ignore"
