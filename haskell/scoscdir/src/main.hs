@@ -282,16 +282,17 @@ onoscmessage soundstate msg = do
         return $ soundstate { ss_activeKeys = (S.delete i (ss_activeKeys soundstate)) }
         -- return soundstate
     ("knob", Just i, Just a, _) -> do
-      print $ "knob " ++ (show i)
       case i of 
         0 -> let
-          index = floor $ (a / 1024.0) * 
-                          (fromIntegral (length (ss_sampmaps soundstate)))
-          in do
-         sm <- loadSampMap (ss_sampmaprootdir soundstate) 
-                           ((ss_sampmaps soundstate) !! index) 
-                           gBufStart
-         return $ soundstate { ss_samples = sm, ss_sampmapIndex = index }
+          index = floor $ a * (fromIntegral (length (ss_sampmaps soundstate)))
+          in
+         if (index /= (ss_sampmapIndex soundstate)) then do
+             sm <- loadSampMap (ss_sampmaprootdir soundstate) 
+                               ((ss_sampmaps soundstate) !! index) 
+                               gBufStart
+             return $ soundstate { ss_samples = sm, ss_sampmapIndex = index }
+         else
+             return soundstate
         _ -> return soundstate
     (_,_,_,_) -> do 
       -- for anything else, ignore.
