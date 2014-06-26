@@ -284,7 +284,9 @@ onoscmessage soundstate msg = do
     ("knob", Just i, Just a, _) -> do
       case i of 
         0 -> let
-          index = floor $ a * (fromIntegral (length (ss_sampmaps soundstate)))
+          ln = (length (ss_sampmaps soundstate)) 
+          mn = max (ln - 1) 0
+          index = min mn $ floor $ a * (fromIntegral ln)
           in
          if (index /= (ss_sampmapIndex soundstate)) then do
              sm <- loadSampMap (ss_sampmaprootdir soundstate) 
