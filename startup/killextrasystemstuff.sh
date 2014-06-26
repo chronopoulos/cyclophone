@@ -1,4 +1,5 @@
-#!/bin/bash ## Stop the ntp service
+#!/bin/bash 
+## Stop the ntp service
 sudo service ntp stop
 
 ## Stop the triggerhappy service
@@ -15,7 +16,7 @@ sudo killall console-kit-daemon
 sudo killall polkitd
 
 ## Only needed when Jack2 is compiled with D-Bus support (Jack2 in the AutoStatic RPi audio repo is compiled without D-Bus support)
-#export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/dbus/system_bus_socket
+export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/dbus/system_bus_socket
 
 ## Remount /dev/shm to prevent memory allocation errors
 sudo mount -o remount,size=128M /dev/shm
