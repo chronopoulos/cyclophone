@@ -96,21 +96,21 @@ loadSampMapItems [] = return []
 loadSampMap :: FP.FilePath -> SampMap -> Int -> IO (M.Map Rational SampleStuff)
 loadSampMap smapfiledir smap bufstart = do
   let rewt = (FP.append smapfiledir
-                        (FP.fromText (sm_rootdir smap))) in
+                        (FP.fromText (sm_rootdir smap)))
+      denom = sm_denominator smap in
    if (FP.valid rewt) then do
     lst <- sequence (map 
               (\((nt, fn), bufidx) -> 
-                  readsamp 
-                    rewt  
+                  readsamp denom rewt 
                     fn nt bufidx)
               (zip (sm_notemap smap) [bufstart..]))
     return $ M.fromList lst
    else
     return M.empty
    where
-    readsamp rtd fn nt idx = 
+    readsamp denom rtd fn nt idx = 
       let file = FP.append rtd (FP.fromText fn) in 
-        loadSamp file nt idx 
+        loadSamp file (nt % denom) idx 
 
 gBufStart = 0 
  
