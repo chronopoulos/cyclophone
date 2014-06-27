@@ -36,8 +36,8 @@ makeSynthDef name bufno =
 
 gNodeOffset = 100
 
-{-
 -- substitute buffer playback with simple oscillator.
+{-
 readBuf fname bufno = 
   return ()
 
@@ -131,12 +131,14 @@ main = do
       print "syntax:"
       print "scoscdir <ip> <port> <sample mapfile>"
     else do
+      print "scoscdir started."
       -- slist <- treein (args !! 3)
       withSC3 reset
       -- withSC3 (send (g_new [(1, AddToTail, 0)]))
       -- read in the buffers, create synthdefs
       sml_str <- readFile (args !! 2)
       smaplist <- loadSampMapItems ((read sml_str) :: [SampMapItem])
+      print "sample map file loaded."
       if (length smaplist) == 0 then
         print "empty sound map file!"
       else do
@@ -154,7 +156,8 @@ main = do
               ss_sampmaprootdir = (FP.decodeString (args !! 2)) 
               }
          in case port of
-           Just p -> do   
+           Just p -> do
+              print "starting osc loop." 
               startoscloop ip p soundstate 
            Nothing -> putStrLn $ "Invalid port: " ++ (args !! 0) 
 
@@ -240,7 +243,7 @@ getsound Nothing _ = Nothing
 onoscmessage :: SoundState -> OSC.Message -> IO SoundState
 onoscmessage soundstate msg = do
   -- print $ "osc message: " ++ (show msg)
-  -- print $ "osc message: " ++ OSC.messageAddress msg 
+  print $ "osc message: " ++ OSC.messageAddress msg 
   let soundmap = ss_samples soundstate
       msgtext = OSC.messageAddress msg 
       idx = getoscindex msg 

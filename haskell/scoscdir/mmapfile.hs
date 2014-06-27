@@ -1,5 +1,5 @@
 [SMap SampMap {
-    sm_rootdir = "/home/ccrma/cyclophone_samples/mellotron/Cello"
+    sm_rootdir = "/home/bburdette/cyclophone_samples/mellotron/Cello"
   , sm_notemap = [
     (43 % 12, "G2.wav"),
     (44 % 12, "G#2.wav"),
@@ -38,7 +38,7 @@
     (77 % 12, "F5.wav")
   ]
 }, SMap SampMap {
-    sm_rootdir = "/home/ccrma/cyclophone_samples/mellotron/CombinedChoir"
+    sm_rootdir = "/home/bburdette/cyclophone_samples/mellotron/CombinedChoir"
   , sm_notemap = [
     (43 % 12, "G2.wav"),
     (44 % 12, "G#2.wav"),
@@ -77,7 +77,7 @@
     (77 % 12, "F5.wav")
   ]
 },SMap SampMap {
-    sm_rootdir = "/home/ccrma/cyclophone_samples/mellotron/GC3Brass"
+    sm_rootdir = "/home/bburdette/cyclophone_samples/mellotron/GC3Brass"
   , sm_notemap = [
     (43 % 12, "G2.wav"),
     (44 % 12, "G#2.wav"),
@@ -116,7 +116,7 @@
     (77 % 12, "F5.wav")
   ]
 },SMap SampMap {
-    sm_rootdir = "/home/ccrma/cyclophone_samples/mellotron/M300A"
+    sm_rootdir = "/home/bburdette/cyclophone_samples/mellotron/M300A"
   , sm_notemap = [
     (43 % 12, "G2.wav"),
     (44 % 12, "G#2.wav"),
@@ -155,7 +155,7 @@
     (77 % 12, "F5.wav")
   ]
 },SMap SampMap {
-    sm_rootdir = "/home/ccrma/cyclophone_samples/mellotron/M300B"
+    sm_rootdir = "/home/bburdette/cyclophone_samples/mellotron/M300B"
   , sm_notemap = [
     (43 % 12, "G2.wav"),
     (44 % 12, "G#2.wav"),
@@ -194,7 +194,7 @@
     (77 % 12, "F5.wav")
   ]
 },SMap SampMap {
-    sm_rootdir = "/home/ccrma/cyclophone_samples/mellotron/MkIIBrass"
+    sm_rootdir = "/home/bburdette/cyclophone_samples/mellotron/MkIIBrass"
   , sm_notemap = [
     (43 % 12, "G2.wav"),
     (44 % 12, "G#2.wav"),
@@ -233,7 +233,7 @@
     (77 % 12, "F5.wav")
   ]
 },SMap SampMap {
-    sm_rootdir = "/home/ccrma/cyclophone_samples/mellotron/MkIIFlute"
+    sm_rootdir = "/home/bburdette/cyclophone_samples/mellotron/MkIIFlute"
   , sm_notemap = [
     (43 % 12, "G2.wav"),
     (44 % 12, "G#2.wav"),
@@ -272,7 +272,7 @@
     (77 % 12, "F5.wav")
   ]
 },SMap SampMap {
-    sm_rootdir = "/home/ccrma/cyclophone_samples/mellotron/StringSection"
+    sm_rootdir = "/home/bburdette/cyclophone_samples/mellotron/StringSection"
   , sm_notemap = [
     (43 % 12, "G2.wav"),
     (44 % 12, "G#2.wav"),
@@ -311,7 +311,7 @@
     (77 % 12, "F5.wav")
   ]
 },SMap SampMap {
-    sm_rootdir = "/home/ccrma/cyclophone_samples/mellotron/Woodwind2"
+    sm_rootdir = "/home/bburdette/cyclophone_samples/mellotron/Woodwind2"
   , sm_notemap = [
     (43 % 12, "G2.wav"),
     (44 % 12, "G#2.wav"),
