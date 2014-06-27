@@ -19,6 +19,7 @@ import qualified Data.Set as S
 import Data.Ratio
 
 import Treein
+import SampMap
 
 -- pathlist fpath = splitOneOf "/" fpath
 -- fname fullpath = last (pathlist fullpath)
@@ -65,17 +66,6 @@ data SampleStuff = SampleStuff {
   s_bufId :: Int
   }
   deriving (Show)
-
--- loading the samples.
-
-data SampMap = SampMap {
-    sm_rootdir :: T.Text,
-    sm_notemap :: [(Rational, T.Text)]
-  }
-  deriving (Show, Read)
-
-data SampMapItem = SMap SampMap | SMapFile T.Text
- deriving (Show, Read)
 
 -- tests = [SMap blah, SMapFile (T.pack "/thisisapth")]
 -- blah = SampMap (T.pack "blah") [(1,(T.pack "blah2")), (2, (T.pack "dsfa"))]
