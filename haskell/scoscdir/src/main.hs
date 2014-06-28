@@ -243,8 +243,9 @@ onoscmessage soundstate msg = do
    in case (msgtext, idx, amt, sound) of 
     ("keyh", Just i, Just a, Just (name, sstuff)) ->
       if (s_keytype sstuff == Hit) || (s_keytype sstuff == HitVol) then do 
-        print $ "start inactive: " ++ (show i) ++ " " ++ (show a)
+        print $ "keyh start: " ++ (show i) ++ " " ++ (show a)
         -- create synth w volume.
+        withSC3 (send (n_free [(gNodeOffset + i)]))
         withSC3 (send (s_new ("def" ++ (show i)) 
                              (i + gNodeOffset) 
                              AddToTail 1 
@@ -276,13 +277,15 @@ onoscmessage soundstate msg = do
         else 
           -- no change to soundstate.
           return soundstate
-    ("keye", Just i, _, Just (name, sstuff)) -> do 
-        -- set volume to zero, and/or stop playback.
-        print $ "freeing: " ++ (show i)
-        withSC3 (send (n_free [(gNodeOffset + i)]))
-        -- remove key from active set.
-        return $ soundstate { ss_activeKeys = (S.delete i (ss_activeKeys soundstate)) }
-        -- return soundstate
+    ("keye", Just i, _, Just (name, sstuff)) -> 
+        if (s_keytype sstuff == Vol || s_keytype sstuff == HitVol) then do 
+          -- set volume to zero, and/or stop playback.
+          print $ "freeing: " ++ (show i)
+          withSC3 (send (n_free [(gNodeOffset + i)]))
+          -- remove key from active set.
+          return $ soundstate { ss_activeKeys = (S.delete i (ss_activeKeys soundstate)) }
+        else
+          return soundstate
     ("knob", Just i, Just a, _) -> do
       print $ "knob " ++ (show i) ++ " " ++ (show a)
       case i of 
