@@ -42,13 +42,16 @@ main = do
     "-scan" -> do
       filez <- treein (args !! 2)
       let note = read (args !! 1) :: Integer 
+          rdstr = if (last (args !! 2) == '/') then (args !! 2) 
+                                               else ((args !! 2) ++ "/")
+          rootdir = FP.decodeString rdstr 
           fpfiles = map FP.decodeString (sort filez)
           conv pdir (name, note) = 
             (note, either id id $ FP.toText (makeRelativePath pdir name)) 
           sm = SampMap { 
             sm_rootdir = T.pack $ args !! 2,
             sm_denominator = 12,   -- default to 12!
-            sm_notemap = map (conv (FP.decodeString (args !! 2))) 
+            sm_notemap = map (conv rootdir) 
                              (zip fpfiles [note..]) } in do
        -- writeFile (args !! 3) $ ppShow (zip (sort filez) [note..])
        writeFile (args !! 3) $ ppShow [SMap sm]

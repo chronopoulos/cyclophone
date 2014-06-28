@@ -56,5 +56,13 @@ makeRelativePath frompath topath =
     in
       FP.append relpart topart
  
+testRelPath :: String -> String -> String
+testRelPath s1 s2 = FP.encodeString $ 
+  makeRelativePath (FP.decodeString s1) (FP.decodeString s2)
+
+testComPre :: String -> String -> String
+testComPre s1 s2 = FP.encodeString $ 
+  FP.commonPrefix [(FP.decodeString s1), (FP.decodeString s2)]
+
 
 
