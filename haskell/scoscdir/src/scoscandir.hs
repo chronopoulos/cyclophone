@@ -47,7 +47,9 @@ main = do
           rootdir = FP.decodeString rdstr 
           fpfiles = map FP.decodeString (sort filez)
           conv pdir (name, note) = 
-            (note, either id id $ FP.toText (makeRelativePath pdir name)) 
+            (note, 
+             either id id $ FP.toText (makeRelativePath pdir name),
+             Vol) 
           sm = SampMap { 
             sm_rootdir = T.pack $ args !! 2,
             sm_denominator = 12,   -- default to 12!

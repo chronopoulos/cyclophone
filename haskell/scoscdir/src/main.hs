@@ -63,21 +63,22 @@ stopp =
 
 data SampleStuff = SampleStuff {
   s_synth :: Synthdef,
-  s_bufId :: Int
+  s_bufId :: Int,
+  s_keytype :: KeyType 
   }
   deriving (Show)
 
 -- tests = [SMap blah, SMapFile (T.pack "/thisisapth")]
 -- blah = SampMap (T.pack "blah") [(1,(T.pack "blah2")), (2, (T.pack "dsfa"))]
 
-loadSamp :: FP.FilePath -> Rational -> Int -> IO (Rational, SampleStuff)
-loadSamp filename note bufno = 
+loadSamp :: FP.FilePath -> Rational -> KeyType -> Int -> IO (Rational, SampleStuff)
+loadSamp filename note keytype bufno = 
  let fn = (FP.encodeString filename) in do
   readBuf fn bufno
   let syn = (makeSynthDef ("def" ++ (show bufno)) bufno) 
    in do
     withSC3 (async (d_recv syn))
-    return (note, SampleStuff syn bufno)
+    return (note, SampleStuff syn bufno keytype)
 
 loadSampMapItems :: [SampMapItem] -> IO [SampMap]
 loadSampMapItems (itm:rest) = 
@@ -100,17 +101,16 @@ loadSampMap smapfiledir smap bufstart = do
       denom = sm_denominator smap in
    if (FP.valid rewt) then do
     lst <- sequence (map 
-              (\((nt, fn), bufidx) -> 
-                  readsamp denom rewt 
-                    fn nt bufidx)
+              (\((nt, fn, kt), bufidx) -> 
+                  readsamp denom rewt fn nt bufidx kt)
               (zip (sm_notemap smap) [bufstart..]))
     return $ M.fromList lst
    else
     return M.empty
    where
-    readsamp denom rtd fn nt idx = 
+    readsamp denom rtd fn nt idx kt = 
       let file = FP.append rtd (FP.fromText fn) in 
-        loadSamp file (nt % denom) idx 
+        loadSamp file (nt % denom) kt idx 
 
 gBufStart = 0 
  
@@ -241,40 +241,50 @@ onoscmessage soundstate msg = do
       sound = getsound idx soundmap
       node = 1
    in case (msgtext, idx, amt, sound) of 
+    ("keyh", Just i, Just a, Just (name, sstuff)) ->
+      if (s_keytype sstuff == Hit) || (s_keytype sstuff == HitVol) then do 
+        print $ "start inactive: " ++ (show i) ++ " " ++ (show a)
+        -- create synth w volume.
+        withSC3 (send (s_new ("def" ++ (show i)) 
+                             (i + gNodeOffset) 
+                             AddToTail 1 
+                             [("amp", (float2Double a))]))
+        -- put in the active list.
+        return $ soundstate { ss_activeKeys = (S.insert i (ss_activeKeys soundstate)) }
+      else 
+        return soundstate
     ("keyc", Just i, Just a, Just (name, sstuff)) -> 
      if (S.member i (ss_activeKeys soundstate)) then
-        do
+        if (s_keytype sstuff == Vol) || (s_keytype sstuff == HitVol) then do 
           print $ "setvolactive: " ++ (show i) ++ " " ++ (show a)
-          -- print "here" 
           -- set the volume.
           withSC3 (send (F.n_set1 (i + gNodeOffset) "amp" a))
           -- no change to soundstate.
           return soundstate
-      else
-        do
+        else 
+          -- no change to soundstate.
+          return soundstate
+      else if (s_keytype sstuff == Vol) then do
           print $ "start inactive: " ++ (show i) ++ " " ++ (show a)
-          -- print "there" 
-          -- set the volume.
-          -- create synth.
-          withSC3 (send (s_new ("def" ++ (show i)) (i + gNodeOffset) AddToTail 1 [("amp", (float2Double a))]))
-          -- withSC3 (play 
-          -- withSC3 (send (F.n_set1 node (show (s_bufId sstuff) ++ "amp") a))
-          -- start sample.
-          -- withSC3 (play (s_synth sstuff))
-          -- print (s_synth sstuff)
+          -- create synth, with initial amplitude setting.
+          withSC3 (send (s_new ("def" ++ (show i)) 
+                               (i + gNodeOffset) 
+                               AddToTail 1 
+                               [("amp", (float2Double a))]))
           -- add to active keys.
           return $ soundstate { ss_activeKeys = (S.insert i (ss_activeKeys soundstate)) }
+        else 
+          -- no change to soundstate.
+          return soundstate
     ("keye", Just i, _, Just (name, sstuff)) -> do 
-        -- print "stopping"
         -- set volume to zero, and/or stop playback.
-        -- withSC3 (send (F.n_set1 node (show (s_bufId sstuff) ++ "amp") 0))
-        -- remove key from active set.
-        -- return $ soundstate { ss_activeKeys = (S.delete i (ss_activeKeys soundstate)) }
         print $ "freeing: " ++ (show i)
         withSC3 (send (n_free [(gNodeOffset + i)]))
+        -- remove key from active set.
         return $ soundstate { ss_activeKeys = (S.delete i (ss_activeKeys soundstate)) }
         -- return soundstate
     ("knob", Just i, Just a, _) -> do
+      print $ "knob " ++ (show i) ++ " " ++ (show a)
       case i of 
         0 -> let
           ln = (length (ss_sampmaps soundstate)) 
