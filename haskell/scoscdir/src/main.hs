@@ -4,8 +4,13 @@ import System.Directory
 import System.Environment
 import Data.List.Split
 import qualified Data.Text as T
+import qualified Data.Array as A
+--import qualified Data.Map as M
+import qualified Data.MultiMap as MM
+import qualified Data.Set as S
 -- import System.FilePath
 import qualified Filesystem.Path.CurrentOS as FP
+import Data.Maybe
 import Text.Show.Pretty
 import Control.Monad
 import Control.Monad.Fix
@@ -13,13 +18,12 @@ import GHC.Float
 import Sound.SC3
 import qualified Sound.OSC.FD as OSC
 import qualified Sound.SC3.Server.Command.Float as F
-import qualified Data.Map as M
-import qualified Data.Set as S
 
 import Data.Ratio
 
 import Treein
 import SampMap
+import Scales 
 
 -- pathlist fpath = splitOneOf "/" fpath
 -- fname fullpath = last (pathlist fullpath)
@@ -94,7 +98,7 @@ loadSampMapItems [] = return []
 
 -- pass in the sampmap, and the directory containing the file that 
 -- contains the sampmap.  that dir is used to 
-loadSampMap :: FP.FilePath -> SampMap -> Int -> IO (M.Map Rational SampleStuff)
+loadSampMap :: FP.FilePath -> SampMap -> Int -> IO (MM.MultiMap Rational SampleStuff)
 loadSampMap smapfiledir smap bufstart = do
   let rewt = (FP.append smapfiledir
                         (FP.fromText (sm_rootdir smap)))
@@ -104,9 +108,9 @@ loadSampMap smapfiledir smap bufstart = do
               (\((nt, fn, kt), bufidx) -> 
                   readsamp denom rewt fn nt bufidx kt)
               (zip (sm_notemap smap) [bufstart..]))
-    return $ M.fromList lst
+    return $ MM.fromList lst
    else
-    return M.empty
+    return MM.empty
    where
     readsamp denom rtd fn nt idx kt = 
       let file = FP.append rtd (FP.fromText fn) in 
@@ -138,9 +142,14 @@ main = do
         -- putStrLn $ ppShow smap
         let port = OSC.readMaybe (args !! 1) :: (Maybe Int)
             ip = (args !! 0)
+            scale = majorScale
+            root = 4
             soundstate = SoundState {
               ss_activeKeys = S.empty,
               ss_samples = samples,
+              ss_keymap = makeKeyMap 24 root scale samples,
+              ss_rootnote = root,
+              ss_scale = scale,
               ss_sampmapIndex = 0 ,
               ss_sampmaps = smaplist ,
               ss_sampmaprootdir = (FP.decodeString (args !! 2)) 
@@ -163,7 +172,10 @@ main = do
 --    2) make the key inactive.
 data SoundState = SoundState {
   ss_activeKeys :: S.Set Int,
-  ss_samples :: M.Map Rational SampleStuff,
+  ss_samples :: MM.MultiMap Rational SampleStuff,
+  ss_keymap :: A.Array Int (Rational, SampleStuff),
+  ss_rootnote :: Rational,
+  ss_scale :: [Rational],
   ss_sampmapIndex :: Int,
   ss_sampmaps :: [SampMap],
   ss_sampmaprootdir :: FP.FilePath
@@ -200,14 +212,20 @@ getoscamt msg =
       _ -> Nothing
 
 -- for key index, get sound. 
-getsound :: Maybe Int -> M.Map Rational SampleStuff -> Maybe (Rational, SampleStuff)
+getsound :: Maybe Int -> A.Array Int (Rational, SampleStuff) -> Maybe (Rational, SampleStuff)
 getsound (Just index) soundmap =
-  if ((M.size soundmap) == 0) then 
-    Nothing
-  else
-    Just $ M.elemAt (rem index (M.size soundmap)) soundmap 
+   Just $ soundmap A.! index 
 getsound Nothing _ = Nothing
 
+
+makeKeyMap :: Int -> Rational -> [Rational] -> MM.MultiMap Rational SampleStuff -> A.Array Int (Rational, SampleStuff)
+makeKeyMap keycount rootnote scale soundmap = 
+  let notes = noteseries (scaleftn scale) rootnote
+      sounds = foldr (++) [] 
+                 (map (\x -> (map (\y -> (x,y)) (MM.lookup x soundmap))) notes)
+   in
+    A.array (0,keycount-1) (zip [0..] (take keycount (cycle sounds)))
+    -- A.array (0,keycount-1) (zip [0..] (take keycount (cycle sounds)))
 
 -- if its a key, look up synth using the key index.
 -- is this something that changes during the program?
@@ -234,19 +252,20 @@ onoscmessage :: SoundState -> OSC.Message -> IO SoundState
 onoscmessage soundstate msg = do
   -- print $ "osc message: " ++ (show msg)
   print $ "osc message: " ++ OSC.messageAddress msg 
-  let soundmap = ss_samples soundstate
+  let soundmap = ss_keymap soundstate
       msgtext = OSC.messageAddress msg 
       idx = getoscindex msg 
       amt = getoscamt msg
       sound = getsound idx soundmap
       node = 1
    in case (msgtext, idx, amt, sound) of 
-    ("keyh", Just i, Just a, Just (name, sstuff)) ->
-      if (s_keytype sstuff == Hit) || (s_keytype sstuff == HitVol) then do 
+    ("keyh", Just i, Just a, Just (note, sstuff)) ->
+      if (s_keytype sstuff == Hit) || (s_keytype sstuff == HitVol) then 
+       let bufid = s_bufId sstuff in do 
         print $ "keyh start: " ++ (show i) ++ " " ++ (show a)
         -- create synth w volume.
         withSC3 (send (n_free [(gNodeOffset + i)]))
-        withSC3 (send (s_new ("def" ++ (show i)) 
+        withSC3 (send (s_new ("def" ++ (show bufid))
                              (i + gNodeOffset) 
                              AddToTail 1 
                              [("amp", (float2Double a))]))
@@ -254,7 +273,7 @@ onoscmessage soundstate msg = do
         return $ soundstate { ss_activeKeys = (S.insert i (ss_activeKeys soundstate)) }
       else 
         return soundstate
-    ("keyc", Just i, Just a, Just (name, sstuff)) -> 
+    ("keyc", Just i, Just a, Just (note, sstuff)) -> 
      if (S.member i (ss_activeKeys soundstate)) then
         if (s_keytype sstuff == Vol) || (s_keytype sstuff == HitVol) then do 
           print $ "setvolactive: " ++ (show i) ++ " " ++ (show a)
@@ -277,7 +296,7 @@ onoscmessage soundstate msg = do
         else 
           -- no change to soundstate.
           return soundstate
-    ("keye", Just i, _, Just (name, sstuff)) -> 
+    ("keye", Just i, _, Just (note, sstuff)) -> 
         if (s_keytype sstuff == Vol || s_keytype sstuff == HitVol) then do 
           -- set volume to zero, and/or stop playback.
           print $ "freeing: " ++ (show i)
@@ -298,7 +317,12 @@ onoscmessage soundstate msg = do
              sm <- loadSampMap (ss_sampmaprootdir soundstate) 
                                ((ss_sampmaps soundstate) !! index) 
                                gBufStart
-             return $ soundstate { ss_samples = sm, ss_sampmapIndex = index }
+             return $ soundstate { ss_samples = sm, 
+                                   ss_keymap = makeKeyMap 24 
+                                                (ss_rootnote soundstate) 
+                                                (ss_scale soundstate) 
+                                                sm,
+                                   ss_sampmapIndex = index }
          else
              return soundstate
         _ -> return soundstate

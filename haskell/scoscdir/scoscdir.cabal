@@ -26,10 +26,12 @@ executable scoscdir
                        directory,
                        filepath,
                        text,
+                       array,
                        system-filepath,
                        split,
                        pretty-show,
                        containers,
+                       multimap,
                        hosc,
                        hsc3
    -- hs-source-dirs:      

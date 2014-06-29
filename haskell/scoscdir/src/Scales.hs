@@ -33,6 +33,22 @@ scaleftn :: [Rational] -> Int -> Rational
 scaleftn scale index = 
  let (oct,ind) = divMod index (length scale)
   in 
-    (fromIntegral oct) * 12 + (scale !! (fromIntegral ind))
+    (fromIntegral oct) + (scale !! (fromIntegral ind))
+
+-- make an infinite list of notes in the scale starting at rootnote.
+noteseries scaleftn rootnote = map (((+) rootnote) . scaleftn) [0..]
+
+
+-- an octave == 1.  
+-- 0 == C0
+-- 1 == C1
+-- 9 % 12 = A0
+-- 21 % 12 = A1
+toMidiNote :: Rational -> Float
+toMidiNote ratnote = fromRational $ ratnote * 12
+
+-- a kind of crappy approximation.  close enough for rock n roll?
+toFreq :: Rational -> Float
+toFreq ratnote = 8.176 * 2.0 ** (fromRational ratnote)
 
 
