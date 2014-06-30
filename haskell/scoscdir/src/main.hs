@@ -309,7 +309,7 @@ onoscmessage soundstate msg = do
         -- create synth w volume.
         withSC3 (send (n_free [(gNodeOffset + i)]))
         withSC3 (send (s_new ("def" ++ (show bufid))
-                             (i + gNodeOffset) 
+                             (gNodeOffset + i) 
                              AddToTail 1 
                              [("amp", (float2Double a))]))
         -- put in the active list.
@@ -323,7 +323,7 @@ onoscmessage soundstate msg = do
         if (s_keytype sstuff == Vol) || (s_keytype sstuff == HitVol) then do 
           print $ "setvolactive: " ++ (show i) ++ " " ++ (show a)
           -- set the volume.
-          withSC3 (send (F.n_set1 (i + gNodeOffset) "amp" a))
+          withSC3 (send (F.n_set1 (gNodeOffset + i) "amp" a))
           -- no change to soundstate.
           return soundstate
         else do
@@ -333,8 +333,8 @@ onoscmessage soundstate msg = do
       else if (s_keytype sstuff == Vol) then do
           print $ "start inactive: " ++ (show i) ++ " " ++ (show a)
           -- create synth, with initial amplitude setting.
-          withSC3 (send (s_new ("def" ++ (show i)) 
-                               (i + gNodeOffset) 
+          withSC3 (send (s_new ("def" ++ (show (s_bufId sstuff))) 
+                               (gNodeOffset + i) 
                                AddToTail 1 
                                [("amp", (float2Double a))]))
           -- add to active keys.
