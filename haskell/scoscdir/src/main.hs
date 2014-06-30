@@ -156,9 +156,15 @@ main = do
               }
          in case port of
            Just p -> do
+              putStrLn $ "keymapping: " ++ (ppShow (map (\(i,e) -> (i, (fst e), dblRat (fst e))) (A.assocs (ss_keymap soundstate))))
               print "starting osc loop." 
               startoscloop ip p soundstate 
            Nothing -> putStrLn $ "Invalid port: " ++ (args !! 0) 
+
+
+dblRat :: Rational -> Double
+dblRat r = 
+ (fromIntegral (numerator r)) / (fromIntegral (denominator r))
 
 -- track active sounds.
 -- if a key receives a positive value, and it is inactive, then
@@ -217,15 +223,46 @@ getsound (Just index) soundmap =
    Just $ soundmap A.! index 
 getsound Nothing _ = Nothing
 
-
 makeKeyMap :: Int -> Rational -> [Rational] -> MM.MultiMap Rational SampleStuff -> A.Array Int (Rational, SampleStuff)
 makeKeyMap keycount rootnote scale soundmap = 
-  let notes = noteseries (scaleftn scale) rootnote
+  let max = fromJust $ MM.findMax soundmap
+      -- make notes a finite list!  only goes up to the max available note
+      notes = takeWhile (\n -> n <= max) $ noteseries (scaleftn scale) rootnote
       sounds = foldr (++) [] 
                  (map (\x -> (map (\y -> (x,y)) (MM.lookup x soundmap))) notes)
    in
     A.array (0,keycount-1) (zip [0..] (take keycount (cycle sounds)))
     -- A.array (0,keycount-1) (zip [0..] (take keycount (cycle sounds)))
+
+makeKeyMap_ :: Int -> Rational -> [Rational] -> MM.MultiMap Rational SampleStuff -> A.Array Int (Rational, SampleStuff)
+makeKeyMap_ keycount rootnote scale soundmap = 
+  let notes = noteseries (scaleftn scale) rootnote
+      sounds = foldr (++) [] 
+                 (map (\x -> (map (\y -> (x,y)) (MM.lookup x soundmap))) notes)
+   in
+    -- nope won't work because requiring compute of whole 'sounds' lists which
+    -- is an infinite task.
+    A.array (0,keycount-1) (zip [0..] (take keycount (cycle sounds)))
+    -- A.array (0,keycount-1) (zip [0..] (take keycount (cycle sounds)))
+
+testKM file = do 
+  sml_str <- readFile file 
+  smaplist <- loadSampMapItems ((read sml_str) :: [SampMapItem])
+  print "sample map file loaded."
+  if (length smaplist) == 0 then
+    print "empty sound map file!"
+  else do
+    samples <- loadSampMap (FP.decodeString file) 
+                           (head smaplist) 
+                           gBufStart
+    print $ "sampels: " ++ (show (MM.size samples))
+    -- putStrLn $ ppShow smap
+    let notes = noteseries (scaleftn majorScale) 4
+        km = makeKeyMap 24 4 majorScale samples in do
+      print $ take 24 (noteseries (scaleftn majorScale) 4)
+      print $ foldr (++) [] (map (\x -> (map (\y -> (x,s_bufId y) ) (MM.lookup x samples))) (take 24 notes))
+      print $ "keymaplen: " ++ (show (A.bounds km))
+
 
 -- if its a key, look up synth using the key index.
 -- is this something that changes during the program?
@@ -242,12 +279,17 @@ makeKeyMap keycount rootnote scale soundmap =
 --    and, can reuse samples.  
 -- could use graph specification in configs??
 
-
 -- if its not a key, do something else, for now ignore.  
 
 -- if sound does not exist and volume is positive, create a channel playing the sound at the given volume.
 -- if sound exists and volume is positive, change the volume.
 -- if sound exists and volume is zero, fade it and remove from soundstate.
+onoscmessage_ :: SoundState -> OSC.Message -> IO SoundState
+onoscmessage_ soundstate msg = do
+  -- print $ "osc message: " ++ (show msg)
+  print $ "osc message: " ++ OSC.messageAddress msg 
+  return soundstate
+
 onoscmessage :: SoundState -> OSC.Message -> IO SoundState
 onoscmessage soundstate msg = do
   -- print $ "osc message: " ++ (show msg)
@@ -259,7 +301,8 @@ onoscmessage soundstate msg = do
       sound = getsound idx soundmap
       node = 1
    in case (msgtext, idx, amt, sound) of 
-    ("keyh", Just i, Just a, Just (note, sstuff)) ->
+    ("keyh", Just i, Just a, Just (note, sstuff)) -> do
+      print "keyh"
       if (s_keytype sstuff == Hit) || (s_keytype sstuff == HitVol) then 
        let bufid = s_bufId sstuff in do 
         print $ "keyh start: " ++ (show i) ++ " " ++ (show a)
@@ -271,9 +314,11 @@ onoscmessage soundstate msg = do
                              [("amp", (float2Double a))]))
         -- put in the active list.
         return $ soundstate { ss_activeKeys = (S.insert i (ss_activeKeys soundstate)) }
-      else 
+      else do
+        print "nochange1"
         return soundstate
-    ("keyc", Just i, Just a, Just (note, sstuff)) -> 
+    ("keyc", Just i, Just a, Just (note, sstuff)) -> do
+     print "keyc"
      if (S.member i (ss_activeKeys soundstate)) then
         if (s_keytype sstuff == Vol) || (s_keytype sstuff == HitVol) then do 
           print $ "setvolactive: " ++ (show i) ++ " " ++ (show a)
@@ -281,7 +326,8 @@ onoscmessage soundstate msg = do
           withSC3 (send (F.n_set1 (i + gNodeOffset) "amp" a))
           -- no change to soundstate.
           return soundstate
-        else 
+        else do
+          print "nochange2"
           -- no change to soundstate.
           return soundstate
       else if (s_keytype sstuff == Vol) then do
@@ -293,17 +339,20 @@ onoscmessage soundstate msg = do
                                [("amp", (float2Double a))]))
           -- add to active keys.
           return $ soundstate { ss_activeKeys = (S.insert i (ss_activeKeys soundstate)) }
-        else 
+        else do
+          print "nochange3"
           -- no change to soundstate.
           return soundstate
-    ("keye", Just i, _, Just (note, sstuff)) -> 
+    ("keye", Just i, _, Just (note, sstuff)) -> do
+        print "keye"
         if (s_keytype sstuff == Vol || s_keytype sstuff == HitVol) then do 
           -- set volume to zero, and/or stop playback.
           print $ "freeing: " ++ (show i)
           withSC3 (send (n_free [(gNodeOffset + i)]))
           -- remove key from active set.
           return $ soundstate { ss_activeKeys = (S.delete i (ss_activeKeys soundstate)) }
-        else
+        else do
+          print "nochange4"
           return soundstate
     ("knob", Just i, Just a, _) -> do
       print $ "knob " ++ (show i) ++ " " ++ (show a)
