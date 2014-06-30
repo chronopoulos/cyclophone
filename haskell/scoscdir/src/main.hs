@@ -117,6 +117,9 @@ loadSampMap smapfiledir smap bufstart = do
         loadSamp file (nt % denom) kt idx 
 
 gBufStart = 0 
+gLowScale = 20
+gHighScale = 60
+gDenomScale = 12
  
 main = do 
  args <- getArgs
@@ -186,6 +189,17 @@ data SoundState = SoundState {
   ss_sampmaps :: [SampMap],
   ss_sampmaprootdir :: FP.FilePath
   }
+
+updateScale :: SoundState -> Rational -> [Rational] -> SoundState
+updateScale ss root scale = 
+  ss { ss_rootnote = root,
+       ss_scale = scale,
+       ss_keymap = makeKeyMap 24 
+                    root
+                    scale 
+                    (ss_samples ss)
+     }
+
 
 startoscloop :: String -> Int -> SoundState -> IO ()
 startoscloop ip port soundstate = do
@@ -374,7 +388,20 @@ onoscmessage soundstate msg = do
                                    ss_sampmapIndex = index }
          else
              return soundstate
+        2 -> return $ updateScale soundstate 
+                      (interp a gLowScale gHighScale gDenomScale)
+                      (ss_scale soundstate)
         _ -> return soundstate
+    ("switch", Just i, _, _) -> do 
+      print $ "switch " ++ (show i)
+      let root = (ss_rootnote soundstate) in 
+        case i of 
+          0 -> return $ updateScale soundstate root chromaticScale 
+          1 -> return $ updateScale soundstate root majorScale 
+          2 -> return $ updateScale soundstate root majorPentatonicScale 
+          3 -> return $ updateScale soundstate root hungarianMinorScale 
+          4 -> return $ updateScale soundstate root harmonicMinorScale
+          _ -> return soundstate
     (_,_,_,_) -> do 
       -- for anything else, ignore.
       print "ignore"

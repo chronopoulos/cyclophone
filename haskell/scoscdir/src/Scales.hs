@@ -51,4 +51,15 @@ toMidiNote ratnote = fromRational $ ratnote * 12
 toFreq :: Rational -> Float
 toFreq ratnote = 8.176 * 2.0 ** (fromRational ratnote)
 
+-- float 0->1 maps to range of rationals. 
+interp :: Float -> Integer -> Integer -> Integer -> Rational                
+interp amt from to denom =  
+  let ans = ((floor (amt * (fromIntegral (to - from + 1)))) + from) % denom 
+    in  
+      if ans > to % denom then  
+        to % denom 
+      else 
+        ans 
+
+
 
