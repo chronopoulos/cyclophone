@@ -100,7 +100,7 @@ loadSampMapItems [] = return []
 -- contains the sampmap.  that dir is used to 
 loadSampMap :: FP.FilePath -> SampMap -> Int -> IO (MM.MultiMap Rational SampleStuff)
 loadSampMap smapfiledir smap bufstart = do
-  let rewt = (FP.append smapfiledir
+  let rewt = (FP.append (FP.directory smapfiledir)
                         (FP.fromText (sm_rootdir smap)))
       denom = sm_denominator smap in
    if (FP.valid rewt) then do
