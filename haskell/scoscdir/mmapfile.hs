@@ -1,5 +1,5 @@
 [SMap SampMap {
-    sm_rootdir = "/home/bburdette/cyclophone_samples/mellotron/Cello"
+    sm_rootdir = "mellotron/Cello"
   , sm_denominator = 12
   , sm_notemap = [
     (43, "G2.wav", Vol),
@@ -39,7 +39,7 @@
     (77, "F5.wav", Vol)
   ]
 }, SMap SampMap {
-    sm_rootdir = "/home/bburdette/cyclophone_samples/mellotron/CombinedChoir"
+    sm_rootdir = "mellotron/CombinedChoir"
   , sm_denominator = 12
   , sm_notemap = [
     (43, "G2.wav", Vol),
@@ -79,7 +79,7 @@
     (77, "F5.wav", Vol)
   ]
 },SMap SampMap {
-    sm_rootdir = "/home/bburdette/cyclophone_samples/mellotron/GC3Brass"
+    sm_rootdir = "mellotron/GC3Brass"
   , sm_denominator = 12
   , sm_notemap = [
     (43, "G2.wav", Vol),
@@ -119,7 +119,7 @@
     (77, "F5.wav", Vol)
   ]
 },SMap SampMap {
-    sm_rootdir = "/home/bburdette/cyclophone_samples/mellotron/M300A"
+    sm_rootdir = "mellotron/M300A"
   , sm_denominator = 12
   , sm_notemap = [
     (43, "G2.wav", Vol),
@@ -159,7 +159,7 @@
     (77, "F5.wav", Vol)
   ]
 },SMap SampMap {
-    sm_rootdir = "/home/bburdette/cyclophone_samples/mellotron/M300B"
+    sm_rootdir = "mellotron/M300B"
   , sm_denominator = 12
   , sm_notemap = [
     (43, "G2.wav", Vol),
@@ -199,7 +199,7 @@
     (77, "F5.wav", Vol)
   ]
 },SMap SampMap {
-    sm_rootdir = "/home/bburdette/cyclophone_samples/mellotron/MkIIBrass"
+    sm_rootdir = "mellotron/MkIIBrass"
   , sm_denominator = 12
   , sm_notemap = [
     (43, "G2.wav", Vol),
@@ -239,7 +239,7 @@
     (77, "F5.wav", Vol)
   ]
 },SMap SampMap {
-    sm_rootdir = "/home/bburdette/cyclophone_samples/mellotron/MkIIFlute"
+    sm_rootdir = "mellotron/MkIIFlute"
   , sm_denominator = 12
   , sm_notemap = [
     (43, "G2.wav", Vol),
@@ -279,7 +279,7 @@
     (77, "F5.wav", Vol)
   ]
 },SMap SampMap {
-    sm_rootdir = "/home/bburdette/cyclophone_samples/mellotron/StringSection"
+    sm_rootdir = "mellotron/StringSection"
   , sm_denominator = 12
   , sm_notemap = [
     (43, "G2.wav", Vol),
@@ -319,7 +319,7 @@
     (77, "F5.wav", Vol)
   ]
 },SMap SampMap {
-    sm_rootdir = "/home/bburdette/cyclophone_samples/mellotron/Woodwind2"
+    sm_rootdir = "mellotron/Woodwind2"
   , sm_denominator = 12
   , sm_notemap = [
     (43, "G2.wav", Vol),
