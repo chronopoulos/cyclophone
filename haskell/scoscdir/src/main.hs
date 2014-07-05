@@ -35,9 +35,23 @@ readBuf fname bufno =
   withSC3 (do
     async (b_allocRead bufno fname 0 0))
 
+gSynthOut = (numOutputBuses + numInputBuses)
+
+
 makeSynthDef name bufno = 
-    synthdef name (out 1 ((playBuf 1 AR (constant bufno) 1.0 1 0 NoLoop RemoveSynth) 
+    synthdef name (out gSynthOut
+                    ((playBuf 1 AR (constant bufno) 1.0 1 0 NoLoop RemoveSynth) 
                          * (control KR "amp" 0.5)))
+
+-- synthdef to connect two buses.
+buscon name busfrom busto = 
+  synthdef name (out busto (in' 1 AR busfrom))
+
+-- connect buses with delay.
+delaycon name busfrom busto = 
+  let sig = in' 1 AR busfrom
+      del = delayN sig 0.5 0.5 in
+  synthdef name (out busto (sig + del))
 
 gNodeOffset = 100
 
@@ -131,10 +145,21 @@ main = do
       print "scoscdir started."
       -- slist <- treein (args !! 3)
       withSC3 reset
-      -- withSC3 (send (g_new [(1, AddToTail, 0)]))
+     
+      -- add delay to end of the graph ("AddToTail")
+      -- will need to create synths with AddToHead so they are before this in 
+      -- the graph. 
+      withSC3 (async 
+        (d_recv (delaycon "blah" gSynthOut 1)))
+      withSC3 (send (s_new "blah"
+                           1000
+                           AddToTail 1 
+                           []))
+      
       -- read in the buffers, create synthdefs
       sml_str <- readFile (args !! 2)
       smaplist <- loadSampMapItems ((read sml_str) :: [SampMapItem])
+
       print "sample map file loaded."
       if (length smaplist) == 0 then
         print "empty sound map file!"
@@ -324,7 +349,7 @@ onoscmessage soundstate msg = do
         withSC3 (send (n_free [(gNodeOffset + i)]))
         withSC3 (send (s_new ("def" ++ (show bufid))
                              (gNodeOffset + i) 
-                             AddToTail 1 
+                             AddToHead 1 
                              [("amp", (float2Double a))]))
         -- put in the active list.
         return $ soundstate { ss_activeKeys = (S.insert i (ss_activeKeys soundstate)) }
@@ -349,7 +374,7 @@ onoscmessage soundstate msg = do
           -- create synth, with initial amplitude setting.
           withSC3 (send (s_new ("def" ++ (show (s_bufId sstuff))) 
                                (gNodeOffset + i) 
-                               AddToTail 1 
+                               AddToHead 1 
                                [("amp", (float2Double a))]))
           -- add to active keys.
           return $ soundstate { ss_activeKeys = (S.insert i (ss_activeKeys soundstate)) }
