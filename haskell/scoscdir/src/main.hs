@@ -50,8 +50,22 @@ buscon name busfrom busto =
 -- connect buses with delay.
 delaycon name busfrom busto = 
   let sig = in' 1 AR busfrom
-      del = delayN sig 0.5 0.5 in
-  synthdef name (out busto (sig + del))
+      del = delayN sig 2.5 0.5 
+      outsig = sig + del
+    in
+      synthdef name (out busto outsig) 
+
+-- in theory, connect buses with delay and feedback.
+-- actually just crashes scsynth.
+delaycon_k name busfrom busto = 
+  let sig = in' 1 AR busfrom
+      loc = localIn 1 AR
+      del = delayN sig 2.5 0.5 
+      outsig = sig + del
+      loco = localOut (outsig * 0.5)
+      meh = mrg [outsig, loco]
+    in
+      synthdef name (out busto meh) 
 
 gNodeOffset = 100
 
