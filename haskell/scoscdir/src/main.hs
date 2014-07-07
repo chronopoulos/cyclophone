@@ -287,6 +287,7 @@ getoscamt msg =
   let lst = OSC.messageDatum msg
     in case lst of
       (_ : (OSC.Float x):xs) -> Just x
+      (_ : (OSC.Int32 x):xs) -> Just $ fromIntegral x
       _ -> Nothing
 
 -- for key index, get sound. 
@@ -469,12 +470,13 @@ onoscmessage soundstate msg = do
           3 -> return $ updateScale soundstate root hungarianMinorScale 
           4 -> return $ updateScale soundstate root harmonicMinorScale
           _ -> return soundstate
-    ("button", Just i, Just a, _) -> 
+    ("button", Just i, Just a, _) -> do 
+      print $ "button " ++ (show i) ++ " " ++ (show a)
       case i of 
         0 -> return $ soundstate { ss_altkey = (a == 1.0) }
         _ -> return soundstate
     (_,_,_,_) -> do 
       -- for anything else, ignore.
-      print "ignore"
+      print $ "ignored osc message: " ++ (show msg)
       return soundstate
 
