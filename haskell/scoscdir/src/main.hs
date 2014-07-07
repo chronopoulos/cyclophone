@@ -50,10 +50,12 @@ buscon name busfrom busto =
 -- connect buses with delay.
 delaycon name busfrom busto = 
   let sig = in' 1 AR busfrom
-      del = delayN sig 2.5 0.5 
+      del = delayN sig (constant gDelayMax) (control KR "delaytime" 0.5 ) 
       outsig = sig + del
     in
       synthdef name (out busto outsig) 
+
+gDelayMax = 2.5 :: Float
 
 -- in theory, connect buses with delay and feedback.
 -- actually just crashes scsynth.
@@ -427,9 +429,13 @@ onoscmessage soundstate msg = do
                                    ss_sampmapIndex = index }
          else
              return soundstate
-        2 -> return $ updateScale soundstate 
+        1 -> return $ updateScale soundstate 
                       (interp a gLowScale gHighScale gDenomScale)
                       (ss_scale soundstate)
+        2 -> do 
+          -- set the delay time.
+          withSC3 (send (F.n_set1 1000 "delaytime" (a * gDelayMax)))
+          return soundstate
         _ -> return soundstate
     ("switch", Just i, _, _) -> do 
       print $ "switch " ++ (show i)
