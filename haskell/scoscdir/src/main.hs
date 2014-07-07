@@ -58,7 +58,7 @@ delaycon_o name busfrom busto =
 gDelayMax = 2.5 :: Float
 
 -- works!
-delaycon name busfrom busto = 
+delaycon_w name busfrom busto = 
   let sig = in' 1 AR busfrom
       loc = localIn 1 AR
       sig2 = sig + loc
@@ -68,6 +68,21 @@ delaycon name busfrom busto =
       outs2 = out busto outsig
     in
       synthdef name (mrg [outs2, loco])
+
+-- delay with feedback. 
+delaycon name busfrom busto =
+  let sig = in' 1 AR busfrom
+      loc = localIn 1 AR
+      sig2 = sig + loc
+      initdel = float2Double $ gDelayMax * 0.1
+      del = delayN sig2 (constant gDelayMax)
+                       (control KR "delaytime" initdel)
+      outsig = sig2 + del
+      loco = localOut (del * (control KR "delayfeedback" 0.4))
+      outs2 = out busto outsig
+    in
+      synthdef name (mrg [outs2, loco])
+
 
 gNodeOffset = 100
 
@@ -196,7 +211,8 @@ main = do
               ss_scale = scale,
               ss_sampmapIndex = 0 ,
               ss_sampmaps = smaplist ,
-              ss_sampmaprootdir = (FP.decodeString (args !! 2)) 
+              ss_sampmaprootdir = (FP.decodeString (args !! 2)),
+              ss_altkey = False 
               }
          in case port of
            Just p -> do
@@ -228,7 +244,8 @@ data SoundState = SoundState {
   ss_scale :: [Rational],
   ss_sampmapIndex :: Int,
   ss_sampmaps :: [SampMap],
-  ss_sampmaprootdir :: FP.FilePath
+  ss_sampmaprootdir :: FP.FilePath,
+  ss_altkey :: Bool
   }
 
 updateScale :: SoundState -> Rational -> [Rational] -> SoundState
@@ -432,10 +449,15 @@ onoscmessage soundstate msg = do
         1 -> return $ updateScale soundstate 
                       (interp a gLowScale gHighScale gDenomScale)
                       (ss_scale soundstate)
-        2 -> do 
-          -- set the delay time.
-          withSC3 (send (F.n_set1 1000 "delaytime" (a * gDelayMax)))
-          return soundstate
+        2 -> case (ss_altkey soundstate) of
+          True -> do  
+            -- set the delay feedback.
+            withSC3 (send (F.n_set1 1000 "delayfeedback" a))
+            return soundstate
+          False -> do 
+            -- set the delay time.
+            withSC3 (send (F.n_set1 1000 "delaytime" (a * gDelayMax)))
+            return soundstate
         _ -> return soundstate
     ("switch", Just i, _, _) -> do 
       print $ "switch " ++ (show i)
@@ -447,6 +469,10 @@ onoscmessage soundstate msg = do
           3 -> return $ updateScale soundstate root hungarianMinorScale 
           4 -> return $ updateScale soundstate root harmonicMinorScale
           _ -> return soundstate
+    ("button", Just i, Just a, _) -> 
+      case i of 
+        0 -> return $ soundstate { ss_altkey = (a == 1.0) }
+        _ -> return soundstate
     (_,_,_,_) -> do 
       -- for anything else, ignore.
       print "ignore"
