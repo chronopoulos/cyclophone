@@ -121,10 +121,7 @@ doloop soundstate True =
       print "record"
       -- go to record mode.
       withSC3 (send (n_free [gLoopSynthId]))
-      -- never gets here!
-      print "record2"
       withSC3 (send (s_new recordname gLoopSynthId AddToTail 1 []))
-      print "record3"
       return $ soundstate { ss_looperState = Record }   
     Record -> do
       print "play"
@@ -243,13 +240,13 @@ main = do
                            []))
 
 
+      -- create looper buffer.
+      withSC3 (send (b_alloc (fromIntegral gLoopBufId) (44100 * 120) 1))
+
       -- create looper synthdefs.
       withSC3 (async (d_recv (passthroughcon ptname gDelayOut 1)))
       withSC3 (async (d_recv (recordcon recordname gLoopBufId gDelayOut 1)))
       withSC3 (async (d_recv (playbackcon playbackname gLoopBufId gDelayOut 1)))
-
-      -- create looper buffer.
-      withSC3 (send (b_alloc (fromIntegral gLoopBufId) (44100 * 120) 1))
 
       -- start off with passthrough
       withSC3 (send (s_new ptname gLoopSynthId AddToTail 1 []))
