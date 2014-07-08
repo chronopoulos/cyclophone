@@ -75,7 +75,7 @@ delaycon name busfrom busto =
       loc = localIn 1 AR
       sig2 = sig + loc
       initdel = float2Double $ gDelayMax * 0.1
-      del = delayN sig2 (constant gDelayMax)
+      del = delayC sig2 (constant gDelayMax)
                        (control KR "delaytime" initdel)
       outsig = sig2 + del
       loco = localOut (del * (control KR "delayfeedback" 0.4))
