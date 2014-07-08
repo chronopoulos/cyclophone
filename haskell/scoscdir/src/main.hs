@@ -35,7 +35,8 @@ readBuf fname bufno =
   withSC3 (do
     async (b_allocRead bufno fname 0 0))
 
-gSynthOut = (numOutputBuses + numInputBuses)
+gSynthOut = (numOutputBuses + numInputBuses) + 1
+gDelayOut = (numOutputBuses + numInputBuses)
 
 
 makeSynthDef name bufno = 
@@ -103,6 +104,41 @@ playbackcon name buf busfrom busto =
 passthroughcon name busfrom busto =
   synthdef name (out busto (in' 1 AR busfrom))
 
+ptname = "looperpassthrough"
+recordname = "looperrecord"
+playbackname = "looperplayback"
+
+gLoopBufId = 1010
+gLoopSynthId = 1009
+
+doloop :: SoundState -> Bool -> IO SoundState
+doloop soundstate False = return soundstate
+doloop soundstate True = 
+  -- each time the button is pressed, iterate to the next
+  -- looper state:  Passthrough -> Record -> Playback 
+  case (ss_looperState soundstate) of 
+    Passthrough -> do
+      print "record"
+      -- go to record mode.
+      withSC3 (send (n_free [gLoopSynthId]))
+      -- never gets here!
+      print "record2"
+      withSC3 (send (s_new recordname gLoopSynthId AddToTail 1 []))
+      print "record3"
+      return $ soundstate { ss_looperState = Record }   
+    Record -> do
+      print "play"
+      -- go to playback mode.
+      withSC3 (send (n_free [gLoopSynthId]))
+      withSC3 (send (s_new playbackname gLoopSynthId AddToTail 1 []))
+      return $ soundstate { ss_looperState = Play }
+    Play -> do
+      print "passthrough"
+      -- go to passthrough mode.
+      withSC3 (send (n_free [gLoopSynthId]))
+      withSC3 (send (s_new ptname gLoopSynthId AddToTail 1 []))
+      return $ soundstate { ss_looperState = Passthrough }
+ 
 gNodeOffset = 100
 
 -- substitute buffer playback with simple oscillator.
@@ -200,11 +236,23 @@ main = do
       -- will need to create synths with AddToHead so they are before this in 
       -- the graph. 
       withSC3 (async 
-        (d_recv (delaycon "blah" gSynthOut 1)))
+        (d_recv (delaycon "blah" gSynthOut gDelayOut)))
       withSC3 (send (s_new "blah"
                            1000
                            AddToTail 1 
                            []))
+
+
+      -- create looper synthdefs.
+      withSC3 (async (d_recv (passthroughcon ptname gDelayOut 1)))
+      withSC3 (async (d_recv (recordcon recordname gLoopBufId gDelayOut 1)))
+      withSC3 (async (d_recv (playbackcon playbackname gLoopBufId gDelayOut 1)))
+
+      -- create looper buffer.
+      withSC3 (send (b_alloc (fromIntegral gLoopBufId) (44100 * 120) 1))
+
+      -- start off with passthrough
+      withSC3 (send (s_new ptname gLoopSynthId AddToTail 1 []))
       
       -- read in the buffers, create synthdefs
       sml_str <- readFile (args !! 2)
@@ -231,7 +279,8 @@ main = do
               ss_sampmapIndex = 0 ,
               ss_sampmaps = smaplist ,
               ss_sampmaprootdir = (FP.decodeString (args !! 2)),
-              ss_altkey = False 
+              ss_altkey = False,
+              ss_looperState = Passthrough
               }
          in case port of
            Just p -> do
@@ -244,6 +293,10 @@ main = do
 dblRat :: Rational -> Double
 dblRat r = 
  (fromIntegral (numerator r)) / (fromIntegral (denominator r))
+
+
+data LooperState = Record | Play | Passthrough
+ deriving (Read, Show)
 
 -- track active sounds.
 -- if a key receives a positive value, and it is inactive, then
@@ -264,7 +317,8 @@ data SoundState = SoundState {
   ss_sampmapIndex :: Int,
   ss_sampmaps :: [SampMap],
   ss_sampmaprootdir :: FP.FilePath,
-  ss_altkey :: Bool
+  ss_altkey :: Bool,
+  ss_looperState :: LooperState
   }
 
 updateScale :: SoundState -> Rational -> [Rational] -> SoundState
@@ -493,9 +547,11 @@ onoscmessage soundstate msg = do
       print $ "button " ++ (show i) ++ " " ++ (show a)
       case i of 
         0 -> return $ soundstate { ss_altkey = (a == 1.0) }
+        1 -> doloop soundstate (a == 1.0)
         _ -> return soundstate
     (_,_,_,_) -> do 
       -- for anything else, ignore.
       print $ "ignored osc message: " ++ (show msg)
       return soundstate
 
+     
