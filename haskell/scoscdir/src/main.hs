@@ -83,6 +83,25 @@ delaycon name busfrom busto =
     in
       synthdef name (mrg [outs2, loco])
 
+-- q: make a single synthdef that does record, playback, and passthrough?
+-- or, make separate synthdefs for each, and switch them out?
+
+-- looper stuff.
+recordcon name buf busfrom busto = 
+  let sig = in' 1 AR busfrom    -- one channel of input.
+      bfwr = bufWr buf 0 NoLoop sig
+      outs = out busto sig
+   in
+    synthdef name (mrg [outs, bfwr])  
+
+playbackcon name buf busfrom busto = 
+  let sig = in' 1 AR busfrom    -- one channel of input.
+      bfrd = bufRd 1 AR buf 0 Loop NoInterpolation -- buffer loop.
+   in
+    synthdef name (out busto (sig + bfrd)) 
+
+passthroughcon name busfrom busto =
+  synthdef name (out busto (in' 1 AR busfrom))
 
 gNodeOffset = 100
 
