@@ -38,7 +38,6 @@ readBuf fname bufno =
 gSynthOut = (numOutputBuses + numInputBuses) + 1
 gDelayOut = (numOutputBuses + numInputBuses)
 
-
 makeSynthDef name bufno = 
     synthdef name (out gSynthOut
                     ((playBuf 1 AR (constant bufno) 1.0 1 0 NoLoop RemoveSynth) 
@@ -90,10 +89,12 @@ delaycon name busfrom busto =
 -- looper stuff.
 recordcon name buf busfrom busto = 
   let sig = in' 1 AR busfrom    -- one channel of input.
-      bfwr = bufWr buf (phasor AR 0 1 0 (bufFrames AR buf) 0) Loop sig
+      phas = (phasor AR 0 1 0 (bufFrames AR buf) 0) 
+      bfwr = bufWr buf phas Loop sig
       outs = out busto sig
+      outp = out 999 phas
    in
-    synthdef name (mrg [outs, bfwr])  
+    synthdef name (mrg [outs, bfwr, outp])  
 
 {-
 //write into the buffer with a BufWr
@@ -117,10 +118,12 @@ x = { arg rate=1;
 
 playbackcon name buf busfrom busto = 
   let sig = in' 1 AR busfrom    -- one channel of input.
-      -- bfrd = bufRd 1 AR buf 0 Loop NoInterpolation -- buffer loop.
-      bfrd = playBuf 1 AR (constant buf) 1.0 1 0 Loop RemoveSynth
-   in
-    synthdef name (out busto (sig + bfrd)) 
+      upto = in' 1 AR 999
+      phas = (phasor AR 0 1 0 upto 0) 
+      bfrd = bufRd 1 AR buf phas Loop NoInterpolation -- buffer loop.
+      -- bfrd = playBuf 1 AR (constant buf) 1.0 1 0 Loop RemoveSynth
+    in
+      synthdef name (out busto (sig + bfrd)) 
 
 passthroughcon name busfrom busto =
   synthdef name (out busto (in' 1 AR busfrom))
