@@ -90,14 +90,35 @@ delaycon name busfrom busto =
 -- looper stuff.
 recordcon name buf busfrom busto = 
   let sig = in' 1 AR busfrom    -- one channel of input.
-      bfwr = bufWr buf 0 NoLoop sig
+      bfwr = bufWr buf (phasor AR 0 1 0 (bufFrames AR buf) 0) Loop sig
       outs = out busto sig
    in
     synthdef name (mrg [outs, bfwr])  
 
+{-
+//write into the buffer with a BufWr
+(
+y = { arg rate=1;
+    var in;
+    in = SinOsc.ar(LFNoise1.kr(2, 300, 400), 0, 0.1);
+    BufWr.ar(in, b, Phasor.ar(0, BufRateScale.kr(b) * rate, 0, BufFrames.kr(b)));
+    0.0 //quiet
+}.play;
+)
+
+//read it with a BufRd
+(
+x = { arg rate=1;
+    BufRd.ar(1, b, Phasor.ar(0, BufRateScale.kr(b) * rate, 0, BufFrames.kr(b)))
+}.play;
+)
+-}
+
+
 playbackcon name buf busfrom busto = 
   let sig = in' 1 AR busfrom    -- one channel of input.
-      bfrd = bufRd 1 AR buf 0 Loop NoInterpolation -- buffer loop.
+      -- bfrd = bufRd 1 AR buf 0 Loop NoInterpolation -- buffer loop.
+      bfrd = playBuf 1 AR (constant buf) 1.0 1 0 Loop RemoveSynth
    in
     synthdef name (out busto (sig + bfrd)) 
 
@@ -108,7 +129,7 @@ ptname = "looperpassthrough"
 recordname = "looperrecord"
 playbackname = "looperplayback"
 
-gLoopBufId = 1010
+gLoopBufId = 1010 
 gLoopSynthId = 1009
 
 doloop :: SoundState -> Bool -> IO SoundState
