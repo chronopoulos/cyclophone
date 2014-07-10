@@ -447,6 +447,37 @@ getoscamt msg =
       (_ : (OSC.Int32 x):xs) -> Just $ fromIntegral x
       _ -> Nothing
 
+getoscscale :: OSC.Message -> Maybe [Rational]
+getoscscale msg = 
+  let lst = makelist $ OSC.messageDatum msg
+    in case lst of
+      Just l -> makescale l
+      _ -> Nothing
+
+getoscroot :: OSC.Message -> Maybe Rational
+getoscroot msg = 
+  let lst = makelist $ OSC.messageDatum msg
+    in case lst of
+      Just [num,denom] -> Just $ num % denom
+      _ -> Nothing
+
+makelist :: [OSC.Datum] -> Maybe [Integer]
+makelist [] = Just []
+makelist (OSC.Float x:xs) =
+  let rest = makelist xs in 
+    case rest of 
+      Nothing -> Nothing
+      Just xs -> Just $ (floor x):xs
+makelist (OSC.Int32 x:xs) =
+  let rest = makelist xs in 
+    case rest of 
+      Nothing -> Nothing
+      Just xs -> Just $ (fromIntegral x):xs
+     
+makescale :: [Integer] -> Maybe [Rational]
+makescale [] = Nothing
+makescale (denom:numes) = Just $ map (\n -> n % denom) numes
+
 -- for key index, get sound. 
 getsound :: Maybe Int -> A.Array Int (Rational, SampleStuff) -> Maybe (Rational, SampleStuff)
 getsound (Just index) soundmap =
@@ -655,9 +686,28 @@ onoscmessage soundstate msg = do
         0 -> return $ soundstate { ss_altkey = (a == 1.0) }
         1 -> doloop soundstate (a == 1.0)
         _ -> return soundstate
+    ("scale",_,_,_) -> do 
+      print $ "scale " ++ (show msg)
+      onscalemsg soundstate msg
+    ("root",_,_,_) -> do 
+      print $ "root " ++ (show msg)
+      onrootmsg soundstate msg
     (_,_,_,_) -> do 
       -- for anything else, ignore.
       print $ "ignored osc message: " ++ (show msg)
       return soundstate
 
+onscalemsg :: SoundState -> OSC.Message -> IO SoundState
+onscalemsg soundstate msg = 
+  let scale = getoscscale msg in 
+    case scale of 
+      Just scl -> return $ updateScale soundstate (ss_rootnote soundstate) scl 
+      Nothing -> return soundstate
+     
+onrootmsg :: SoundState -> OSC.Message -> IO SoundState
+onrootmsg soundstate msg = 
+  let root = getoscroot msg in 
+    case root of 
+      Just rt -> return $ updateScale (soundstate { ss_rootnote = rt }) rt (ss_scale soundstate) 
+      Nothing -> return soundstate
      
