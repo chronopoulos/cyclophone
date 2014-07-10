@@ -56,6 +56,8 @@ delaycon_o name busfrom busto =
       synthdef name (out busto outsig) 
 
 gDelayMax = 2.5 :: Float
+gDelayPtName = "delayptname"
+gDelayConName = "delayconname"
 
 -- works!
 delaycon_w name busfrom busto = 
@@ -86,16 +88,6 @@ delaycon name busfrom busto =
 -- q: make a single synthdef that does record, playback, and passthrough?
 -- or, make separate synthdefs for each, and switch them out?
 
--- looper stuff.
-recordcon name buf busfrom busto = 
-  let sig = in' 1 AR busfrom    -- one channel of input.
-      phas = (phasor AR 0 1 0 (bufFrames AR buf) 0) 
-      bfwr = bufWr buf phas Loop sig
-      outs = out busto sig
-      outp = out 999 phas
-   in
-    synthdef name (mrg [outs, bfwr, outp])  
-
 {-
 //write into the buffer with a BufWr
 (
@@ -115,10 +107,20 @@ x = { arg rate=1;
 )
 -}
 
+-- looper stuff.
+recordcon name buf busfrom busto = 
+  let sig = in' 1 AR busfrom    -- one channel of input.
+      phas = (phasor AR 0 1 0 (bufFrames AR buf) 0) 
+      bfwr = bufWr buf phas Loop sig
+      outs = out busto sig
+      outp = out 4 phas
+   in
+    synthdef name (mrg [outs, bfwr, outp])  
+
 
 playbackcon name buf busfrom busto = 
   let sig = in' 1 AR busfrom    -- one channel of input.
-      upto = in' 1 AR 999
+      upto = in' 1 AR 4 
       phas = (phasor AR 0 1 0 upto 0) 
       bfrd = bufRd 1 AR buf phas Loop NoInterpolation -- buffer loop.
       -- bfrd = playBuf 1 AR (constant buf) 1.0 1 0 Loop RemoveSynth
@@ -159,6 +161,63 @@ doloop soundstate True =
       withSC3 (send (n_free [gLoopSynthId]))
       withSC3 (send (s_new ptname gLoopSynthId AddToTail 1 []))
       return $ soundstate { ss_looperState = Passthrough }
+
+{-
+SynthDef(
+    \looper,
+    {
+        arg input_bus=0, output_bus=0, t_rec, t_play, t_stop;
+        var out, length=0, buf_num=LocalBuf(SampleRate.ir() * 30);
+        var is_recording = SetResetFF.kr(t_rec, t_stop);
+        var is_playing = SetResetFF.kr(t_play, t_stop);
+        var rec_pos = Sweep.ar(t_rec, SampleRate.ir() * is_recording);
+        var play_pos = Phasor.ar(t_play, SampleRate.ir() * is_playing,
+0, rec_pos);
+
+        BufWr.ar(SoundIn.ar(input_bus), buf_num, rec_pos);
+        out = BufRd.ar(1, buf_num, play_pos);
+        Out.ar(output_bus, out);
+    }
+).add(); 
+-}
+
+looper name buf busfrom busto t_rec t_play t_stop = 
+  let sig = in' 1 AR busfrom
+      is_recording = setResetFF t_rec t_stop
+      is_playing = setResetFF t_play t_stop
+      rpos = sweep t_rec (44100 * is_recording)
+      ppos = phasor AR t_play 1 0 (bufFrames AR buf) 0 
+      bfrd = bufRd 1 AR buf ppos Loop NoInterpolation 
+      bfwr = bufWr buf rpos Loop sig
+   in
+     synthdef name (out busto (mrg [sig, bfrd, bfwr]))
+
+dolooper :: SoundState -> Bool -> IO SoundState
+dolooper soundstate False = return soundstate
+dolooper soundstate True = 
+  -- each time the button is pressed, iterate to the next
+  -- looper state:  Passthrough -> Record -> Playback 
+  case (ss_looperState soundstate) of 
+    Passthrough -> do
+      print "record"
+      -- go to record mode.
+      withSC3 (send (n_free [gLoopSynthId]))
+      withSC3 (send (s_new recordname gLoopSynthId AddToTail 1 []))
+      return $ soundstate { ss_looperState = Record }   
+    Record -> do
+      print "play"
+      -- go to playback mode.
+      withSC3 (send (n_free [gLoopSynthId]))
+      withSC3 (send (s_new playbackname gLoopSynthId AddToTail 1 []))
+      return $ soundstate { ss_looperState = Play }
+    Play -> do
+      print "passthrough"
+      -- go to passthrough mode.
+      withSC3 (send (n_free [gLoopSynthId]))
+      withSC3 (send (s_new ptname gLoopSynthId AddToTail 1 []))
+      return $ soundstate { ss_looperState = Passthrough }
+
+
  
 gNodeOffset = 100
 
@@ -257,11 +316,13 @@ main = do
       -- will need to create synths with AddToHead so they are before this in 
       -- the graph. 
       withSC3 (async 
-        (d_recv (delaycon "blah" gSynthOut gDelayOut)))
-      withSC3 (send (s_new "blah"
+        (d_recv (delaycon gDelayConName gSynthOut gDelayOut)))
+      withSC3 (send (s_new gDelayConName
                            1000
                            AddToTail 1 
                            []))
+      -- create the delay passthrough synthdef too.
+      withSC3 (async (d_recv (passthroughcon gDelayPtName gSynthOut gDelayOut)))
 
 
       -- create looper buffer.
@@ -301,7 +362,8 @@ main = do
               ss_sampmaps = smaplist ,
               ss_sampmaprootdir = (FP.decodeString (args !! 2)),
               ss_altkey = False,
-              ss_looperState = Passthrough
+              ss_looperState = Passthrough,
+              ss_delayon = True
               }
          in case port of
            Just p -> do
@@ -339,7 +401,8 @@ data SoundState = SoundState {
   ss_sampmaps :: [SampMap],
   ss_sampmaprootdir :: FP.FilePath,
   ss_altkey :: Bool,
-  ss_looperState :: LooperState
+  ss_looperState :: LooperState,
+  ss_delayon :: Bool
   }
 
 updateScale :: SoundState -> Rational -> [Rational] -> SoundState
@@ -549,10 +612,32 @@ onoscmessage soundstate msg = do
             -- set the delay feedback.
             withSC3 (send (F.n_set1 1000 "delayfeedback" a))
             return soundstate
-          False -> do 
+          False -> 
             -- set the delay time.
-            withSC3 (send (F.n_set1 1000 "delaytime" (a * gDelayMax)))
-            return soundstate
+            case (a, ss_delayon soundstate) of 
+              (0.0, True) -> do 
+                -- replace delay with passthrough.
+                print "delay passthrough"
+                withSC3 (send (n_free [1000]))
+                withSC3 (send (s_new gDelayPtName
+                                     1000
+                                     AddBefore gLoopSynthId 
+                                     []))
+                return $ soundstate { ss_delayon = False }
+              (_, True) -> do
+                print "setting delay time"
+                -- just set the delay time.
+                withSC3 (send (F.n_set1 1000 "delaytime" (a * gDelayMax)))
+                return soundstate
+              (_, False) -> do 
+                -- replace passthrough with delay.
+                print "delay on"
+                withSC3 (send (n_free [1000]))
+                withSC3 (send (s_new gDelayConName
+                                     1000
+                                     AddBefore gLoopSynthId 
+                                     [("delaytime", float2Double a)]))
+                return $ soundstate { ss_delayon = True }
         _ -> return soundstate
     ("switch", Just i, _, _) -> do 
       print $ "switch " ++ (show i)
