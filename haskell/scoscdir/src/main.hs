@@ -478,10 +478,18 @@ makescale :: [Integer] -> Maybe [Rational]
 makescale [] = Nothing
 makescale (denom:numes) = Just $ map (\n -> n % denom) numes
 
+inbounds :: Int -> A.Array Int a -> Bool
+inbounds idx array = 
+  let (low, high) = A.bounds array in 
+    (low <= idx) && (idx <= high)
+
 -- for key index, get sound. 
 getsound :: Maybe Int -> A.Array Int (Rational, SampleStuff) -> Maybe (Rational, SampleStuff)
 getsound (Just index) soundmap =
-   Just $ soundmap A.! index 
+  if (inbounds index soundmap) then  
+    Just $ soundmap A.! index 
+  else
+    Nothing
 getsound Nothing _ = Nothing
 
 makeKeyMap :: Int -> Rational -> [Rational] -> MM.MultiMap Rational SampleStuff -> A.Array Int (Rational, SampleStuff)
@@ -491,8 +499,9 @@ makeKeyMap keycount rootnote scale soundmap =
       notes = takeWhile (\n -> n <= max) $ noteseries (scaleftn scale) rootnote
       sounds = foldr (++) [] 
                  (map (\x -> (map (\y -> (x,y)) (MM.lookup x soundmap))) notes)
-   in
-    A.array (0,keycount-1) (zip [0..] (take keycount (cycle sounds)))
+   in case sounds of 
+    [] -> A.array (1,0) []
+    _ -> A.array (0,keycount-1) (zip [0..] (take keycount (cycle sounds)))
     -- A.array (0,keycount-1) (zip [0..] (take keycount (cycle sounds)))
 
 makeKeyMap_ :: Int -> Rational -> [Rational] -> MM.MultiMap Rational SampleStuff -> A.Array Int (Rational, SampleStuff)
