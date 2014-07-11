@@ -624,6 +624,7 @@ onoscmessage soundstate msg = do
           index = min mn $ floor $ a * (fromIntegral ln)
           in
          if (index /= (ss_sampmapIndex soundstate)) then do
+             print $ "loading sampmap: " ++ (show (index + 1)) ++ " of " ++ (show ln)
              sm <- loadSampMap (ss_sampmaprootdir soundstate) 
                                ((ss_sampmaps soundstate) !! index) 
                                gBufStart
@@ -635,7 +636,10 @@ onoscmessage soundstate msg = do
                                    ss_sampmapIndex = index }
          else
              return soundstate
-        1 -> return $ updateScale soundstate 
+        1 -> 
+          let root = (interp a gLowScale gHighScale gDenomScale) in do
+            print $ "updating scale root: " ++ (show root)
+            return $ updateScale soundstate 
                       (interp a gLowScale gHighScale gDenomScale)
                       (ss_scale soundstate)
         2 -> case (ss_altkey soundstate) of
@@ -672,6 +676,7 @@ onoscmessage soundstate msg = do
         _ -> return soundstate
     ("switch", Just i, _, _) -> do 
       print $ "switch " ++ (show i)
+      print $ "updating scale to " ++ (show (i + 1)) ++ " of 5"
       let root = (ss_rootnote soundstate) in 
         case i of 
           0 -> return $ updateScale soundstate root chromaticScale 
