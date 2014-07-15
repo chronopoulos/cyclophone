@@ -137,14 +137,14 @@ doloopster soundstate True =
       print "loopster - record"
       -- go to record mode.
       -- withSC3 (send (F.n_set1 gLoopSynthId "stop" 0.0))
-      withSC3 (send (F.n_set1 gLoopSynthId "r-reset" 1.0))
+      withSC3 (send (F.n_set1 gLoopSynthId "r_reset" 1.0))
       withSC3 (send (F.n_set1 gLoopSynthId "record" 1.0))
       return $ soundstate { ss_looperState = Record }   
     Record -> do
       print "loopster - play"
       -- go to playback mode.
       withSC3 (send (F.n_set1 gLoopSynthId "record" 0.0))
-      withSC3 (send (F.n_set1 gLoopSynthId "p-reset" 1.0))
+      withSC3 (send (F.n_set1 gLoopSynthId "p_reset" 1.0))
       withSC3 (send (F.n_set1 gLoopSynthId "play" 1.0))
       return $ soundstate { ss_looperState = Play }
     Play -> do
