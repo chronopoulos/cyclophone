@@ -35,8 +35,9 @@ readBuf fname bufno =
   withSC3 (do
     async (b_allocRead bufno fname 0 0))
 
-gSynthOut = (numOutputBuses + numInputBuses) + 1
 gDelayOut = (numOutputBuses + numInputBuses)
+gSynthOut = (numOutputBuses + numInputBuses) + 1
+gLoopWk = (numOutputBuses + numInputBuses) + 2
 
 makeSynthDef name bufno = 
     synthdef name (out gSynthOut
@@ -107,23 +108,69 @@ x = { arg rate=1;
 )
 -}
 
+-- attempt at all-in-one.
+loopster name buf busfrom busto = 
+  let sig = in' 1 AR busfrom    -- one channel of input.
+      rec = control KR "record" 0       -- make this 1.0 to record.
+      play = control KR "play" 0       -- make this 1.0 to play.
+      r_reset = tr_control "r_reset" 0
+      p_reset = tr_control "p_reset" 0
+      -- recphas starts at 0 up to end of buf.
+      -- only changes when rec != 0
+      recphas = phasor AR r_reset rec 0 (bufFrames AR buf) 0 
+      bfwr = bufWr buf recphas Loop sig
+      -- play phasor ranges from 0 to last known recphas.
+      -- only plays when 'play' is != 0.
+      playphas = phasor AR p_reset play 0 recphas 0 
+      bfrd = bufRd 1 AR buf playphas Loop NoInterpolation -- buffer loop.
+      outs = out busto (sig + bfrd)
+   in
+    synthdef name (mrg [outs, bfwr])  
+
+doloopster :: SoundState -> Bool -> IO SoundState
+doloopster soundstate False = return soundstate
+doloopster soundstate True = 
+  -- each time the button is pressed, iterate to the next
+  -- looper state:  Passthrough -> Record -> Playback 
+  case (ss_looperState soundstate) of 
+    Passthrough -> do
+      print "loopster - record"
+      -- go to record mode.
+      -- withSC3 (send (F.n_set1 gLoopSynthId "stop" 0.0))
+      withSC3 (send (F.n_set1 gLoopSynthId "r-reset" 1.0))
+      withSC3 (send (F.n_set1 gLoopSynthId "record" 1.0))
+      return $ soundstate { ss_looperState = Record }   
+    Record -> do
+      print "loopster - play"
+      -- go to playback mode.
+      withSC3 (send (F.n_set1 gLoopSynthId "record" 0.0))
+      withSC3 (send (F.n_set1 gLoopSynthId "p-reset" 1.0))
+      withSC3 (send (F.n_set1 gLoopSynthId "play" 1.0))
+      return $ soundstate { ss_looperState = Play }
+    Play -> do
+      print "loopster - passthrough"
+      -- go to passthrough mode.
+      withSC3 (send (F.n_set1 gLoopSynthId "play" 0.0))
+      return $ soundstate { ss_looperState = Passthrough }
+
 -- looper stuff.
 recordcon name buf busfrom busto = 
   let sig = in' 1 AR busfrom    -- one channel of input.
       phas = (phasor AR 0 1 0 (bufFrames AR buf) 0) 
       bfwr = bufWr buf phas Loop sig
       outs = out busto sig
-      outp = out 4 phas     -- hoping to save this value on bus 4. 
+      outp = out gLoopWk phas     -- hoping to save this value on this bus. 
    in
     synthdef name (mrg [outs, bfwr, outp])  
 
 
 playbackcon name buf busfrom busto = 
   let sig = in' 1 AR busfrom    -- one channel of input.
-      upto = in' 1 AR 4         -- is the value on bus 4 from recordcon??  don't think so.
-      phas = (phasor AR 0 1 0 upto 0) 
-      -- bfrd = bufRd 1 AR buf phas Loop NoInterpolation -- buffer loop.
-      bfrd = playBuf 1 AR (constant buf) 1.0 1 0 Loop RemoveSynth
+      upto = in' 1 AR gLoopWk   -- is the value on gLoopWk?  unfortunatley no. 
+      -- phas = (phasor AR 0 1 0 upto 0) 
+      phas = (phasor AR 0 1 0 (bufFrames AR buf) 0) 
+      bfrd = bufRd 1 AR buf phas Loop NoInterpolation -- buffer loop.
+      -- bfrd = playBuf 1 AR (constant buf) 1.0 1 0 Loop RemoveSynth
     in
       synthdef name (out busto (sig + bfrd)) 
 
@@ -280,6 +327,7 @@ dolooper soundstate True =
       return $ soundstate { ss_looperState = Passthrough }
 
 
+--------------------------------------------------------------
  
 gNodeOffset = 100
 
@@ -390,6 +438,11 @@ main = do
       -- create looper buffer.
       withSC3 (send (b_alloc (fromIntegral gLoopBufId) (44100 * 120) 1))
 
+      -- create the looper synthdef, and a synth from that.   
+      withSC3 (async (d_recv (loopster "looper" gLoopBufId gDelayOut 1)))
+      withSC3 (send (s_new "looper" gLoopSynthId AddToTail 1 []))
+
+      {-
       -- create looper synthdefs.
       withSC3 (async (d_recv (passthroughcon ptname gDelayOut 1)))
       withSC3 (async (d_recv (recordcon recordname gLoopBufId gDelayOut 1)))
@@ -397,6 +450,7 @@ main = do
 
       -- start off with passthrough
       withSC3 (send (s_new ptname gLoopSynthId AddToTail 1 []))
+      -}
 
       {-
       -- create the looper synthdef, and a synth from that.   
@@ -766,7 +820,8 @@ onoscmessage soundstate msg = do
       print $ "button " ++ (show i) ++ " " ++ (show a)
       case i of 
         0 -> return $ soundstate { ss_altkey = (a == 1.0) }
-        1 -> doloop soundstate (a == 1.0)
+        1 -> doloopster soundstate (a == 1.0)
+        -- 1 -> doloop soundstate (a == 1.0)
         -- 1 -> dolooper soundstate (a == 1.0)
         _ -> return soundstate
     ("scale",_,_,_) -> do 
