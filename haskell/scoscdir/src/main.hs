@@ -110,11 +110,11 @@ x = { arg rate=1;
 
 -- attempt at all-in-one.
 loopster name buf busfrom busto = 
-  let sig = in' 1 AR busfrom    -- one channel of input.
+  let sig = in' 1 AR busfrom            -- one channel of input.
       rec = control KR "record" 0       -- make this 1.0 to record.
-      play = control KR "play" 0       -- make this 1.0 to play.
-      r_reset = tr_control "r_reset" 0
-      p_reset = tr_control "p_reset" 0
+      play = control KR "play" 0        -- make this 1.0 to play.
+      r_reset = tr_control "r_reset" 0  -- reset to start of record buffer.
+      p_reset = tr_control "p_reset" 0  -- reset to start of play buffer.
       -- recphas starts at 0 up to end of buf.
       -- only changes when rec != 0
       recphas = phasor AR r_reset rec 0 (bufFrames AR buf) 0 
@@ -123,7 +123,9 @@ loopster name buf busfrom busto =
       -- only plays when 'play' is != 0.
       playphas = phasor AR p_reset play 0 recphas 0 
       bfrd = bufRd 1 AR buf playphas Loop NoInterpolation -- buffer loop.
-      outs = out busto (sig + bfrd)
+      -- out signal is 'in' sig plus loop sound.
+      -- mult by 'play' to mute the loop when not in use.
+      outs = out busto (sig + (bfrd * play))
    in
     synthdef name (mrg [outs, bfwr])  
 
@@ -136,7 +138,6 @@ doloopster soundstate True =
     Passthrough -> do
       print "loopster - record"
       -- go to record mode.
-      -- withSC3 (send (F.n_set1 gLoopSynthId "stop" 0.0))
       withSC3 (send (F.n_set1 gLoopSynthId "r_reset" 1.0))
       withSC3 (send (F.n_set1 gLoopSynthId "record" 1.0))
       return $ soundstate { ss_looperState = Record }   
