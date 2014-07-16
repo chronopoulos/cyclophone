@@ -86,29 +86,10 @@ delaycon name busfrom busto =
     in
       synthdef name (mrg [outs2, loco])
 
--- q: make a single synthdef that does record, playback, and passthrough?
--- or, make separate synthdefs for each, and switch them out?
+passthroughcon name busfrom busto =
+  synthdef name (out busto (in' 1 AR busfrom))
 
-{-
-//write into the buffer with a BufWr
-(
-y = { arg rate=1;
-    var in;
-    in = SinOsc.ar(LFNoise1.kr(2, 300, 400), 0, 0.1);
-    BufWr.ar(in, b, Phasor.ar(0, BufRateScale.kr(b) * rate, 0, BufFrames.kr(b)));
-    0.0 //quiet
-}.play;
-)
-
-//read it with a BufRd
-(
-x = { arg rate=1;
-    BufRd.ar(1, b, Phasor.ar(0, BufRateScale.kr(b) * rate, 0, BufFrames.kr(b)))
-}.play;
-)
--}
-
--- attempt at all-in-one.
+-- all-in-one looper synthdef.
 loopster name buf busfrom busto = 
   let sig = in' 1 AR busfrom            -- one channel of input.
       rec = control KR "record" 0       -- make this 1.0 to record.
@@ -154,179 +135,8 @@ doloopster soundstate True =
       withSC3 (send (F.n_set1 gLoopSynthId "play" 0.0))
       return $ soundstate { ss_looperState = Passthrough }
 
--- looper stuff.
-recordcon name buf busfrom busto = 
-  let sig = in' 1 AR busfrom    -- one channel of input.
-      phas = (phasor AR 0 1 0 (bufFrames AR buf) 0) 
-      bfwr = bufWr buf phas Loop sig
-      outs = out busto sig
-      outp = out gLoopWk phas     -- hoping to save this value on this bus. 
-   in
-    synthdef name (mrg [outs, bfwr, outp])  
-
-
-playbackcon name buf busfrom busto = 
-  let sig = in' 1 AR busfrom    -- one channel of input.
-      upto = in' 1 AR gLoopWk   -- is the value on gLoopWk?  unfortunatley no. 
-      -- phas = (phasor AR 0 1 0 upto 0) 
-      phas = (phasor AR 0 1 0 (bufFrames AR buf) 0) 
-      bfrd = bufRd 1 AR buf phas Loop NoInterpolation -- buffer loop.
-      -- bfrd = playBuf 1 AR (constant buf) 1.0 1 0 Loop RemoveSynth
-    in
-      synthdef name (out busto (sig + bfrd)) 
-
-passthroughcon name busfrom busto =
-  synthdef name (out busto (in' 1 AR busfrom))
-
-ptname = "looperpassthrough"
-recordname = "looperrecord"
-playbackname = "looperplayback"
-
 gLoopBufId = 1010 
 gLoopSynthId = 1009
-
-doloop :: SoundState -> Bool -> IO SoundState
-doloop soundstate False = return soundstate
-doloop soundstate True = 
-  -- each time the button is pressed, iterate to the next
-  -- looper state:  Passthrough -> Record -> Playback 
-  case (ss_looperState soundstate) of 
-    Passthrough -> do
-      print "record"
-      -- go to record mode.
-      withSC3 (send (n_free [gLoopSynthId]))
-      withSC3 (send (s_new recordname gLoopSynthId AddToTail 1 []))
-      return $ soundstate { ss_looperState = Record }   
-    Record -> do
-      print "play"
-      -- go to playback mode.
-      withSC3 (send (n_free [gLoopSynthId]))
-      withSC3 (send (s_new playbackname gLoopSynthId AddToTail 1 []))
-      return $ soundstate { ss_looperState = Play }
-    Play -> do
-      print "passthrough"
-      -- go to passthrough mode.
-      withSC3 (send (n_free [gLoopSynthId]))
-      withSC3 (send (s_new ptname gLoopSynthId AddToTail 1 []))
-      return $ soundstate { ss_looperState = Passthrough }
-
-{-
-SynthDef(
-    \looper,
-    {
-        arg input_bus=0, output_bus=0, t_rec, t_play, t_stop;
-        var out, length=0, buf_num=LocalBuf(SampleRate.ir() * 30);
-        var is_recording = SetResetFF.kr(t_rec, t_stop);
-        var is_playing = SetResetFF.kr(t_play, t_stop);
-        var rec_pos = Sweep.ar(t_rec, SampleRate.ir() * is_recording);
-        var play_pos = Phasor.ar(t_play, SampleRate.ir() * is_playing,
-0, rec_pos);
-
-        BufWr.ar(SoundIn.ar(input_bus), buf_num, rec_pos);
-        out = BufRd.ar(1, buf_num, play_pos);
-        Out.ar(output_bus, out);
-    }
-).add(); 
--}
-
-looper name buf busfrom busto = 
-  let sig = in' 1 AR busfrom
-      t_rec = control KR "record" 0.0
-      t_play = control KR "play" 0.0
-      t_stop = control KR "stop" 0.0
-      is_recording = setResetFF t_rec t_stop
-      is_playing = setResetFF t_play t_stop
-      rpos = sweep t_rec is_recording
-      ppos = phasor AR t_play is_playing 0 rpos 0 
-      bfrd = bufRd 1 AR buf ppos Loop NoInterpolation 
-      -- bfrd = bufRd 1 AR buf 0 Loop NoInterpolation 
-      bfwr = bufWr buf rpos Loop sig
-   in
-     synthdef name (out busto (mrg [sig + bfrd, bfwr]))
-     -- synthdef name (out busto (mrg [bfrd, bfwr]))
-
-{- 
-
-looper name buf busfrom busto = 
-  let sig = in' 1 AR busfrom
-      t_rec = control KR "record" 0.0
-      t_play = control KR "play" 0.0
-      t_stop = control KR "stop" 1.0
-      is_recording = setResetFF t_rec t_stop
-      is_playing = setResetFF t_play t_stop
-      rpos = sweep t_rec (44100 * is_recording)
-      ppos = phasor AR t_play (44100 * is_playing) 0 rpos 0 
-      bfrd = bufRd 1 AR buf ppos Loop NoInterpolation 
-      bfwr = bufWr buf rpos Loop sig
-   in
-     synthdef name (out busto (mrg [sig + bfrd, bfwr]))
-     -- synthdef name (out busto (mrg [bfrd, bfwr]))
-
-looper name buf busfrom busto = 
-  let sig = in' 1 AR busfrom
-      t_rec = trig 0.5 (control KR "record" 0.0)
-      t_play = trig 0.5 (control KR "play" 0.0)
-      t_stop = trig 0.5 (control KR "stop" 0.0)
-      is_recording = setResetFF t_rec t_stop
-      is_playing = setResetFF t_play t_stop
-      rpos = sweep t_rec (44100 * is_recording)
-      ppos = phasor AR t_play (44100 * is_playing) 0 rpos 0 
-      bfrd = bufRd 1 AR buf ppos Loop NoInterpolation 
-      bfwr = bufWr buf rpos Loop sig
-   in
-     synthdef name (out busto (mrg [sig, bfrd, bfwr]))
-
-looper name buf busfrom busto = 
-  let sig = in' 1 AR busfrom
-      is_recording = (control KR "recording" 0.0)
-      is_playing = (control KR "playing" 0.0)
-      rpos = sweep is_recording (44100 * is_recording)
-      ppos = phasor AR is_playing 1 0 (bufFrames AR buf) 0 
-      bfrd = bufRd 1 AR buf ppos Loop NoInterpolation 
-      bfwr = bufWr buf rpos Loop sig
-   in
-     synthdef name (out busto (mrg [sig, bfrd, bfwr]))
-
-
-
-
-looper name buf busfrom busto t_rec t_play t_stop = 
-  let sig = in' 1 AR busfrom
-      is_recording = setResetFF t_rec t_stop
-      is_playing = setResetFF t_play t_stop
-      rpos = sweep t_rec (44100 * is_recording)
-      ppos = phasor AR t_play 1 0 (bufFrames AR buf) 0 
-      bfrd = bufRd 1 AR buf ppos Loop NoInterpolation 
-      bfwr = bufWr buf rpos Loop sig
-   in
-     synthdef name (out busto (mrg [sig, bfrd, bfwr]))
--}
-
-dolooper :: SoundState -> Bool -> IO SoundState
-dolooper soundstate False = return soundstate
-dolooper soundstate True = 
-  -- each time the button is pressed, iterate to the next
-  -- looper state:  Passthrough -> Record -> Playback 
-  case (ss_looperState soundstate) of 
-    Passthrough -> do
-      print "dl - record"
-      -- go to record mode.
-      -- withSC3 (send (F.n_set1 gLoopSynthId "stop" 0.0))
-      withSC3 (send (F.n_set1 gLoopSynthId "record" 1.0))
-      return $ soundstate { ss_looperState = Record }   
-    Record -> do
-      print "dl - play"
-      -- go to playback mode.
-      -- withSC3 (send (F.n_set1 gLoopSynthId "record" 0.0))
-      withSC3 (send (F.n_set1 gLoopSynthId "play" 1.0))
-      return $ soundstate { ss_looperState = Play }
-    Play -> do
-      print "dl - passthrough"
-      -- go to passthrough mode.
-      -- withSC3 (send (F.n_set1 gLoopSynthId "play" 0.0))
-      withSC3 (send (F.n_set1 gLoopSynthId "stop" 1.0))
-      return $ soundstate { ss_looperState = Passthrough }
-
 
 --------------------------------------------------------------
  
@@ -443,22 +253,6 @@ main = do
       withSC3 (async (d_recv (loopster "looper" gLoopBufId gDelayOut 1)))
       withSC3 (send (s_new "looper" gLoopSynthId AddToTail 1 []))
 
-      {-
-      -- create looper synthdefs.
-      withSC3 (async (d_recv (passthroughcon ptname gDelayOut 1)))
-      withSC3 (async (d_recv (recordcon recordname gLoopBufId gDelayOut 1)))
-      withSC3 (async (d_recv (playbackcon playbackname gLoopBufId gDelayOut 1)))
-
-      -- start off with passthrough
-      withSC3 (send (s_new ptname gLoopSynthId AddToTail 1 []))
-      -}
-
-      {-
-      -- create the looper synthdef, and a synth from that.   
-      withSC3 (async (d_recv (looper "looper" gLoopBufId gDelayOut 1)))
-      withSC3 (send (s_new "looper" gLoopSynthId AddToTail 1 []))
-      -}
-      
       -- read in the buffers, create synthdefs
       sml_str <- readFile (args !! 2)
       smaplist <- loadSampMapItems ((read sml_str) :: [SampMapItem])
