@@ -160,15 +160,13 @@ makeSynth bufno =
 
 -- get the node ID of the synth, to use for adjustment messages.
 
-
 stopp = 
  withSC3 (do {reset
              ;_ <- async (b_close 0)
              ;async (b_free 0)})
 
 data SampleStuff = SampleStuff {
-  s_synth :: Synthdef,
-  s_bufId :: Int,
+  s_synthdef :: Synthdef,
   s_keytype :: KeyType 
   }
   deriving (Show)
@@ -183,7 +181,7 @@ loadSamp filename note keytype bufno =
   let syn = (makeSynthDef ("def" ++ (show bufno)) bufno) 
    in do
     withSC3 (async (d_recv syn))
-    return (note, SampleStuff syn bufno keytype)
+    return (note, SampleStuff syn keytype)
 
 loadSampMapItems :: [SampMapItem] -> IO [SampMap]
 loadSampMapItems (itm:rest) = 
@@ -198,7 +196,9 @@ loadSampMapItems (itm:rest) =
 loadSampMapItems [] = return []
 
 -- pass in the sampmap, and the directory containing the file that 
--- contains the sampmap.  that dir is used to 
+-- contains the sampmap.  that dir is used as a relative path to the files.
+-- idea is that the index file can be in the same dir as samples, and you can move
+-- the whole dir to a new location and it still works.
 loadSampMap :: FP.FilePath -> SampMap -> Int -> IO (MM.MultiMap Rational SampleStuff)
 loadSampMap smapfiledir smap bufstart = do
   let rewt = (FP.append (FP.directory smapfiledir)
@@ -447,7 +447,7 @@ testKM file = do
     let notes = noteseries (scaleftn majorScale) 4
         km = makeKeyMap 24 4 majorScale samples in do
       print $ take 24 (noteseries (scaleftn majorScale) 4)
-      print $ foldr (++) [] (map (\x -> (map (\y -> (x,s_bufId y) ) (MM.lookup x samples))) (take 24 notes))
+      -- print $ foldr (++) [] (map (\x -> (map (\y -> (x, s_bufId y) ) (MM.lookup x samples))) (take 24 notes))
       print $ "keymaplen: " ++ (show (A.bounds km))
 
 
@@ -491,11 +491,11 @@ onoscmessage soundstate msg = do
     ("keyh", Just i, Just a, Just (note, sstuff)) -> do
       print "keyh"
       if (s_keytype sstuff == Hit) || (s_keytype sstuff == HitVol) then 
-       let bufid = s_bufId sstuff in do 
+       let sname = synthdefName (s_synthdef sstuff) in do 
         print $ "keyh start: " ++ (show i) ++ " " ++ (show a)
         -- create synth w volume.
         withSC3 (send (n_free [(gNodeOffset + i)]))
-        withSC3 (send (s_new ("def" ++ (show bufid))
+        withSC3 (send (s_new sname 
                              (gNodeOffset + i) 
                              AddToHead 1 
                              [("amp", (float2Double a))]))
@@ -520,7 +520,7 @@ onoscmessage soundstate msg = do
       else if (s_keytype sstuff == Vol) then do
           print $ "start inactive: " ++ (show i) ++ " " ++ (show a)
           -- create synth, with initial amplitude setting.
-          withSC3 (send (s_new ("def" ++ (show (s_bufId sstuff))) 
+          withSC3 (send (s_new (synthdefName (s_synthdef sstuff))
                                (gNodeOffset + i) 
                                AddToHead 1 
                                [("amp", (float2Double a))]))
