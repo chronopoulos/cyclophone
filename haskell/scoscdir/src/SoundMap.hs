@@ -13,11 +13,17 @@ data KeyRange = All |
   deriving (Show, Read)
   
 data SoundSet = 
-  Synth { syn_name :: String, syn_keytype :: KeyType } | 
-  WavSet {
-    ws_rootdir :: T.Text,
-    ws_denominator :: Integer,
-    ws_notemap :: [(Integer, T.Text, KeyType)]
+  Synth { 
+    syn_name :: String, 
+    syn_keytype :: KeyType } | 
+  NoteWavSet {
+    nws_rootdir :: T.Text,
+    nws_denominator :: Integer,
+    nws_notemap :: [(Integer, T.Text, KeyType)]
+  } | 
+  KeyWavSet {
+    kws_rootdir :: T.Text,
+    kws_wavs :: [(T.Text, KeyType)]
   }  
   deriving (Show, Read)
 

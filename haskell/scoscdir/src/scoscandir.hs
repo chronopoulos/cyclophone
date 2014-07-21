@@ -25,12 +25,13 @@ import SoundMap
 
 printsyntax = do
   print "syntax:"
-  print "scoscandir -scan <firstnote> <directory> <output filename>"
+  print "scoscandir -notescan <firstnote> <directory> <output filename>"
+  print "scoscandir -idxscan <directory> <output filename>"
   print "scoscandir -combine <indexfile1> <indexfile2> <outputfile>" 
 
 main = do 
   args <- getArgs
-  if (length args < 4) then 
+  if (length args < 3) || (length args > 4) then 
     printsyntax
   else case (args !! 0) of
     "-combine" -> do
@@ -42,7 +43,7 @@ main = do
         km1 { 
           sm_soundsets = (sm_soundsets km1) ++ (sm_soundsets km2),
           sm_keymaps = (sm_keymaps km1) ++ (sm_keymaps km2) }
-    "-scan" -> do
+    "-notescan" -> do
       filez <- treein (args !! 2)
       let note = read (args !! 1) :: Integer 
           rdstr = if (last (args !! 2) == '/') then (args !! 2) 
@@ -54,14 +55,32 @@ main = do
             (note, 
              either id id $ FP.toText (makeRelativePath pdir name),
              Vol) 
-          ws = WavSet { 
-            ws_rootdir = T.pack $ args !! 2,
-            ws_denominator = 12,   -- default to 12!
-            ws_notemap = map (conv rootdir) 
+          ws = NoteWavSet { 
+            nws_rootdir = T.pack $ args !! 2,
+            nws_denominator = 12,   -- default to 12!
+            nws_notemap = map (conv rootdir) 
                              (zip fpfiles [note..]) } in do
-       -- writeFile (args !! 3) $ ppShow (zip (sort filez) [note..])
        writeFile (args !! 3) $ ppShow $ SoundMap { 
           sm_soundsets = [(wavsetname, ws)],
           sm_keymaps = [[(All, wavsetname)]] }
+    "-idxscan" -> 
+      let infilename = (args !! 1)
+          outfilename = (args !! 2) in do
+        filez <- treein infilename 
+        let rdstr = if (last infilename == '/') then infilename 
+                                               else (infilename ++ "/")
+            rootdir = FP.decodeString rdstr 
+            fpfiles = map FP.decodeString (sort filez)
+            wavsetname = either id id (FP.toText $ FP.dirname rootdir)
+            conv pdir name = 
+              (either id id $ FP.toText (makeRelativePath pdir name),
+               Vol) 
+            ws = KeyWavSet { 
+              kws_rootdir = T.pack $ infilename,
+              kws_wavs = map (conv rootdir) fpfiles
+              } in do
+         writeFile outfilename $ ppShow $ SoundMap { 
+            sm_soundsets = [(wavsetname, ws)],
+            sm_keymaps = [[(All, wavsetname)]] }
     _ -> printsyntax 
 
