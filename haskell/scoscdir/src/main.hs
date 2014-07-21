@@ -3,6 +3,7 @@ module Main where
 import System.Directory
 import System.Environment
 import Data.List.Split
+import Data.List
 import qualified Data.Text as T
 import qualified Data.Array as A
 --import qualified Data.Map as M
@@ -22,7 +23,7 @@ import qualified Sound.SC3.Server.Command.Float as F
 import Data.Ratio
 
 import Treein
-import SampMap
+import SoundMap
 import Scales 
 
 -- pathlist fpath = splitOneOf "/" fpath
@@ -165,24 +166,90 @@ stopp =
              ;_ <- async (b_close 0)
              ;async (b_free 0)})
 
-data SampleStuff = SampleStuff {
-  s_synthdef :: Synthdef,
-  s_keytype :: KeyType 
+data SynthStuff = SynthStuff {
+  s_synthdef :: String,     -- name of a synthdef on the SC server.
+  -- note whether this is a single pitch synthdef or multi??
+  -- or, just always send pitch.
+  s_keytype :: KeyType     
   }
   deriving (Show)
 
 -- tests = [SMap blah, SMapFile (T.pack "/thisisapth")]
 -- blah = SampMap (T.pack "blah") [(1,(T.pack "blah2")), (2, (T.pack "dsfa"))]
 
-loadSamp :: FP.FilePath -> Rational -> KeyType -> Int -> IO (Rational, SampleStuff)
-loadSamp filename note keytype bufno = 
+loadWav :: FP.FilePath -> Rational -> KeyType -> Int -> IO (Rational, SynthStuff)
+loadWav filename note keytype bufno = 
  let fn = (FP.encodeString filename) in do
   readBuf fn bufno
-  let syn = (makeSynthDef ("def" ++ (show bufno)) bufno) 
+  let sdname = "def" ++ (show bufno)
+      syn = (makeSynthDef sdname bufno) 
    in do
     withSC3 (async (d_recv syn))
-    return (note, SampleStuff syn keytype)
+    return (note, SynthStuff sdname keytype)
 
+--  ss_samples :: MM.MultiMap Rational SynthStuff,
+--   ss_keymap :: A.Array Int (Rational, SynthStuff),
+
+{-
+data SoundSet = 
+  Synth { syn_name :: String, syn_keytype :: KeyType } | 
+  WavSet {
+    ws_rootdir :: T.Text,
+    ws_denominator :: Integer,
+    ws_notemap :: [(Integer, T.Text, KeyType)]
+  }  
+  deriving (Show, Read)
+
+data SoundMap = SoundMap { 
+    sm_soundsets :: [(T.Text, SoundSet)],
+    sm_keymaps :: [[(KeyRange, T.Text)]]
+  } 
+  deriving (Show, Read)
+-}
+
+{-
+  ss_samples :: MM.MultiMap Rational SynthStuff,
+  ss_keymap :: A.Array Int (Rational, SynthStuff),
+
+makeKeyMap :: Int -> Rational -> [Rational] -> MM.MultiMap Rational SynthStuff -> A.Array Int (Rational, SynthStuff)
+
+-}
+
+-- either one synthdef for all pitches, or synthdefs assigned per note.
+data SoundBank = MonoBank SynthStuff | 
+                 NoteBank (MM.MultiMap Rational SynthStuff) |
+                 EmptyBank
+      
+
+data KeyRangeMap = KeyRangeMap [(KeyRange, SoundBank)]
+
+-- data KeySounds = KeySounds [KeyRangeMap]
+
+loadKeySounds :: FP.FilePath -> SoundMap -> Int -> IO [KeyRangeMap]
+loadKeySounds path sm bufidxstart = do
+  sbassoc <- loadSoundBanks path (sm_soundsets sm) bufidxstart
+  return $ map (\km -> KeyRangeMap (map (\(kr, t) -> 
+                                          (kr, fromMaybe EmptyBank (lookup t sbassoc))) 
+                                        km))
+               (sm_keymaps sm)
+
+loadSoundBanks :: FP.FilePath -> [(T.Text, SoundSet)] -> Int -> IO [(T.Text, SoundBank)]
+loadSoundBanks path ((t,ss):moar) bufstart = do
+  (sb, bufidx) <- loadSoundSet path bufstart ss
+  therest <- loadSoundBanks path moar bufidx
+  return $ (t, sb) : therest 
+loadSoundBanks path [] bufstart = return []
+   
+loadSoundSet :: FP.FilePath -> Int -> SoundSet -> IO (SoundBank, Int)
+loadSoundSet path bufidx (Synth name keytype) = 
+  -- basically just assume there is a synth in SC with this name.
+  return (MonoBank (SynthStuff name keytype), bufidx)
+loadSoundSet path bufidx (WavSet dir denom notemap) = do
+  -- load all bufs, with increasing buffer indexes
+  wavset <- loadWavSet path (WavSet dir denom notemap) bufidx
+  return $ ((NoteBank wavset), bufidx + (length notemap))
+  
+{-
 loadSampMapItems :: [SampMapItem] -> IO [SampMap]
 loadSampMapItems (itm:rest) = 
  case itm of 
@@ -194,28 +261,32 @@ loadSampMapItems (itm:rest) =
     smaprest <- loadSampMapItems rest
     return $ ((read str) :: SampMap) : smaprest 
 loadSampMapItems [] = return []
+-}
 
--- pass in the sampmap, and the directory containing the file that 
--- contains the sampmap.  that dir is used as a relative path to the files.
+-- pass in a wavset, and the directory containing the file that 
+-- contains the wavset.  The file location is:
+-- <soundmap file parent dir> + <ws_rootdir> + <filename>
 -- idea is that the index file can be in the same dir as samples, and you can move
 -- the whole dir to a new location and it still works.
-loadSampMap :: FP.FilePath -> SampMap -> Int -> IO (MM.MultiMap Rational SampleStuff)
-loadSampMap smapfiledir smap bufstart = do
+-- if filename is an absolute path, then the other two entries are ignored.
+-- if ws_rootdir is absolute, the soundmap file location is ignored.
+loadWavSet :: FP.FilePath -> SoundSet -> Int -> IO (MM.MultiMap Rational SynthStuff)
+loadWavSet smapfiledir (WavSet dir denom notemap) bufstart = do
   let rewt = (FP.append (FP.directory smapfiledir)
-                        (FP.fromText (sm_rootdir smap)))
-      denom = sm_denominator smap in
+                        (FP.fromText dir)) in
    if (FP.valid rewt) then do
     lst <- sequence (map 
               (\((nt, fn, kt), bufidx) -> 
                   readsamp denom rewt fn nt bufidx kt)
-              (zip (sm_notemap smap) [bufstart..]))
+              (zip notemap [bufstart..]))
     return $ MM.fromList lst
    else
     return MM.empty
    where
     readsamp denom rtd fn nt idx kt = 
       let file = FP.append rtd (FP.fromText fn) in 
-        loadSamp file (nt % denom) kt idx 
+        loadWav file (nt % denom) kt idx 
+loadWavSet smapfiledir _ bufstart = return MM.empty 
 
 gBufStart = 0 
 gLowScale = 20
@@ -254,40 +325,41 @@ main = do
       withSC3 (send (s_new "looper" gLoopSynthId AddToTail 1 []))
 
       -- read in the buffers, create synthdefs
+      --sml_str <- readFile (args !! 2)
+      --smap <- read sml_str :: SoundMap 
       sml_str <- readFile (args !! 2)
-      smaplist <- loadSampMapItems ((read sml_str) :: [SampMapItem])
-
-      print "sample map file loaded."
-      if (length smaplist) == 0 then
-        print "empty sound map file!"
-      else do
-        samples <- loadSampMap (FP.decodeString (args !! 2)) 
-                               (head smaplist) 
-                               gBufStart
-        -- putStrLn $ ppShow smap
-        let port = OSC.readMaybe (args !! 1) :: (Maybe Int)
-            ip = (args !! 0)
-            scale = majorScale
-            root = 4
-            soundstate = SoundState {
-              ss_activeKeys = S.empty,
-              ss_samples = samples,
-              ss_keymap = makeKeyMap 24 root scale samples,
-              ss_rootnote = root,
-              ss_scale = scale,
-              ss_sampmapIndex = 0 ,
-              ss_sampmaps = smaplist ,
-              ss_sampmaprootdir = (FP.decodeString (args !! 2)),
-              ss_altkey = False,
-              ss_looperState = Passthrough,
-              ss_delayon = True
-              }
-         in case port of
-           Just p -> do
-              putStrLn $ "keymapping: " ++ (ppShow (map (\(i,e) -> (i, (fst e), dblRat (fst e))) (A.assocs (ss_keymap soundstate))))
-              print "starting osc loop." 
-              startoscloop ip p soundstate 
-           Nothing -> putStrLn $ "Invalid port: " ++ (args !! 0) 
+      -- smap <- read sml_str :: SoundMap 
+      print "sound map file loaded."
+      
+      let smap = read sml_str :: SoundMap in 
+        if (not (isValid smap)) then
+          print "empty sound map file!"
+        else do
+          sounds <- loadKeySounds (FP.decodeString (args !! 2)) 
+                                  (read sml_str :: SoundMap)
+                                  0
+          -- putStrLn $ ppShow smap
+          let port = OSC.readMaybe (args !! 1) :: (Maybe Int)
+              ip = (args !! 0)
+              scale = majorScale
+              root = 4
+              soundstate = SoundState {
+                ss_activeKeys = S.empty,
+                ss_krmIndex = 0,
+                ss_keyrangemaps = sounds, 
+                ss_keymap = makeKeyMap 24 root scale (head sounds),
+                ss_rootnote = root,
+                ss_scale = scale,
+                ss_altkey = False,
+                ss_looperState = Passthrough,
+                ss_delayon = True
+                }
+           in case port of
+             Just p -> do
+                -- putStrLn $ "keymapping: " ++ (ppShow (map (\(i,e) -> (i, (fst e), dblRat (fst e))) (A.assocs (ss_keymap soundstate))))
+                print "starting osc loop." 
+                startoscloop ip p soundstate 
+             Nothing -> putStrLn $ "Invalid port: " ++ (args !! 0) 
 
 
 dblRat :: Rational -> Double
@@ -310,13 +382,11 @@ data LooperState = Record | Play | Passthrough
 --    2) make the key inactive.
 data SoundState = SoundState {
   ss_activeKeys :: S.Set Int,
-  ss_samples :: MM.MultiMap Rational SampleStuff,
-  ss_keymap :: A.Array Int (Rational, SampleStuff),
+  ss_krmIndex :: Int,
+  ss_keyrangemaps :: [KeyRangeMap],
+  ss_keymap :: A.Array Int (Maybe (Rational, SynthStuff)),
   ss_rootnote :: Rational,
   ss_scale :: [Rational],
-  ss_sampmapIndex :: Int,
-  ss_sampmaps :: [SampMap],
-  ss_sampmaprootdir :: FP.FilePath,
   ss_altkey :: Bool,
   ss_looperState :: LooperState,
   ss_delayon :: Bool
@@ -329,7 +399,7 @@ updateScale ss root scale =
        ss_keymap = makeKeyMap 24 
                     root
                     scale 
-                    (ss_samples ss)
+                    ((ss_keyrangemaps ss) !! (ss_krmIndex ss))
      }
 
 
@@ -401,16 +471,110 @@ inbounds idx array =
     (low <= idx) && (idx <= high)
 
 -- for key index, get sound. 
-getsound :: Maybe Int -> A.Array Int (Rational, SampleStuff) -> Maybe (Rational, SampleStuff)
+getsound :: Maybe Int -> A.Array Int (Maybe (Rational, SynthStuff)) -> Maybe (Rational, SynthStuff)
 getsound (Just index) soundmap =
   if (inbounds index soundmap) then  
-    Just $ soundmap A.! index 
+    soundmap A.! index 
   else
     Nothing
 getsound Nothing _ = Nothing
 
-makeKeyMap :: Int -> Rational -> [Rational] -> MM.MultiMap Rational SampleStuff -> A.Array Int (Rational, SampleStuff)
-makeKeyMap keycount rootnote scale soundmap = 
+-- data KeyRangeMap = KeyRangeMap [(KeyRange, SoundBank)]
+{-
+
+Ok the crux of the biscuit here.
+
+for each key, find a sound and a pitch.  I guess no-sound could also be an option.
+
+for key N, 
+  - find a range in the rangemap that fits.  I guess the first range.
+  - applying scales.  one way is to determine a pitch for every key first, then get corresponding sounds.  
+  or something!  its complicated.
+
+-}
+
+makeKeyMap :: Int -> Rational -> [Rational] -> KeyRangeMap -> 
+  A.Array Int (Maybe (Rational, SynthStuff))
+makeKeyMap keycount rootnote scale (KeyRangeMap krm) =  
+  let -- notes = take 24 $ noteseries (scaleftn scale) rootnote
+      soundlist = map (\i -> findSound i rootnote scale (KeyRangeMap krm))
+                      [0..23]
+   in
+    A.array (0,23) (zip [0..] soundlist)
+
+{-
+  let max = fromJust $ MM.findMax krm
+      -- make notes a finite list!  only goes up to the max available note
+      notes = takeWhile (\n -> n <= max) $ noteseries (scaleftn scale) rootnote
+      sounds = foldr (++) [] 
+                 (map (\x -> (map (\y -> (x,y)) (MM.lookup x soundmap))) notes)
+   in case sounds of 
+    [] -> A.array (1,0) []
+    _ -> A.array (0,keycount-1) (zip [0..] (take keycount (cycle sounds)))
+    -- A.array (0,keycount-1) (zip [0..] (take keycount (cycle sounds)))
+-}
+
+findSound :: Int -> Rational -> [Rational] -> KeyRangeMap -> Maybe (Rational, SynthStuff)
+findSound keyindex root scale krm = 
+  let note = (noteseries (scaleftn scale) root) !! keyindex
+      sb = krmLookup keyindex krm    
+   in case sb of 
+    Just sb -> sbLookup note sb
+    Nothing -> Nothing
+
+-- find the soundbank within the KeyRangeMap.
+krmLookup :: Int -> KeyRangeMap -> Maybe SoundBank
+krmLookup keyidx (KeyRangeMap krm) = 
+  let ans = find (\(r,sb) -> SoundMap.inRange keyidx r) krm
+   in case ans of 
+    Just (r, sb) -> Just sb
+    _ -> Nothing
+         
+-- find the note withing the soundbank.
+sbLookup :: Rational -> SoundBank -> Maybe (Rational, SynthStuff)
+sbLookup note (MonoBank ss) = Just (note, ss)
+sbLookup note (NoteBank mp) = 
+  -- return note mod the range, and its corresponding synthstuff 
+  let low = MM.findMin mp
+      high = MM.findMax mp
+   in case (low, high) of 
+    (Just l, Just h) -> 
+      case rmod note l h of 
+        Just mahnote -> 
+          let rlist = MM.lookup mahnote mp in
+            case rlist of 
+              [] -> Nothing
+              (x:xs) -> Just (mahnote, x)
+        _ -> Nothing
+    _ -> Nothing
+
+rmod :: Rational -> Rational -> Rational -> Maybe Rational
+rmod n low high =
+ let fp = n - ((floor n) % 1)
+     l = ceiling (low - fp)
+     h = floor (high - fp)
+     md = h - l + 1
+  in
+    if md < 1 then 
+      Nothing
+    else
+      Just $ ((mod (floor n - l) md) % 1) + fp + (l%1)
+
+{-
+
+rmod should iterate from L to H, for any values of n + (x % 1), x being an integer.
+
+      note n     n+1 |     n+2       n+3       n+4      | n+5
+        |         |  |      |         |         |       | |
+                    low     L                   H      high
+   |         |          |         |         |         |         |
+   -1        0         1         2         3         4         5 
+
+-}
+
+{-
+makeKeyMap :: Int -> Rational -> [Rational] -> MM.MultiMap Rational SynthStuff -> A.Array Int (Rational, SynthStuff)
+makeKeyMap keycount rootnote scale soundmap =  
   let max = fromJust $ MM.findMax soundmap
       -- make notes a finite list!  only goes up to the max available note
       notes = takeWhile (\n -> n <= max) $ noteseries (scaleftn scale) rootnote
@@ -420,8 +584,9 @@ makeKeyMap keycount rootnote scale soundmap =
     [] -> A.array (1,0) []
     _ -> A.array (0,keycount-1) (zip [0..] (take keycount (cycle sounds)))
     -- A.array (0,keycount-1) (zip [0..] (take keycount (cycle sounds)))
+-}
 
-makeKeyMap_ :: Int -> Rational -> [Rational] -> MM.MultiMap Rational SampleStuff -> A.Array Int (Rational, SampleStuff)
+makeKeyMap_ :: Int -> Rational -> [Rational] -> MM.MultiMap Rational SynthStuff -> A.Array Int (Rational, SynthStuff)
 makeKeyMap_ keycount rootnote scale soundmap = 
   let notes = noteseries (scaleftn scale) rootnote
       sounds = foldr (++) [] 
@@ -432,6 +597,7 @@ makeKeyMap_ keycount rootnote scale soundmap =
     A.array (0,keycount-1) (zip [0..] (take keycount (cycle sounds)))
     -- A.array (0,keycount-1) (zip [0..] (take keycount (cycle sounds)))
 
+{-
 testKM file = do 
   sml_str <- readFile file 
   smaplist <- loadSampMapItems ((read sml_str) :: [SampMapItem])
@@ -449,7 +615,7 @@ testKM file = do
       print $ take 24 (noteseries (scaleftn majorScale) 4)
       -- print $ foldr (++) [] (map (\x -> (map (\y -> (x, s_bufId y) ) (MM.lookup x samples))) (take 24 notes))
       print $ "keymaplen: " ++ (show (A.bounds km))
-
+-}
 
 -- if its a key, look up synth using the key index.
 -- is this something that changes during the program?
@@ -491,7 +657,7 @@ onoscmessage soundstate msg = do
     ("keyh", Just i, Just a, Just (note, sstuff)) -> do
       print "keyh"
       if (s_keytype sstuff == Hit) || (s_keytype sstuff == HitVol) then 
-       let sname = synthdefName (s_synthdef sstuff) in do 
+       let sname = s_synthdef sstuff in do 
         print $ "keyh start: " ++ (show i) ++ " " ++ (show a)
         -- create synth w volume.
         withSC3 (send (n_free [(gNodeOffset + i)]))
@@ -520,7 +686,7 @@ onoscmessage soundstate msg = do
       else if (s_keytype sstuff == Vol) then do
           print $ "start inactive: " ++ (show i) ++ " " ++ (show a)
           -- create synth, with initial amplitude setting.
-          withSC3 (send (s_new (synthdefName (s_synthdef sstuff))
+          withSC3 (send (s_new (s_synthdef sstuff)
                                (gNodeOffset + i) 
                                AddToHead 1 
                                [("amp", (float2Double a))]))
@@ -545,21 +711,17 @@ onoscmessage soundstate msg = do
       print $ "knob " ++ (show i) ++ " " ++ (show a)
       case i of 
         0 -> let
-          ln = (length (ss_sampmaps soundstate)) 
+          ln = (length (ss_keyrangemaps soundstate)) 
           mn = max (ln - 1) 0
           index = min mn $ floor $ a * (fromIntegral ln)
           in
-         if (index /= (ss_sampmapIndex soundstate)) then do
-             print $ "loading sampmap: " ++ (show (index + 1)) ++ " of " ++ (show ln)
-             sm <- loadSampMap (ss_sampmaprootdir soundstate) 
-                               ((ss_sampmaps soundstate) !! index) 
-                               gBufStart
-             return $ soundstate { ss_samples = sm, 
-                                   ss_keymap = makeKeyMap 24 
+         if (index /= (ss_krmIndex soundstate)) then do
+             print $ "loading sounds: " ++ (show (index + 1)) ++ " of " ++ (show ln)
+             return $ soundstate { ss_keymap = makeKeyMap 24 
                                                 (ss_rootnote soundstate) 
                                                 (ss_scale soundstate) 
-                                                sm,
-                                   ss_sampmapIndex = index }
+                                                ((ss_keyrangemaps soundstate) !! index),
+                                   ss_krmIndex = index }
          else
              return soundstate
         1 -> 

@@ -18,7 +18,7 @@ cabal-version:       >=1.10
 executable scoscdir
   hs-source-dirs:     src
   main-is:            main.hs
-  other-modules:      Treein
+  other-modules:      Treein, SoundMap
   ghc-options:        -O2
   -- other-modules:       
   -- other-extensions:    
@@ -40,7 +40,7 @@ executable scoscdir
 executable scoscandir
   hs-source-dirs:     src
   main-is:            scoscandir.hs
-  other-modules:      Treein
+  other-modules:      Treein, SoundMap
   ghc-options:        -O2
   -- other-modules:       
   -- other-extensions:    
