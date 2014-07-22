@@ -18,7 +18,8 @@ import Control.Monad.Fix
 import GHC.Float
 import Sound.SC3
 import qualified Sound.OSC.FD as OSC
-import qualified Sound.SC3.Server.Command.Float as F
+-- import qualified Sound.SC3.Server.Command.Float as F
+import qualified Sound.SC3.Server.Command as F
 
 import Data.Ratio
 
@@ -409,11 +410,11 @@ getoscindex msg =
       _ -> Nothing
 
 -- expecting 0 to 1.0
-getoscamt :: OSC.Message -> Maybe Float
+getoscamt :: OSC.Message -> Maybe Double
 getoscamt msg = 
   let lst = OSC.messageDatum msg
     in case lst of
-      (_ : (OSC.Float x):xs) -> Just x
+      (_ : (OSC.Float x):xs) -> Just $ float2Double x
       (_ : (OSC.Int32 x):xs) -> Just $ fromIntegral x
       _ -> Nothing
 
@@ -608,7 +609,7 @@ onoscmessage soundstate msg = do
         withSC3 (send (s_new sname 
                              (gNodeOffset + i) 
                              AddToHead 1 
-                             [("amp", (float2Double a))]))
+                             [("amp", a)]))
         -- put in the active list.
         return $ soundstate { ss_activeKeys = (S.insert i (ss_activeKeys soundstate)) }
       else do
@@ -633,7 +634,7 @@ onoscmessage soundstate msg = do
           withSC3 (send (s_new (s_synthdef sstuff)
                                (gNodeOffset + i) 
                                AddToHead 1 
-                               [("amp", (float2Double a))]))
+                               [("amp", a)]))
           -- add to active keys.
           return $ soundstate { ss_activeKeys = (S.insert i (ss_activeKeys soundstate)) }
         else do
@@ -669,10 +670,10 @@ onoscmessage soundstate msg = do
          else
              return soundstate
         1 -> 
-          let root = (interp a gLowScale gHighScale gDenomScale) in do
+          let root = (interp (double2Float a) gLowScale gHighScale gDenomScale) in do
             print $ "updating scale root: " ++ (show root)
             return $ updateScale soundstate 
-                      (interp a gLowScale gHighScale gDenomScale)
+                      (interp (double2Float a) gLowScale gHighScale gDenomScale)
                       (ss_scale soundstate)
         2 -> case (ss_altkey soundstate) of
           True -> do  
@@ -694,7 +695,7 @@ onoscmessage soundstate msg = do
               (_, True) -> do
                 print "setting delay time"
                 -- just set the delay time.
-                withSC3 (send (F.n_set1 1000 "delaytime" (a * gDelayMax)))
+                withSC3 (send (F.n_set1 1000 "delaytime" (a * (float2Double gDelayMax))))
                 return soundstate
               (_, False) -> do 
                 -- replace passthrough with delay.
@@ -703,7 +704,7 @@ onoscmessage soundstate msg = do
                 withSC3 (send (s_new gDelayConName
                                      1000
                                      AddBefore gLoopSynthId 
-                                     [("delaytime", float2Double a)]))
+                                     [("delaytime", a)]))
                 return $ soundstate { ss_delayon = True }
         _ -> return soundstate
     ("switch", Just i, _, _) -> do 
