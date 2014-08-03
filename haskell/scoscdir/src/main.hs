@@ -22,6 +22,7 @@ import qualified Sound.OSC.FD as OSC
 import qualified Sound.SC3.Server.Command as F
 
 import Data.Ratio
+import Data.Bits
 
 import Treein
 import SoundMap
@@ -386,6 +387,70 @@ updateScale ss root scale =
                     ((ss_keyrangemaps ss) !! (ss_krmIndex ss))
      }
 
+makeColors :: A.Array Int (Maybe (Rational, SynthStuff)) -> [(Int, Int, Rational)]
+makeColors keymap = 
+  let (lo,hi) = (A.bounds keymap) in 
+   map (\idx -> makeColor idx (keymap A.! idx)) [lo..hi] 
+
+calcColor :: Rational  -> Int
+calcColor note =
+  let rem = note - ((floor note) % 1)
+      h = (fromIntegral (numerator note)) / (fromIntegral (denominator note)) :: Float
+      (r,g,b) = hsv_rgb (h * 360) 1.0 0.5
+      ri = floor (255 * r)
+      gi = floor (255 * g)
+      bi = floor (255 * b)
+   in
+      (shift ri 16) .|. (shift gi 8) .|. bi
+
+makeColor :: Int -> (Maybe (Rational, SynthStuff)) -> (Int, Int, Rational)
+makeColor idx Nothing = (idx, 0, 0) 
+makeColor idx (Just (note, sstuff)) = (idx, calcColor note, note)
+
+sendColors :: String -> Int -> [(Int, Int)] -> IO ()
+sendColors ipAddr port colors = do
+  t <- OSC.openUDP ipAddr port
+  dummai <- mapM (\(idx,color) -> OSC.sendOSC t (OSC.Message "led" [(OSC.int32 idx), (OSC.int32 color)]))
+                 colors
+  return ()
+
+-- RGB:
+-- R, red =   0 to 1
+-- G, green = 0 to 1
+-- B, blue =  0 to 1
+
+rgb_hsv :: Float -> Float -> Float -> (Float, Float, Float)
+rgb_hsv r g b = (h, (s / maxC), maxC)
+  where
+    maxC = r `max` g `max` b
+    minC = r `min` g `min` b
+    s = maxC - minC
+    h | maxC == r = (g - b) / s * 60
+      | maxC == g = (b - r) / s * 60 + 120
+      | maxC == b = (r - g) / s * 60 + 240
+      | otherwise = undefined
+
+-- HSV:
+-- H, hue        0 to 360
+-- S, saturation 0 to 1
+-- V, brightness 0 to 1 
+
+hsv_rgb :: Float -> Float -> Float -> (Float, Float, Float)
+hsv_rgb h s v
+    | h' == 0 = (v, t, p)
+    | h' == 1 = (q, v, p)
+    | h' == 2 = (p, v, t)
+    | h' == 3 = (p, q, v)
+    | h' == 4 = (t, p, v)
+    | h' == 5 = (v, p, q)
+    | otherwise = undefined
+    where
+        h' = floor (h / 60) `mod` 6 :: Int
+        f = h / 60 - fromIntegral h'
+        p = v * (1 - s)
+        q = v * (1 - f * s)
+        t = v * (1 - (1 - f) * s)
+
 
 startoscloop :: String -> Int -> SoundState -> IO ()
 startoscloop ip port soundstate = do
@@ -655,27 +720,7 @@ onoscmessage soundstate msg = do
     ("knob", Just i, Just a, _) -> do
       print $ "knob " ++ (show i) ++ " " ++ (show a)
       case i of 
-        0 -> let
-          ln = (length (ss_keyrangemaps soundstate)) 
-          mn = max (ln - 1) 0
-          index = min mn $ floor $ a * (fromIntegral ln)
-          in
-         if (index /= (ss_krmIndex soundstate)) then do
-             print $ "loading sounds: " ++ (show (index + 1)) ++ " of " ++ (show ln)
-             return $ soundstate { ss_keymap = makeKeyMap 24 
-                                                (ss_rootnote soundstate) 
-                                                (ss_scale soundstate) 
-                                                ((ss_keyrangemaps soundstate) !! index),
-                                   ss_krmIndex = index }
-         else
-             return soundstate
-        1 -> 
-          let root = (interp (double2Float a) gLowScale gHighScale gDenomScale) in do
-            print $ "updating scale root: " ++ (show root)
-            return $ updateScale soundstate 
-                      (interp (double2Float a) gLowScale gHighScale gDenomScale)
-                      (ss_scale soundstate)
-        2 -> case (ss_altkey soundstate) of
+        0 -> case (ss_altkey soundstate) of
           True -> do  
             -- set the delay feedback.
             withSC3 (send (F.n_set1 1000 "delayfeedback" a))
@@ -706,18 +751,49 @@ onoscmessage soundstate msg = do
                                      AddBefore gLoopSynthId 
                                      [("delaytime", a)]))
                 return $ soundstate { ss_delayon = True }
+        1 -> let
+          ln = (length (ss_keyrangemaps soundstate)) 
+          mn = max (ln - 1) 0
+          index = min mn $ floor $ a * (fromIntegral ln)
+          in
+         if (index /= (ss_krmIndex soundstate)) then do
+             print $ "loading sounds: " ++ (show (index + 1)) ++ " of " ++ (show ln)
+             return $ soundstate { ss_keymap = makeKeyMap 24 
+                                                (ss_rootnote soundstate) 
+                                                (ss_scale soundstate) 
+                                                ((ss_keyrangemaps soundstate) !! index),
+                                   ss_krmIndex = index }
+         else
+             return soundstate
+        2 -> 
+          let root = (interp (double2Float a) gLowScale gHighScale gDenomScale) in do
+            print $ "updating scale root: " ++ (show root)
+            return $ updateScale soundstate 
+                      (interp (double2Float a) gLowScale gHighScale gDenomScale)
+                      (ss_scale soundstate)
         _ -> return soundstate
     ("switch", Just i, _, _) -> do 
       print $ "switch " ++ (show i)
       print $ "updating scale to " ++ (show (i + 1)) ++ " of 5"
-      let root = (ss_rootnote soundstate) in 
-        case i of 
-          0 -> return $ updateScale soundstate root chromaticScale 
-          1 -> return $ updateScale soundstate root majorScale 
-          2 -> return $ updateScale soundstate root majorPentatonicScale 
-          3 -> return $ updateScale soundstate root hungarianMinorScale 
-          4 -> return $ updateScale soundstate root harmonicMinorScale
-          _ -> return soundstate
+      let root = (ss_rootnote soundstate)
+          newscale = case i of 
+            0 -> chromaticScale 
+            1 -> majorScale 
+            2 -> majorPentatonicScale 
+            3 -> hungarianMinorScale 
+            4 -> harmonicMinorScale
+            _ -> []
+          newsoundstate = 
+            if (newscale /= []) then updateScale soundstate root chromaticScale 
+             else soundstate
+          keycolors = makeColors (ss_keymap newsoundstate)
+       in do
+        print $ "colors: "
+        putStrLn $ ppShow keycolors
+        sendColors "127.0.0.1" 8086 (map (\(a,b,c) -> (a,b)) keycolors)
+        -- print "keymap: "
+        -- putStrLn $ ppShow (ss_keymap newsoundstate)
+        return newsoundstate 
     ("button", Just i, Just a, _) -> do 
       print $ "button " ++ (show i) ++ " " ++ (show a)
       case i of 
