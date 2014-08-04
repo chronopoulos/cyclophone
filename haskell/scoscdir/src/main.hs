@@ -395,7 +395,7 @@ makeColors keymap =
 calcColor :: Rational  -> Int
 calcColor note =
   let rem = note - ((floor note) % 1)
-      h = (fromIntegral (numerator note)) / (fromIntegral (denominator note)) :: Float
+      h = (fromIntegral (numerator rem)) / (fromIntegral (denominator rem)) :: Float
       (r,g,b) = hsv_rgb (h * 360) 1.0 0.5
       ri = floor (255 * r)
       gi = floor (255 * g)
@@ -405,14 +405,13 @@ calcColor note =
 
 makeColor :: Int -> (Maybe (Rational, SynthStuff)) -> (Int, Int, Rational)
 makeColor idx Nothing = (idx, 0, 0) 
-makeColor idx (Just (note, sstuff)) = (idx, calcColor note, note)
+makeColor idx (Just (note, sstuff)) = (idx + 1, calcColor note, note)
 
 sendColors :: String -> Int -> [(Int, Int)] -> IO ()
-sendColors ipAddr port colors = do
-  t <- OSC.openUDP ipAddr port
-  dummai <- mapM (\(idx,color) -> OSC.sendOSC t (OSC.Message "led" [(OSC.int32 idx), (OSC.int32 color)]))
-                 colors
-  return ()
+sendColors ipAddr port colors = 
+  let colorz = foldl (++) [] (map (\(a,b) -> [OSC.int32 a,OSC.int32 b]) colors) in do
+    t <- OSC.openUDP ipAddr port
+    OSC.sendOSC t (OSC.Message "led" colorz) 
 
 -- RGB:
 -- R, red =   0 to 1
@@ -766,11 +765,17 @@ onoscmessage soundstate msg = do
          else
              return soundstate
         2 -> 
-          let root = (interp (double2Float a) gLowScale gHighScale gDenomScale) in do
+          let root = (interp (double2Float a) gLowScale gHighScale gDenomScale) 
+              newsoundstate = updateScale soundstate 
+                        (interp (double2Float a) gLowScale gHighScale gDenomScale)
+                        (ss_scale soundstate)
+              keycolors = makeColors (ss_keymap newsoundstate)
+           in do
             print $ "updating scale root: " ++ (show root)
-            return $ updateScale soundstate 
-                      (interp (double2Float a) gLowScale gHighScale gDenomScale)
-                      (ss_scale soundstate)
+            print $ "colors: "
+            putStrLn $ ppShow keycolors
+            sendColors "127.0.0.1" 8086 (map (\(a,b,c) -> (a,b)) keycolors)
+            return newsoundstate 
         _ -> return soundstate
     ("switch", Just i, _, _) -> do 
       print $ "switch " ++ (show i)
@@ -784,7 +789,7 @@ onoscmessage soundstate msg = do
             4 -> harmonicMinorScale
             _ -> []
           newsoundstate = 
-            if (newscale /= []) then updateScale soundstate root chromaticScale 
+            if (newscale /= []) then updateScale soundstate root newscale 
              else soundstate
           keycolors = makeColors (ss_keymap newsoundstate)
        in do
