@@ -625,6 +625,15 @@ makeKeyMap_ keycount rootnote scale soundmap =
     A.array (0,keycount-1) (zip [0..] (take keycount (cycle sounds)))
     -- A.array (0,keycount-1) (zip [0..] (take keycount (cycle sounds)))
 
+updateLEDs :: SoundState -> IO ()
+updateLEDs ss =  
+  let
+    keycolors = makeColors (ss_keymap ss)
+   in do
+      print $ "updating colors: "
+      putStrLn $ ppShow keycolors
+      sendColors "127.0.0.1" 8086 (map (\(a,b,c) -> (a,b)) keycolors)
+ 
 -- if its a key, look up synth using the key index.
 -- is this something that changes during the program?
 -- ultimately how should it work?
@@ -754,13 +763,17 @@ onoscmessage soundstate msg = do
           mn = max (ln - 1) 0
           index = min mn $ floor $ a * (fromIntegral ln)
           in
-         if (index /= (ss_krmIndex soundstate)) then do
-             print $ "loading sounds: " ++ (show (index + 1)) ++ " of " ++ (show ln)
-             return $ soundstate { ss_keymap = makeKeyMap 24 
+         if (index /= (ss_krmIndex soundstate)) then 
+          let 
+             newsoundstate = soundstate { ss_keymap = makeKeyMap 24 
                                                 (ss_rootnote soundstate) 
                                                 (ss_scale soundstate) 
                                                 ((ss_keyrangemaps soundstate) !! index),
-                                   ss_krmIndex = index }
+                                          ss_krmIndex = index }
+           in do
+             print $ "loading sounds: " ++ (show (index + 1)) ++ " of " ++ (show ln)
+             updateLEDs newsoundstate
+             return newsoundstate 
          else
              return soundstate
         2 -> 
@@ -768,17 +781,13 @@ onoscmessage soundstate msg = do
               newsoundstate = updateScale soundstate 
                         (interp (double2Float a) gLowScale gHighScale gDenomScale)
                         (ss_scale soundstate)
-              keycolors = makeColors (ss_keymap newsoundstate)
            in do
-            print $ "updating scale root: " ++ (show root)
-            print $ "colors: "
-            putStrLn $ ppShow keycolors
-            sendColors "127.0.0.1" 8086 (map (\(a,b,c) -> (a,b)) keycolors)
+            print $ "Updating root: " ++ (show root)
+            updateLEDs newsoundstate
             return newsoundstate 
         _ -> return soundstate
     ("switch", Just i, _, _) -> do 
       print $ "switch " ++ (show i)
-      print $ "updating scale to " ++ (show (i + 1)) ++ " of 5"
       let root = (ss_rootnote soundstate)
           newscale = case i of 
             0 -> chromaticScale 
@@ -787,17 +796,12 @@ onoscmessage soundstate msg = do
             3 -> hungarianMinorScale 
             4 -> harmonicMinorScale
             _ -> []
-          newsoundstate = 
-            if (newscale /= []) then updateScale soundstate root newscale 
-             else soundstate
-          keycolors = makeColors (ss_keymap newsoundstate)
-       in do
-        print $ "colors: "
-        putStrLn $ ppShow keycolors
-        sendColors "127.0.0.1" 8086 (map (\(a,b,c) -> (a,b)) keycolors)
-        -- print "keymap: "
-        -- putStrLn $ ppShow (ss_keymap newsoundstate)
-        return newsoundstate 
+          newsoundstate = if (newscale /= []) then updateScale soundstate root newscale 
+                          else soundstate
+        in do
+          print $ "updating scale to " ++ (show (i + 1)) ++ " of 5"
+          updateLEDs newsoundstate
+          return newsoundstate 
     ("button", Just i, Just a, _) -> do 
       print $ "button " ++ (show i) ++ " " ++ (show a)
       case i of 
