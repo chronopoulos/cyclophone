@@ -387,10 +387,14 @@ updateScale ss root scale =
                     ((ss_keyrangemaps ss) !! (ss_krmIndex ss))
      }
 
-makeColors :: A.Array Int (Maybe (Rational, SynthStuff)) -> [(Int, Int, Rational)]
-makeColors keymap = 
+makeColors :: Rational -> A.Array Int (Maybe (Rational, SynthStuff)) -> [(Int, Int, Rational)]
+makeColors root keymap = 
   let (lo,hi) = (A.bounds keymap) in 
-   map (\idx -> makeColor idx (keymap A.! idx)) [lo..hi] 
+   map (\idx -> makeColor root idx (keymap A.! idx)) [lo..hi] 
+
+makeColor :: Rational -> Int -> (Maybe (Rational, SynthStuff)) -> (Int, Int, Rational)
+makeColor root idx Nothing = (idx, 0, 0) 
+makeColor root idx (Just (note, sstuff)) = (idx + 1, calcColor (note - root), note)
 
 calcColor :: Rational  -> Int
 calcColor note =
@@ -402,10 +406,6 @@ calcColor note =
       bi = floor (255 * b)
    in
       (shift ri 16) .|. (shift gi 8) .|. bi
-
-makeColor :: Int -> (Maybe (Rational, SynthStuff)) -> (Int, Int, Rational)
-makeColor idx Nothing = (idx, 0, 0) 
-makeColor idx (Just (note, sstuff)) = (idx + 1, calcColor note, note)
 
 sendColors :: String -> Int -> [(Int, Int)] -> IO ()
 sendColors ipAddr port colors = 
@@ -628,7 +628,7 @@ makeKeyMap_ keycount rootnote scale soundmap =
 updateLEDs :: SoundState -> IO ()
 updateLEDs ss =  
   let
-    keycolors = makeColors (ss_keymap ss)
+    keycolors = makeColors (ss_rootnote ss) (ss_keymap ss)
    in do
       print $ "updating colors: "
       putStrLn $ ppShow keycolors
