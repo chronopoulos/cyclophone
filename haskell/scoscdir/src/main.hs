@@ -396,7 +396,7 @@ calcColor :: Rational  -> Int
 calcColor note =
   let rem = note - ((floor note) % 1)
       h = (fromIntegral (numerator rem)) / (fromIntegral (denominator rem)) :: Float
-      (r,g,b) = hsv_rgb (h * 360) 1.0 0.5
+      (r,g,b) = hsv_rgb (h * 360) 1.0 0.25
       ri = floor (255 * r)
       gi = floor (255 * g)
       bi = floor (255 * b)
@@ -410,8 +410,7 @@ makeColor idx (Just (note, sstuff)) = (idx + 1, calcColor note, note)
 sendColors :: String -> Int -> [(Int, Int)] -> IO ()
 sendColors ipAddr port colors = 
   let colorz = foldl (++) [] (map (\(a,b) -> [OSC.int32 a,OSC.int32 b]) colors) in do
-    t <- OSC.openUDP ipAddr port
-    OSC.sendOSC t (OSC.Message "led" colorz) 
+    OSC.withTransport (OSC.openUDP ipAddr port) (\t -> OSC.sendOSC t (OSC.Message "led" colorz))
 
 -- RGB:
 -- R, red =   0 to 1
