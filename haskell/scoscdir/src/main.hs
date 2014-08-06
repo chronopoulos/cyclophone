@@ -409,8 +409,12 @@ calcColor note =
 
 sendColors :: String -> Int -> [(Int, Int)] -> IO ()
 sendColors ipAddr port colors = 
-  let colorz = foldl (++) [] (map (\(a,b) -> [OSC.int32 a,OSC.int32 b]) colors) in do
+  let colorz = foldl (++) [] (map (\(a,b) -> [OSC.int32 (keyLedIndex a),OSC.int32 b]) colors) in do
     OSC.withTransport (OSC.openUDP ipAddr port) (\t -> OSC.sendOSC t (OSC.Message "led" colorz))
+
+
+keyLedIndex :: Int -> Int
+keyLedIndex keyIndex = (mod (11 - keyIndex) 24) + 1
 
 -- RGB:
 -- R, red =   0 to 1
