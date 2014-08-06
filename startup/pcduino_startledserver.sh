@@ -1,1 +1,1 @@
-screen -d -m /home/ubuntu/code/c_environment/ledoscserver/ledoscserver
+screen -d -m ~/code/c_environment/ledoscserver/ledoscserver
