@@ -20,7 +20,7 @@ added these lines:
     <allow own="org.freedesktop.ReserveDevice1.Audio0"/>
     <allow own="org.freedesktop.ReserveDevice1.Audio1"/>
 
-then (if i remember correctly:
+then, if i remember correctly (this makes the pcduino reboot!):
 
 > sudo service dbus restart
 
