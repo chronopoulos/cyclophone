@@ -18,8 +18,8 @@ import Control.Monad.Fix
 import GHC.Float
 import Sound.SC3
 import qualified Sound.OSC.FD as OSC
--- import qualified Sound.SC3.Server.Command.Float as F
-import qualified Sound.SC3.Server.Command as F
+import qualified Sound.SC3.Server.Command.Double as F
+-- import qualified Sound.SC3.Server.Command as F
 
 import Data.Ratio
 import Data.Bits
