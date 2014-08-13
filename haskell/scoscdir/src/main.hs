@@ -18,8 +18,8 @@ import Control.Monad.Fix
 import GHC.Float
 import Sound.SC3
 import qualified Sound.OSC.FD as OSC
-import qualified Sound.SC3.Server.Command.Double as F
--- import qualified Sound.SC3.Server.Command as F
+-- import qualified Sound.SC3.Server.Command.Double as F
+import qualified Sound.SC3.Server.Command as F
 
 import Data.Ratio
 import Data.Bits
@@ -783,9 +783,7 @@ onoscmessage soundstate msg = do
              return soundstate
         2 -> 
           let root = (interp (double2Float a) gLowScale gHighScale gDenomScale) 
-              newsoundstate = updateScale soundstate 
-                        (interp (double2Float a) gLowScale gHighScale gDenomScale)
-                        (ss_scale soundstate)
+              newsoundstate = updateScale soundstate root (ss_scale soundstate)
            in do
             print $ "Updating root: " ++ (show root)
             updateLEDs newsoundstate
@@ -816,10 +814,15 @@ onoscmessage soundstate msg = do
         -- 1 -> dolooper soundstate (a == 1.0)
         _ -> return soundstate
     ("scale",_,_,_) -> do 
+      -- expecting array of ints.  
+      -- first number is denominator (ie, 12)
+      -- subsequent numbers are numerators.  
+      -- ex. major scale [12,0,2,4,5,7,9,11] 
       print $ "scale " ++ (show msg)
       onscalemsg soundstate msg
       -- return soundstate
     ("root",_,_,_) -> do 
+      -- expects [num,denom], ex [37%12] == root is 2nd note of 4th octave (i think)
       print $ "root " ++ (show msg)
       onrootmsg soundstate msg
       -- return soundstate
@@ -830,7 +833,6 @@ onoscmessage soundstate msg = do
 
 onscalemsg :: SoundState -> OSC.Message -> IO SoundState
 onscalemsg soundstate msg = 
-  -- expecting array of ints.  each pair of ints is turned into a ratio.
   let scale = getoscscale msg in 
     case scale of 
       Just scl ->  
@@ -846,7 +848,7 @@ onrootmsg soundstate msg =
   let root = getoscroot msg in 
     case root of 
       Just rt -> 
-        let newsoundstate = updateScale (soundstate { ss_rootnote = rt }) rt (ss_scale soundstate) 
+        let newsoundstate = updateScale soundstate rt (ss_scale soundstate) 
           in do 
             print $ " new root: " ++ (show rt)
             updateLEDs newsoundstate
