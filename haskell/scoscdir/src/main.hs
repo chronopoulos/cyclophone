@@ -288,18 +288,19 @@ main = do
       print "scoscdir started."
       -- slist <- treein (args !! 3)
       withSC3 reset
-     
-      -- add delay to end of the graph ("AddToTail")
-      -- will need to create synths with AddToHead so they are before this in 
-      -- the graph. 
+    
+      -- create delay synthdef. 
       withSC3 (async 
         (d_recv (delaycon gDelayConName gSynthOut gDelayOut)))
-      withSC3 (send (s_new gDelayConName
+      -- create the delay passthrough synthdef too.
+      withSC3 (async (d_recv (passthroughcon gDelayPtName gSynthOut gDelayOut)))
+      -- start off with delay passthrough. 
+      -- will need to create synths with AddToHead so they are before this in 
+      -- the graph. 
+      withSC3 (send (s_new gDelayPtName
                            1000
                            AddToTail 1 
                            []))
-      -- create the delay passthrough synthdef too.
-      withSC3 (async (d_recv (passthroughcon gDelayPtName gSynthOut gDelayOut)))
 
 
       -- create looper buffer.
@@ -661,13 +662,13 @@ updateLEDs ss =
 onoscmessage_ :: SoundState -> OSC.Message -> IO SoundState
 onoscmessage_ soundstate msg = do
   -- print $ "osc message: " ++ (show msg)
-  print $ "osc message: " ++ OSC.messageAddress msg 
+  -- print $ "osc message: " ++ OSC.messageAddress msg 
   return soundstate
 
 onoscmessage :: SoundState -> OSC.Message -> IO SoundState
 onoscmessage soundstate msg = do
   -- print $ "osc message: " ++ (show msg)
-  print $ "osc message: " ++ OSC.messageAddress msg 
+  -- print $ "osc message: " ++ OSC.messageAddress msg 
   let soundmap = ss_keymap soundstate
       msgtext = OSC.messageAddress msg 
       idx = getoscindex msg 
@@ -676,10 +677,10 @@ onoscmessage soundstate msg = do
       node = 1
    in case (msgtext, idx, amt, sound) of 
     ("keyh", Just i, Just a, Just (note, sstuff)) -> do
-      print "keyh"
+      -- print "keyh"
       if (s_keytype sstuff == Hit) || (s_keytype sstuff == HitVol) then 
        let sname = s_synthdef sstuff in do 
-        print $ "keyh start: " ++ (show i) ++ " " ++ (show a)
+        -- print $ "keyh start: " ++ (show i) ++ " " ++ (show a)
         -- create synth w volume.
         withSC3 (send (n_free [(gNodeOffset + i)]))
         withSC3 (send (s_new sname 
@@ -689,23 +690,23 @@ onoscmessage soundstate msg = do
         -- put in the active list.
         return $ soundstate { ss_activeKeys = (S.insert i (ss_activeKeys soundstate)) }
       else do
-        print "nochange1"
+        -- print "nochange1"
         return soundstate
     ("keyc", Just i, Just a, Just (note, sstuff)) -> do
-     print "keyc"
+     -- print "keyc"
      if (S.member i (ss_activeKeys soundstate)) then
         if (s_keytype sstuff == Vol) || (s_keytype sstuff == HitVol) then do 
-          print $ "setvolactive: " ++ (show i) ++ " " ++ (show a)
+          -- print $ "setvolactive: " ++ (show i) ++ " " ++ (show a)
           -- set the volume.
           withSC3 (send (F.n_set1 (gNodeOffset + i) "amp" a))
           -- no change to soundstate.
           return soundstate
         else do
-          print "nochange2"
+          -- print "nochange2"
           -- no change to soundstate.
           return soundstate
       else if (s_keytype sstuff == Vol) then do
-          print $ "start inactive: " ++ (show i) ++ " " ++ (show a)
+          -- print $ "start inactive: " ++ (show i) ++ " " ++ (show a)
           -- create synth, with initial amplitude setting.
           withSC3 (send (s_new (s_synthdef sstuff)
                                (gNodeOffset + i) 
@@ -714,19 +715,19 @@ onoscmessage soundstate msg = do
           -- add to active keys.
           return $ soundstate { ss_activeKeys = (S.insert i (ss_activeKeys soundstate)) }
         else do
-          print "nochange3"
+          -- print "nochange3"
           -- no change to soundstate.
           return soundstate
     ("keye", Just i, _, Just (note, sstuff)) -> do
-        print "keye"
+        -- print "keye"
         if (s_keytype sstuff == Vol || s_keytype sstuff == HitVol) then do 
           -- set volume to zero, and/or stop playback.
-          print $ "freeing: " ++ (show i)
+          -- print $ "freeing: " ++ (show i)
           withSC3 (send (n_free [(gNodeOffset + i)]))
           -- remove key from active set.
           return $ soundstate { ss_activeKeys = (S.delete i (ss_activeKeys soundstate)) }
         else do
-          print "nochange4"
+          -- print "nochange4"
           return soundstate
     ("knob", Just i, Just a, _) -> do
       print $ "knob " ++ (show i) ++ " " ++ (show a)
@@ -817,9 +818,11 @@ onoscmessage soundstate msg = do
     ("scale",_,_,_) -> do 
       print $ "scale " ++ (show msg)
       onscalemsg soundstate msg
+      -- return soundstate
     ("root",_,_,_) -> do 
       print $ "root " ++ (show msg)
       onrootmsg soundstate msg
+      -- return soundstate
     (_,_,_,_) -> do 
       -- for anything else, ignore.
       print $ "ignored osc message: " ++ (show msg)
@@ -827,15 +830,26 @@ onoscmessage soundstate msg = do
 
 onscalemsg :: SoundState -> OSC.Message -> IO SoundState
 onscalemsg soundstate msg = 
+  -- expecting array of ints.  each pair of ints is turned into a ratio.
   let scale = getoscscale msg in 
     case scale of 
-      Just scl -> return $ updateScale soundstate (ss_rootnote soundstate) scl 
+      Just scl ->  
+        let newsoundstate = updateScale soundstate (ss_rootnote soundstate) scl 
+          in do
+            print $ " new scale: " ++ (show scl)
+            updateLEDs newsoundstate
+            return newsoundstate
       Nothing -> return soundstate
      
 onrootmsg :: SoundState -> OSC.Message -> IO SoundState
 onrootmsg soundstate msg = 
   let root = getoscroot msg in 
     case root of 
-      Just rt -> return $ updateScale (soundstate { ss_rootnote = rt }) rt (ss_scale soundstate) 
+      Just rt -> 
+        let newsoundstate = updateScale (soundstate { ss_rootnote = rt }) rt (ss_scale soundstate) 
+          in do 
+            print $ " new root: " ++ (show rt)
+            updateLEDs newsoundstate
+            return newsoundstate
       Nothing -> return soundstate
      
