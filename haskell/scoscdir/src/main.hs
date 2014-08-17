@@ -388,14 +388,14 @@ updateScale ss root scale =
                     ((ss_keyrangemaps ss) !! (ss_krmIndex ss))
      }
 
-makeColors :: Rational -> A.Array Int (Maybe (Rational, SynthStuff)) -> [(Int, Int, Rational)]
+makeColors :: Rational -> A.Array Int (Maybe (Rational, SynthStuff)) -> [(Int, Int)]
 makeColors root keymap = 
   let (lo,hi) = (A.bounds keymap) in 
    map (\idx -> makeColor root idx (keymap A.! idx)) [lo..hi] 
 
-makeColor :: Rational -> Int -> (Maybe (Rational, SynthStuff)) -> (Int, Int, Rational)
-makeColor root idx Nothing = (idx, 0, 0) 
-makeColor root idx (Just (note, sstuff)) = (idx + 1, calcColor (note - root), note)
+makeColor :: Rational -> Int -> (Maybe (Rational, SynthStuff)) -> (Int, Int)
+makeColor root idx Nothing = (idx, 0) 
+makeColor root idx (Just (note, sstuff)) = (idx + 1, calcColor (note - root))
 
 calcColor :: Rational  -> Int
 calcColor note =
@@ -637,7 +637,7 @@ updateLEDs ss =
    in do
       print $ "updating colors: "
       putStrLn $ ppShow keycolors
-      sendColors "127.0.0.1" 8086 (map (\(a,b,c) -> (a,b)) keycolors)
+      sendColors "127.0.0.1" 8086 keycolors
  
 -- if its a key, look up synth using the key index.
 -- is this something that changes during the program?
