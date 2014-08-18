@@ -353,7 +353,7 @@ main = do
                 ss_scale = scale,
                 ss_altkey = False,
                 ss_looperState = Passthrough,
-                ss_delayon = True
+                ss_delayon = False
                 }
            in case port of
              Just p -> do
