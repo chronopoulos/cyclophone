@@ -41,6 +41,7 @@ readBuf fname bufno =
 gDelayOut = (numOutputBuses + numInputBuses)
 gSynthOut = (numOutputBuses + numInputBuses) + 1
 gLoopWk = (numOutputBuses + numInputBuses) + 2
+gLoopOut = (numOutputBuses + numInputBuses) + 3
 
 makeSynthDef name bufno = 
     synthdef name (out gSynthOut
@@ -307,8 +308,22 @@ main = do
       withSC3 (send (b_alloc (fromIntegral gLoopBufId) (44100 * 120) 1))
 
       -- create the looper synthdef, and a synth from that.   
-      withSC3 (async (d_recv (loopster "looper" gLoopBufId gDelayOut 1)))
+      withSC3 (async (d_recv (loopster "looper" gLoopBufId gDelayOut gLoopOut)))
       withSC3 (send (s_new "looper" gLoopSynthId AddToTail 1 []))
+
+      -- connect gLoopOut to out1 and out2.
+      withSC3 (async (d_recv (passthroughcon "out0" gLoopOut 0)))
+      withSC3 (async (d_recv (passthroughcon "out1" gLoopOut 1)))
+      withSC3 (send (s_new "out0" 
+                           1001
+                           AddToTail 1 
+                           []))
+
+      withSC3 (send (s_new "out1" 
+                           1002
+                           AddToTail 1 
+                           []))
+
 
       -- read in the buffers, create synthdefs
       --sml_str <- readFile (args !! 2)
