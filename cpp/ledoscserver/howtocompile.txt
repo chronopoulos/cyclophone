@@ -1,0 +1,17 @@
+normally one would just type 'make'.  that won't work.
+one needs to copy this whole 'ledoscserver' folder to c_environment, where
+c_environment is a folder checked out from here:
+
+https://github.com/pcduino/c_environment
+
+One needs to add the Adafruit library code to the correct spot, specifically add the 
+"Adafruit-WS2801-Library" folder to the c_environment/libraries directory, and then 
+add the appropriate cpp file entries to the c_environment/Makefile. 
+
+hopefully then you can do 'make' in c_environment to build the support libs, and 
+then 'make' again in c_environment/ledoscfolder.
+
+Then, run it from the command line.  You can test it with the oscsend program like this:
+
+> oscsend 127.0.0.1 8086 "led" [0,255,1,65536]
+

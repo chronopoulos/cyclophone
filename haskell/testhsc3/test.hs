@@ -1,7 +1,7 @@
 import Sound.SC3
 
 playit = do
- let {fn = "/home/bburdette/samples/mellotron/Cello/A2.wav"
+ let {fn = "/home/bburdette/cyclophone_samples/mellotron/Cello/A2.wav"
      ;nc = 1
      ;gr = out 0 (diskIn nc 0 Loop)}
 --  in withSC3 (do {_ <- async (b_alloc 0 65536 nc)

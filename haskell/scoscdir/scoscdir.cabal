@@ -18,7 +18,29 @@ cabal-version:       >=1.10
 executable scoscdir
   hs-source-dirs:     src
   main-is:            main.hs
-  other-modules:      Treein
+  other-modules:      Treein, SoundMap
+  ghc-options:        -O2
+  -- other-modules:       
+  -- other-extensions:    
+  build-depends:       base, 
+                       directory,
+                       filepath,
+                       text,
+                       array,
+                       system-filepath,
+                       split,
+                       pretty-show,
+                       containers,
+                       multimap,
+                       hosc,
+                       hsc3
+   -- hs-source-dirs:      
+  default-language:    Haskell2010
+
+executable scoscandir
+  hs-source-dirs:     src
+  main-is:            scoscandir.hs
+  other-modules:      Treein, SoundMap
   ghc-options:        -O2
   -- other-modules:       
   -- other-extensions:    
@@ -29,8 +51,6 @@ executable scoscdir
                        system-filepath,
                        split,
                        pretty-show,
-                       containers,
-                       hosc,
-                       hsc3
+                       containers
    -- hs-source-dirs:      
   default-language:    Haskell2010
