@@ -45,8 +45,9 @@ using namespace std;
 string gSTargetIpAddress = "127.0.0.1";     // address of sound server
 string gSTargetPort = "8000";          // port of sound server
 
-int gIThres = 35;
-float gFGain = 1.2;     // multiply key intensity by this!
+int gIThres = 35;           // threshold for activating key
+int gIInactiveThres = 50;   // threshold for deactivating key.
+float gFGain = 1.2;         // multiply key intensity by this!
 
 // deque length for determining velocity (current val - last in deque)
 int gIDequeLength = 5;
@@ -76,6 +77,7 @@ void WriteSettings(ostream &aOs)
   aOs << "TargetIpAddress" << " " << gSTargetIpAddress << endl;
   aOs << "TargetPort" << " " << gSTargetPort << endl;
   aOs << "Thres" << " " << gIThres << endl; 
+  aOs << "InactiveThres" << " " << gIInactiveThres << endl; 
   aOs << "Gain" << " " << gFGain << endl; 
   aOs << "DequeLength" << " " << gIDequeLength << endl; 
   aOs << "PrevHitThres" << " " << gIPrevHitThres << endl; 
@@ -104,6 +106,11 @@ void UpdateSetting(string aSName, string aSVal)
   if (aSName == "Thres")
   {
     gIThres = atoi(aSVal.c_str());
+    return;
+  }
+  if (aSName == "InactiveThres")
+  {
+    gIInactiveThres = atoi(aSVal.c_str());
     return;
   }
   if (aSName == "Gain")
@@ -249,30 +256,88 @@ class DKeySigProc
 {
 public:
   DKeySigProc()
-    :mIBase(0), mIPrevVal(0), mIPrevVel(0),
+    :mIBase(0), mIThresBase(0), mIInactiveBase(0), mIPrevVal(0), mIPrevVel(0),
     mIPrevHitVal(0), mIPrevHitCountdown(0),
-    mBGotHit(false), mBOverThres(false), mBGotEnd(false),
+    mBGotHit(false), mBGotEnd(false),
+    mBOverThres(false), mBOverInactiveThres(false),     
     mIContinuousCount(gIContinuousCount),
     mBHitAllowed(true)
   {
   }
 
-  // add the current measure.
-  // if there's a number to send, return true.
+  inline bool GetHitVal(float &aF)
+  {
+    if (mBGotHit)
+      aF = (float)mIPrevVal / 1023.0;
+
+    return mBGotHit;
+  }
+  inline bool GetContinuousVal(float &aF)
+  {
+    if (mBOverThres && --mIContinuousCount == 0)
+    {
+      aF = (float)mIPrevVal / 1023.0;
+      mIContinuousCount = gIContinuousCount;
+
+      return true;
+    }
+    else
+      return false;
+  }
+  inline bool GetEnd() { return mBGotEnd; }
+
+  int GetLastVal() { return mIPrevVal; }
+  
+  void SetBaseline(int aIBaseline) { mIBase = aIBaseline; mIThresBase = mIBase; }
+  int GetBaseline() { return mIBase; }
+
+  // add the current measure.  updating flags and etc.
   void AddMeasure(int aIMeasure)
   {
     // current value over thres.
     int val = aIMeasure;
     val -= mIBase;
 
+    // ----------------------------------------------------------------
+    // update the thresbase. 
+    // ----------------------------------------------------------------
+    // mIThresBase is updated to be the min key value since deactivation, ie since 
+    // crossing the inactive threshold. 
+    // ----------------------------------------------------------------
+   
+    // have we crossed from over the InactiveThres to under it??
+    bool lBOverInactiveThres = val > gIInactiveThres;
+    if (!lBOverInactiveThres && mBOverInactiveThres)
+    {
+       // we just crossed from active to inactive.  Set the thresbase!!
+       mIThresBase = aIMeasure;
+    }
+
+    mBOverInactiveThres = lBOverInactiveThres;
+    if (!mBOverInactiveThres)
+    {
+      if (mIThresBase > aIMeasure && aIMeasure >= mIBase)
+        mIThresBase = aIMeasure;
+    }
+   
+    // Change 'val' to be val-over-thresbase.
+    val = aIMeasure - mIThresBase;
+
+    // ----------------------------------------------------------------
+    //  update 'over thres' flag
+    // ----------------------------------------------------------------
     bool lBOverThres = val > gIThres;
 
-    // if it was over thre, but now its not, then 'got end'
+    // if it was over thres, but now its not, then 'got end'
     // ie end of a period of over-threshold-ness
     mBGotEnd = !lBOverThres && mBOverThres;
 
     mBOverThres = lBOverThres; 
-    // if under thres, then thres crossed.
+
+    // ----------------------------------------------------------------
+    //  update 'got hit' flag
+    // ----------------------------------------------------------------
+    // if it was under thres last time, then thres has been crossed.
     if (!mBOverThres)
       mBHitAllowed = true;
     // but if over thres, don't update. 
@@ -303,13 +368,11 @@ public:
     // we don't allow any hits until zero is crossed.  
     if (mBHitAllowed)
     {
-
       // current velocity is front of deque minus back of deque.
       int prev = mDPrevs.back();
       int vel = val;
       vel -= prev;
       
-     // if (val > gIThres)
       if (vel <=0 && mIPrevVel > 0 && val > gIThres)
       {
         //   logic for rejection based on 'prevhit'.  
@@ -337,34 +400,10 @@ public:
     mIPrevVal = val;
   }
 
-  inline bool GetHitVal(float &aF)
-  {
-    if (mBGotHit)
-      aF = (float)mIPrevVal / 1023.0;
-
-    return mBGotHit;
-  }
-  inline bool GetContinuousVal(float &aF)
-  {
-    if (mBOverThres && --mIContinuousCount == 0)
-    {
-      aF = (float)mIPrevVal / 1023.0;
-      mIContinuousCount = gIContinuousCount;
-
-      return true;
-    }
-    else
-      return false;
-  }
-  inline bool GetEnd() { return mBGotEnd; }
-
-  int GetLastVal() { return mIPrevVal; }
-  
-  void SetBaseline(int aIBaseline) { mIBase = aIBaseline; }
-  int GetBaseline() { return mIBase; }
-
 private:
   int mIBase;
+  int mIThresBase;
+  int mIInactiveBase;
   int mIPrevVel;
   int mIPrevVal;
   int mIPrevHitVal;
@@ -373,6 +412,7 @@ private:
 
   bool mBGotHit;
   bool mBOverThres;
+  bool mBOverInactiveThres;
   bool mBGotEnd;
 
   int mIContinuousCount;
@@ -776,7 +816,8 @@ int main(int argc, const char *args[])
   int tty_fd = openserial("/dev/ttyACM0");
 
   clock_t l_last = clock();
-  int start = 1000;
+  int start = 100;
+  // int start = 25;
 
   char c;
 
