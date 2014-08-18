@@ -358,6 +358,7 @@ main = do
            in case port of
              Just p -> do
                 -- putStrLn $ "keymapping: " ++ (ppShow (map (\(i,e) -> (i, (fst e), dblRat (fst e))) (A.assocs (ss_keymap soundstate))))
+                updateLEDs soundstate
                 print "starting osc loop." 
                 startoscloop ip p soundstate 
              Nothing -> putStrLn $ "Invalid port: " ++ (args !! 0) 
