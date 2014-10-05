@@ -1,26 +1,19 @@
-{ haskellPackages ? (import <nixpkgs> {}).haskellPackages }:
-let
-  inherit (haskellPackages) cabal filepath hosc hsc3 multimap prettyShow split
-    systemFilepath text cabalInstall_1_18_0_3;
+{ cabal, filepath, hosc, hsc3, multimap, prettyShow, split
+, systemFilepath, text
+}:
 
-in cabal.mkDerivation (self: {
+cabal.mkDerivation (self: {
   pname = "scoscdir";
-  version = "1.0.0";
-  src = ./.;
+  version = "0.1.0.0";
+  src=./.;
   isLibrary = false;
   isExecutable = true;
   buildDepends = [
-    # As imported above
-    filepath hosc hsc3 multimap prettyShow split
-    systemFilepath text 
+    filepath hosc hsc3 multimap prettyShow split systemFilepath text
   ];
-  buildTools = [ cabalInstall_1_18_0_3 ];
-  enableSplitObjs = false;
   meta = {
-    description = "send an osc message from the command line";
-    license = self.stdenv.lib.licenses.gpl3;
+    description = "manage and play multiple directories of samples based on cyclophone osc messages";
+    license = self.stdenv.lib.licenses.unfree;
     platforms = self.ghc.meta.platforms;
   };
 })
-
-
