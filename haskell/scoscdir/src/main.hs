@@ -49,15 +49,14 @@ makeSampleSynthDef name bufno =
                     ((playBuf 1 AR (constant bufno) 1.0 1 0 NoLoop RemoveSynth) 
                          * (control KR "amp" 0.5)))
 
-
 makeSawSynthDef :: String -> Synthdef 
 makeSawSynthDef name = 
-    synthdef name (out 0 ((saw AR (200 + 20 * (control KR "pitch" 0.0)))
+    synthdef name (out gSynthOut ((saw AR (control KR "pitch" 0.0))
                           * (control KR "amp" 0.5)))
 
 makeSineSynthDef :: String -> Synthdef 
 makeSineSynthDef name = 
-    synthdef name (out 0 ((sinOsc AR (200 + 20 * (control KR "pitch" 0.0)) 0 * 0.1)
+    synthdef name (out gSynthOut ((sinOsc AR (control KR "pitch" 0.0) 0 * 0.1)
                           * (control KR "amp" 0.5)))
 
 
@@ -722,7 +721,7 @@ onoscmessage soundstate msg = do
         withSC3 (send (s_new sname 
                              (gNodeOffset + i) 
                              AddToHead 1 
-                             [("amp", a), ("pitch", dblRat note)]))
+                             [("amp", a), ("pitch", toFreq note)]))
         -- put in the active list.
         return $ soundstate { ss_activeKeys = (S.insert i (ss_activeKeys soundstate)) }
       else do
@@ -747,7 +746,7 @@ onoscmessage soundstate msg = do
           withSC3 (send (s_new (s_synthdef sstuff)
                                (gNodeOffset + i) 
                                AddToHead 1 
-                               [("amp", a), ("pitch", dblRat note)]))
+                               [("amp", a), ("pitch", toFreq note)]))
           -- add to active keys.
           return $ soundstate { ss_activeKeys = (S.insert i (ss_activeKeys soundstate)) }
         else do
