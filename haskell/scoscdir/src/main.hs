@@ -18,8 +18,8 @@ import Control.Monad.Fix
 import GHC.Float
 import Sound.SC3
 import qualified Sound.OSC.FD as OSC
--- import qualified Sound.SC3.Server.Command.Double as F
-import qualified Sound.SC3.Server.Command as F
+import qualified Sound.SC3.Server.Command.Double as F
+-- import qualified Sound.SC3.Server.Command as F
 
 import Data.Ratio
 import Data.Bits
@@ -43,10 +43,18 @@ gSynthOut = (numOutputBuses + numInputBuses) + 1
 gLoopWk = (numOutputBuses + numInputBuses) + 2
 gLoopOut = (numOutputBuses + numInputBuses) + 3
 
-makeSynthDef name bufno = 
+makeSampleSynthDef :: String -> Int -> Synthdef
+makeSampleSynthDef name bufno = 
     synthdef name (out gSynthOut
                     ((playBuf 1 AR (constant bufno) 1.0 1 0 NoLoop RemoveSynth) 
                          * (control KR "amp" 0.5)))
+
+
+makeSineSynthDef :: String -> Synthdef 
+makeSineSynthDef name = 
+    synthdef name (out 0 ((sinOsc AR (200 + 20 * (control KR "pitch" 0.0)) 0 * 0.1)
+                          * (control KR "amp" 0.5)))
+
 
 -- synthdef to connect two buses.
 buscon name busfrom busto = 
@@ -185,7 +193,7 @@ loadWav filename keytype bufno =
  let fn = (FP.encodeString filename) in do
   readBuf fn bufno
   let sdname = "def" ++ (show bufno)
-      syn = (makeSynthDef sdname bufno) 
+      syn = (makeSampleSynthDef sdname bufno) 
    in do
     withSC3 (async (d_recv syn))
     return $ SynthStuff sdname keytype
@@ -331,7 +339,12 @@ main = do
       sml_str <- readFile (args !! 2)
       -- smap <- read sml_str :: SoundMap 
       print "sound map file loaded."
-      
+     
+      print "loading sounds to supercollider..." 
+
+      -- define simple sine wave synth
+      withSC3 (async (d_recv (makeSineSynthDef "sine")))
+
       let smap = read sml_str :: SoundMap in 
         if (not (isValid smap)) then
           print "empty sound map file!"
@@ -359,6 +372,7 @@ main = do
              Just p -> do
                 -- putStrLn $ "keymapping: " ++ (ppShow (map (\(i,e) -> (i, (fst e), dblRat (fst e))) (A.assocs (ss_keymap soundstate))))
                 updateLEDs soundstate
+                print "sounds loaded."
                 print "starting osc loop." 
                 startoscloop ip p soundstate 
              Nothing -> putStrLn $ "Invalid port: " ++ (args !! 0) 
@@ -702,7 +716,7 @@ onoscmessage soundstate msg = do
         withSC3 (send (s_new sname 
                              (gNodeOffset + i) 
                              AddToHead 1 
-                             [("amp", a)]))
+                             [("amp", a), ("pitch", dblRat note)]))
         -- put in the active list.
         return $ soundstate { ss_activeKeys = (S.insert i (ss_activeKeys soundstate)) }
       else do
@@ -727,7 +741,7 @@ onoscmessage soundstate msg = do
           withSC3 (send (s_new (s_synthdef sstuff)
                                (gNodeOffset + i) 
                                AddToHead 1 
-                               [("amp", a)]))
+                               [("amp", a), ("pitch", dblRat note)]))
           -- add to active keys.
           return $ soundstate { ss_activeKeys = (S.insert i (ss_activeKeys soundstate)) }
         else do

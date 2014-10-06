@@ -27,7 +27,9 @@ printsyntax = do
   print "syntax:"
   print "scoscandir -notescan <firstnote> <directory> <output filename>"
   print "scoscandir -idxscan <directory> <output filename>"
+  print "scoscandir -synthmap <synthname> <output filename>"
   print "scoscandir -combine <indexfile1> <indexfile2> <outputfile>" 
+
 
 main = do 
   args <- getArgs
@@ -82,5 +84,15 @@ main = do
          writeFile outfilename $ ppShow $ SoundMap { 
             sm_soundsets = [(wavsetname, ws)],
             sm_keymaps = [[(All, wavsetname)]] }
+    "-synthmap" -> 
+        let synthname = (args !! 1)
+            outfilename = (args !! 2)
+            syn = Synth { 
+              syn_name = synthname,
+              syn_keytype = Vol
+              } in do
+         writeFile outfilename $ ppShow $ SoundMap { 
+            sm_soundsets = [(T.pack synthname, syn)],
+            sm_keymaps = [[(All, T.pack synthname)]] }
     _ -> printsyntax 
 
