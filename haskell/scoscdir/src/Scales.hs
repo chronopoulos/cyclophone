@@ -42,13 +42,13 @@ noteseries scaleftn rootnote = map (((+) rootnote) . scaleftn) [0..]
 -- an octave == 1.  
 -- 0 == C0
 -- 1 == C1
--- 9 % 12 = A0
+-- 9 % 12 = A0  =  27.5  =  midi #21
 -- 21 % 12 = A1
 toMidiNote :: Rational -> Float
 toMidiNote ratnote = fromRational $ ratnote * 12
 
 -- a kind of crappy approximation.  close enough for rock n roll?
-toFreq :: Rational -> Float
+toFreq :: (Floating a) => Rational -> a
 toFreq ratnote = 8.176 * 2.0 ** (fromRational ratnote)
 
 -- float 0->1 maps to range of rationals. 
