@@ -50,6 +50,11 @@ makeSampleSynthDef name bufno =
                          * (control KR "amp" 0.5)))
 
 
+makeSawSynthDef :: String -> Synthdef 
+makeSawSynthDef name = 
+    synthdef name (out 0 ((saw AR (200 + 20 * (control KR "pitch" 0.0)))
+                          * (control KR "amp" 0.5)))
+
 makeSineSynthDef :: String -> Synthdef 
 makeSineSynthDef name = 
     synthdef name (out 0 ((sinOsc AR (200 + 20 * (control KR "pitch" 0.0)) 0 * 0.1)
@@ -344,6 +349,7 @@ main = do
 
       -- define simple sine wave synth
       withSC3 (async (d_recv (makeSineSynthDef "sine")))
+      withSC3 (async (d_recv (makeSawSynthDef "saw")))
 
       let smap = read sml_str :: SoundMap in 
         if (not (isValid smap)) then
