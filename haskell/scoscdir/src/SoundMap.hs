@@ -27,21 +27,6 @@ data SoundSet =
   }  
   deriving (Show, Read)
 
-{-
-data SoundSet = Synth | WavSet 
-  deriving (Show, Read)
-
-data WavSet = WavSet {
-    ws_rootdir :: T.Text,
-    ws_denominator :: Integer,
-    ws_notemap :: [(Integer, T.Text, KeyType)]
-  }  
-  deriving (Show, Read)
-
-data Synth = Synth { syn_name :: String, syn_keytype :: KeyType } 
-  deriving (Show, Read)
--}
-
 data SoundMap = SoundMap { 
     sm_soundsets :: [(T.Text, SoundSet)],
     sm_keymaps :: [[(KeyRange, T.Text)]]
