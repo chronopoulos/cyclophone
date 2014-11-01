@@ -9,6 +9,7 @@ two things:
 
 from command line:  
 
+(this line is in pcduino_startjacksc.sh already)
 > export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/dbus/system_bus_socket
 
 then edited file: /etc/dbus-1/system.conf
@@ -27,3 +28,16 @@ then, if i remember correctly (this makes the pcduino reboot!):
 then the jack command I used:
 
 > jackd -P70 -t2000 -d alsa -d hw:1,0 -p 128 -n 3 -r 44100 -s
+
+2014-19-25  
+
+ok installed onto the pcduino again.
+made changes to the system.conf as above, and did the export DBUS.. thing too.
+on sudo serve dbus restart the ssh session froze and had to reboot, with bad messages
+about the file system.
+
+afterwards added user to the audio group, roughly like this. 
+> sudo usermod -a -G audio ubuntu
+then needed to log out and back in in order for 'groups' command to show audio group.
+now jackd works.  
+

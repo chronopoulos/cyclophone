@@ -1,0 +1,53 @@
+problem with LEDs being unresponsive...
+
+problem was no GPIO device found.  Thread:
+
+---------------------------------------------
+
+I recently reflashed the pcduino, downloaded the c_environment and compiled an arduino sketch.  Result is:
+
+ubuntu@ubuntu:~/code/c_environment/adaleds$ ./strandtest
+open /sys/devices/virtual/misc/gpio/pin/gpio0 failed
+1open pwm device fail: No such file or directory
+Aborted
+
+Any hints?  Thanks.
+
+---------------------------------------------
+
+Try
+
+sudo modprobe gpio
+sudo modprobe pwm
+
+---------------------------------------------
+
+cool that worked, thx! 
+
+A couple questions:
+
+
+1) still got this message: "open /proc/adc0 failed"
+my program doesn't use the adc but I might want to sometime. 
+
+2) after reboot I had to issue the modprobe commands again. 
+
+sudo modprobe adc
+
+---------------------------------------------
+
+It has been a while since I ran into this problem and I can not remember how to make it permanent.
+
+Edit:
+
+Found it...
+echo gpio | sudo tee -a /etc/modules
+echo adc | sudo tee -a /etc/modules
+echo pwm | sudo tee -a /etc/modules
+
+While your at it...
+sudo modprobe sw_interrupt
+echo sw_interrupt | sudo tee -a /etc/modules
+
+
+- 
