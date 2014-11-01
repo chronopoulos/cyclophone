@@ -1,0 +1,1 @@
+this program has not been tested!  Nor has the accompanying sketch for arduino.  I got the LEDs working on the pcduino at the last minute and so I'm putting this off for a while.
