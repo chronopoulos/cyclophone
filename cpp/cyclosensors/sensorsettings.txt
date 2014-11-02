@@ -1,8 +1,8 @@
-TargetIpAddress 192.168.1.143
+TargetIpAddress 192.168.8.121
 TargetPort 8000
-Thres 50
+Thres 20
 PrevVolCountdownStart 20
-InactiveThres 100
+InactiveThres 60
 Gain 1.5
 DequeLength 15
 PrevHitThres 350
