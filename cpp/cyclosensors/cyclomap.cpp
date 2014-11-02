@@ -15,6 +15,10 @@ void BasicMap::OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity
     aFIntensity = 1.0;
 
   lo_send(aLoAddress, "keyh", "if", aIKeyIndex, aFIntensity);
+
+  // Track when a key message has been sent.
+  if (0 <= aIKeyIndex && aIKeyIndex < mIMaxKeyIndex)
+    mBKeySent[aIKeyIndex] = true;
 }
 
 void BasicMap::OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFIntensity)
@@ -27,6 +31,10 @@ void BasicMap::OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFInten
     aFIntensity = 1.0;
 
   lo_send(aLoAddress, "keyc", "if", aIKeyIndex, aFIntensity);
+
+  // Track when a key message has been sent.
+  if (0 <= aIKeyIndex && aIKeyIndex < mIMaxKeyIndex)
+    mBKeySent[aIKeyIndex] = true;
 }
 
 void BasicMap::OnKeyEnd(lo_address aLoAddress, int aIKeyIndex)
@@ -34,7 +42,17 @@ void BasicMap::OnKeyEnd(lo_address aLoAddress, int aIKeyIndex)
   if (!mBSendEnds)
     return;
 
-  lo_send(aLoAddress, "keye", "i", aIKeyIndex);
+  // Only send 'end' messages when there has been a keyhit or continuous message sent.
+  if (0 <= aIKeyIndex && aIKeyIndex < mIMaxKeyIndex && mBKeySent[aIKeyIndex] == true)
+  {
+    lo_send(aLoAddress, "keye", "i", aIKeyIndex);
+
+
+    cout << "end!" << endl;
+
+    mBKeySent[aIKeyIndex] = false;
+  }
+
 }
 
 

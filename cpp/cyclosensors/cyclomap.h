@@ -29,14 +29,25 @@ public:
 class BasicMap : public CycloMap
 {
 public:
-  BasicMap()
-  :mBSendHits(false), mBSendContinuous(true), mBSendEnds(true)
-  {} 
+  BasicMap(int aIMaxKeys)
+  :mBSendHits(false), mBSendContinuous(true), mBSendEnds(true), mIMaxKeyIndex(aIMaxKeys)
+  {
+    mBKeySent = new bool[mIMaxKeyIndex];
+    for (int lI = 0; lI < mIMaxKeyIndex; ++lI)
+        mBKeySent[lI] = false;
+  } 
+  virtual ~BasicMap()
+  {
+    delete [] mBKeySent;
+  }
 
   //void SetGain(float aF) { mFGain = aF; } 
   //void SetSendHits(bool aB) { mBSendHits = aB; } 
   //void SetSendContinuous(bool aB) { mBSendContinuous = aB; } 
- 
+
+  const int mIMaxKeyIndex;
+  bool *mBKeySent;
+
   bool mBSendHits;
   bool mBSendContinuous;
   bool mBSendEnds;

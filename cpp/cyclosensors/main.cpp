@@ -657,8 +657,6 @@ void UpdateSensors(spidevice &aSpi,
     {
       if (aCm && aLoAddress)
         aCm->OnKeyEnd(aLoAddress, i + aUiKeyOffset);
-
-      cout << "end!" << endl;
     }
   }
 }
@@ -733,7 +731,7 @@ int main(int argc, const char *args[])
   }
   else
   {
-    BasicMap *lBm= new BasicMap; 
+    BasicMap *lBm= new BasicMap(32); 
     lBm->mBSendHits = gBSendHits;
     lBm->mBSendContinuous = gBSendContinuous;
     lBm->mBSendEnds = gBSendEnds;
