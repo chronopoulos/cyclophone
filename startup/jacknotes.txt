@@ -12,6 +12,11 @@ from command line:
 (this line is in pcduino_startjacksc.sh already)
 > export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/dbus/system_bus_socket
 
+edit:
+on bananapi added:
+export DISPLAY=:0
+
+
 then edited file: /etc/dbus-1/system.conf
 in section:  
   <policy context="default">
