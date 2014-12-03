@@ -18,8 +18,8 @@ import Control.Monad.Fix
 import GHC.Float
 import Sound.SC3
 import qualified Sound.OSC.FD as OSC
-import qualified Sound.SC3.Server.Command.Double as F
--- import qualified Sound.SC3.Server.Command as F
+-- import qualified Sound.SC3.Server.Command.Double as F
+import qualified Sound.SC3.Server.Command as F
 
 import Data.Ratio
 import Data.Bits
@@ -79,7 +79,7 @@ gDelayConName = "delayconname"
 -- works!
 delaycon_w name busfrom busto = 
   let sig = in' 1 AR busfrom
-      loc = localIn 1 AR
+      loc = localIn' 1 AR
       sig2 = sig + loc
       del = delayN sig2 2.5 0.5 
       outsig = sig2 + del
@@ -91,7 +91,7 @@ delaycon_w name busfrom busto =
 -- delay with feedback. 
 delaycon name busfrom busto =
   let sig = in' 1 AR busfrom
-      loc = localIn 1 AR
+      loc = localIn' 1 AR
       sig2 = sig + loc
       initdel = float2Double $ gDelayMax * 0.1
       del = delayC sig2 (constant gDelayMax)
@@ -114,7 +114,7 @@ loopster name buf busfrom busto =
       p_reset = tr_control "p_reset" 0  -- reset to start of play buffer.
       -- recphas starts at 0 up to end of buf.
       -- only changes when rec != 0
-      recphas = phasor AR r_reset rec 0 (bufFrames AR buf) 0 
+      recphas = phasor AR r_reset rec 0 (bufFrames IR buf) 0 
       bfwr = bufWr buf recphas Loop sig
       -- play phasor ranges from 0 to last known recphas.
       -- only plays when 'play' is != 0.
@@ -301,7 +301,8 @@ main = do
       print "scoscdir started."
       -- slist <- treein (args !! 3)
       withSC3 reset
-    
+   
+
       -- create delay synthdef. 
       withSC3 (async 
         (d_recv (delaycon gDelayConName gSynthOut gDelayOut)))
@@ -314,7 +315,6 @@ main = do
                            1000
                            AddToTail 1 
                            []))
-
 
       -- create looper buffer.
       withSC3 (send (b_alloc (fromIntegral gLoopBufId) (44100 * 120) 1))

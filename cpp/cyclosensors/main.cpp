@@ -616,7 +616,6 @@ void UpdateSensors(spidevice &aSpi,
 
     aSpi.spiWriteRead(data, sizeof(data));
 
-    // sleep(.001);
 
     // ---------------- decode the recieved data ---------------
     // first 4 bits are adc number. 
@@ -746,6 +745,8 @@ int main(int argc, const char *args[])
   */
   spidevice lSpi0("/dev/spidev0.0", SPI_MODE_0, 20000000, 8);
   spidevice lSpi1("/dev/spidev0.1", SPI_MODE_0, 20000000, 8);
+  //spidevice lSpi0("/dev/spidev0.0", SPI_MODE_0, 10000, 8);
+  // spidevice lSpi1("/dev/spidev0.1", SPI_MODE_0, 10000, 8);
  
   IRSensor lIrsSpi0Sensors[] = 
     {
@@ -825,7 +826,8 @@ int main(int argc, const char *args[])
   {
     for (int count = start; count > 0; --count)
     {
-      // sleep(.2);
+      sleep(.1);
+      
       UpdateSensors(lSpi0, lUi0Count, 0, lIrsSpi0Sensors, lIrsSpi0ByPin,
         lotarget,lCycloMap);
       UpdateSensors(lSpi1, lUi1Count, lUi0Count, lIrsSpi1Sensors, lIrsSpi1ByPin,
