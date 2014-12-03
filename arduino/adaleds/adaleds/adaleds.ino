@@ -220,21 +220,36 @@ int led_handler(const char *path, const char *types, lo_arg ** argv,
 
 void loop() {
 
-//  cout << "oscledserver started!" << endl;
-
-//  lo_server loserver = lo_server_new("8086", loErrHandler);
-//  lo_method lomethod1 = lo_server_add_method (loserver, 0, 0, generic_handler, 0);
-//  lo_method lomethod2 = lo_server_add_method (loserver, "led", 0, led_handler, 0);
-
   Serial.begin(115200);
 
+  
+  
   while (true)
   {
-    int index = Serial.parseInt();
-    int color = Serial.parseInt();
-    strip.setPixelColor(index, color);
+    // colorWipe(Color(255, 0, 0), 50);
+    // int index = Serial.parseInt();
+    // int color = Serial.parseInt();
+    // hope this does range checking!
+    // strip.setPixelColor(index, color);
     
-//    lo_server_recv(loserver);
+    /*
+    Serial.print("blah");
+    Serial.print(index);
+    Serial.print(" ");
+    Serial.println(color);
+    */
+    
+    // char lC = Serial.read();
+    int lC = Serial.parseInt();
+    
+    if (lC != 0)
+    {
+      Serial.print("I received: ");
+      Serial.println(lC, DEC);
+      int index = lC % 25;
+      strip.setPixelColor(index, Color(lC, lC, lC));
+      strip.show();
+    }
   }
   // Some example procedures showing how to display to the pixels
   /*
@@ -245,4 +260,3 @@ void loop() {
   rainbowCycle(20);
   */
 }
-

@@ -180,7 +180,7 @@ int led_handler(const char *path, const char *types, lo_arg ** argv,
     
     if (argc % 2 != 0)
     {
-      printf ("Invalid arg cound for 'led' msg - must be even!\n");
+      printf ("Invalid arg count for 'led' msg - must be even!\n");
       return 1;
     }
 
