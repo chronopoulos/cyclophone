@@ -218,14 +218,164 @@ int led_handler(const char *path, const char *types, lo_arg ** argv,
 }
 */
 
+const int pixelCount(25);
+
+class ColorSet
+{
+public:
+  ColorSet()
+  {
+    for (int lI = 0; lI < pixelCount; ++lI)
+      csColors[lI] = 0;
+  }
+  uint32_t csColors[pixelCount];
+};
+
+const int colorSetCount(10);
+
+ColorSet colorSets[colorSetCount];
+int gIUpdatingCs = 0;
+
+class fade
+{
+public:
+  fade()
+  {
+    from = to = 0;
+    count = 0; 
+    end = true;
+  }
+  int from, to;
+  int count;
+  bool end;
+};
+
+fade fadequeue[pixelCount];
+int fadeindex = 0;
+
+void ProcessLine (const String& aSLine)
+{
+  Serial.print("ProcessLine");
+  // setcolorarray?
+  if (aSLine.startsWith("setcolorarray "))
+  {
+    int lI = aSLine.substring(14).toInt();
+    Serial.print("setcolorarray: ");
+    String lSWk(lI, DEC);
+    Serial.println(lSWk);
+    // yeah.  Set the colorarray that we're updating.  
+    if (lI >= 0 && lI < colorSetCount)
+      gIUpdatingCs = lI;
+  }
+  else if (aSLine.startsWith("setcolor "))
+  {
+    int lI = aSLine.substring(9).toInt();
+    Serial.print("setcolor: ");
+    String lSWk(lI, DEC);
+    Serial.println(lSWk);
+    // yeah.  Set the colorarray that we're updating.  
+    if (lI >= 0 && lI < colorSetCount)
+    {
+      for (int i = 0; i < pixelCount; ++i)
+      {
+        strip.setPixelColor(i, colorSets[lI].csColors[i]);
+      }
+      strip.show();
+    }
+  }
+  else if (aSLine.startsWith("set "))
+  {
+    Serial.print("set: ");
+    // should be followed by two ints, separated by a space.
+    int lISpace = aSLine.indexOf(" ", 4);
+    if (lISpace != -1)
+    {
+      int lIndex = aSLine.substring(4, lISpace - 1).toInt();
+      uint32_t lColor = aSLine.substring(lISpace + 1).toInt();
+      
+      String lSWk(lIndex, DEC);
+      Serial.print(lSWk);
+      Serial.print(" ");
+      String lSWk2(lColor, DEC);
+      Serial.println(lSWk2);
+      
+      // yeah.  Set the colorarray that we're updating.  
+      if (lIndex >= 0 && lIndex < pixelCount)
+      {
+        colorSets[gIUpdatingCs].csColors[lIndex] = lColor;
+      }
+    }
+    else
+      Serial.println("Space not found!");
+  }
+}
+
+/*
+-- make an array of colors, but don't actually send them to
+-- the leds yet.
+setcolorarray <index>
+<index> <color>
+...
+end
+
+-- send an array of colors to the leds.
+-- stops any fades that are in progress.
+setcolor <index>
+
+-- add a fade to the action queue.
+addfade <index1> <index2> <time>
+
+-- reset the action queue.
+reset
+*/
+
 void loop() {
 
   Serial.begin(115200);
 
-  
+  String inString;
   
   while (true)
   {
+    // Read serial input:
+    while (Serial.available() > 0) {
+      char inChar = Serial.read();
+      inString += inChar;
+      
+      Serial.println(inString);
+      
+      // if you get a newline, print the string,
+      // then the string's value:
+      if (inChar == '\n') 
+      {
+        ProcessLine(inString);
+        // clear the string for new input:
+        inString = "";
+      }
+    }
+
+    // Do fade stuff, if there's fades happening.
+    
+  }
+  
+  
+  
+}
+
+// -----------------------------------------------------------------------
+// junkyard
+// -----------------------------------------------------------------------
+
+
+  // Some example procedures showing how to display to the pixels
+  /*
+  colorWipe(Color(255, 0, 0), 50);
+  colorWipe(Color(0, 255, 0), 50);
+  colorWipe(Color(0, 0, 255), 50);
+  rainbow(20);
+  rainbowCycle(20);
+  */
+
     // colorWipe(Color(255, 0, 0), 50);
     // int index = Serial.parseInt();
     // int color = Serial.parseInt();
@@ -233,12 +383,6 @@ void loop() {
     // strip.setPixelColor(index, color);
     
     /*
-    Serial.print("blah");
-    Serial.print(index);
-    Serial.print(" ");
-    Serial.println(color);
-    */
-    
     // char lC = Serial.read();
     int lC = Serial.parseInt();
     
@@ -250,13 +394,5 @@ void loop() {
       strip.setPixelColor(index, Color(lC, lC, lC));
       strip.show();
     }
-  }
-  // Some example procedures showing how to display to the pixels
-  /*
-  colorWipe(Color(255, 0, 0), 50);
-  colorWipe(Color(0, 255, 0), 50);
-  colorWipe(Color(0, 0, 255), 50);
-  rainbow(20);
-  rainbowCycle(20);
-  */
-}
+    */
+
