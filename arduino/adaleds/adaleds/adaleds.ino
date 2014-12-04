@@ -255,25 +255,25 @@ int fadeindex = 0;
 
 void ProcessLine (const String& aSLine)
 {
-  Serial.print("ProcessLine");
+  Serial.println("ProcessLine");
   // setcolorarray?
-  if (aSLine.startsWith("setcolorarray "))
+  if (aSLine.startsWith("updatearray "))
   {
-    int lI = aSLine.substring(14).toInt();
-    Serial.print("setcolorarray: ");
+    int lI = aSLine.substring(12).toInt();
+    Serial.print("setarray: ");
     String lSWk(lI, DEC);
     Serial.println(lSWk);
     // yeah.  Set the colorarray that we're updating.  
     if (lI >= 0 && lI < colorSetCount)
       gIUpdatingCs = lI;
   }
-  else if (aSLine.startsWith("setcolor "))
+  else if (aSLine.startsWith("showarray "))
   {
-    int lI = aSLine.substring(9).toInt();
-    Serial.print("setcolor: ");
+    int lI = aSLine.substring(10).toInt();
+    Serial.print("showarray: ");
     String lSWk(lI, DEC);
     Serial.println(lSWk);
-    // yeah.  Set the colorarray that we're updating.  
+    // push the indicated color array to the leds.
     if (lI >= 0 && lI < colorSetCount)
     {
       for (int i = 0; i < pixelCount; ++i)
@@ -283,14 +283,15 @@ void ProcessLine (const String& aSLine)
       strip.show();
     }
   }
-  else if (aSLine.startsWith("set "))
+  else if (aSLine.startsWith("setpixel "))
   {
-    Serial.print("set: ");
+    // within the current array (see "updatearray"), set a pixel's color. 
+    Serial.print("setpixel: ");
     // should be followed by two ints, separated by a space.
-    int lISpace = aSLine.indexOf(" ", 4);
+    int lISpace = aSLine.indexOf(" ", 9);
     if (lISpace != -1)
     {
-      int lIndex = aSLine.substring(4, lISpace - 1).toInt();
+      int lIndex = aSLine.substring(9, lISpace).toInt();
       uint32_t lColor = aSLine.substring(lISpace + 1).toInt();
       
       String lSWk(lIndex, DEC);
@@ -307,6 +308,41 @@ void ProcessLine (const String& aSLine)
     }
     else
       Serial.println("Space not found!");
+  }
+  else if (aSLine.startsWith("fade "))
+  {
+    Serial.print("fade: ");
+    // should be followed by three ints, separated by a space.
+    int lISpace = aSLine.indexOf(" ", 5);
+    if (lISpace == -1)
+      return;
+      
+    // from the end of "fade " to the space.
+    int lIFromIndex = aSLine.substring(5, lISpace).toInt();
+      
+    int lISpace2 = aSLine.indexOf(" ", lISpace + 1);
+    if (lISpace2 == -1)
+      return;
+
+    // between the first space and the second.
+    int lIToIndex = aSLine.substring(lISpace + 1, lISpace2).toInt();
+
+    // from the second space to the end.
+    int lICount = aSLine.substring(lISpace2 + 1).toInt();
+      
+    fadequeue[fadeindex].from = lIFromIndex;
+    fadequeue[fadeindex].to = lIFromIndex;
+    fadequeue[fadeindex].count = lIFromIndex;
+    fadequeue[fadeindex].end = false;;
+    
+    String lSWk(lIFromIndex, DEC);
+    Serial.print(lSWk);
+    Serial.print(" ");
+    String lSWk2(lIToIndex, DEC);
+    Serial.print(lSWk2);
+    Serial.print(" ");
+    String lSWk3(lICount, DEC);
+    Serial.println(lSWk3);
   }
 }
 
