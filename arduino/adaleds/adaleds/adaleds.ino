@@ -4,27 +4,31 @@
  #include <avr/power.h>
 #endif
 
-/*****************************************************************************
-Example sketch for driving Adafruit WS2801 pixels!
+/*
 
+This sketch implements a mini language to tell the ws2801 pixels what to do.
 
-  Designed specifically to work with the Adafruit RGB Pixels!
-  12mm Bullet shape ----> https://www.adafruit.com/products/322
-  12mm Flat shape   ----> https://www.adafruit.com/products/738
-  36mm Square shape ----> https://www.adafruit.com/products/683
+The commands:
 
-  These pixels use SPI to transmit the color data, and have built in
-  high speed PWM drivers for 24 bit color per pixel
-  2 pins are required to interface
+updatearray <index>
+- sets which color array we are updating.  
+- Configure the number of arrays below, watch out, memory is limited!
 
-  Adafruit invests time and resources providing this open source code, 
-  please support Adafruit and open-source hardware by purchasing 
-  products from Adafruit!
+setpixel <index> <color>
+- sets the color of a pixel in the current array (set by updatearray)
 
-  Written by Limor Fried/Ladyada for Adafruit Industries.  
-  BSD license, all text above must be included in any redistribution
+showarray <index>
+- sends the indicated color array to the pixels.
 
-*****************************************************************************/
+fadeto <index> <cycles>
+- gradually transitions from the current color array to the new color array.
+- issue multiple fadeto commands to have them execute sequentially.
+
+*/
+
+const int colorSetCount(5);
+const int fadequeuecount(10);
+
 
 // Choose which 2 pins you will use for output.
 // Can be any valid output pins.
@@ -53,6 +57,7 @@ Adafruit_WS2801 strip = Adafruit_WS2801(25, dataPin, clockPin);
 //Adafruit_WS2801 strip = Adafruit_WS2801(25, WS2801_GRB);
 
 void setup() {
+
 /*
 #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000L)
   clock_prescale_set(clock_div_1); // Enable 16 MHz on Trinket
@@ -69,7 +74,7 @@ void setup() {
 /* Helper functions */
 
 // Create a 24 bit color value from R,G,B
-uint32_t Color(byte r, byte g, byte b)
+uint32_t FromRGB(byte r, byte g, byte b)
 {
   uint32_t c;
   c = r;
@@ -80,143 +85,30 @@ uint32_t Color(byte r, byte g, byte b)
   return c;
 }
 
+void ToRGB(uint32_t color, byte &r, byte &g, byte &b)
+{
+  byte *lC = (byte *)&color;
+  r = lC[1];
+  g = lC[2];
+  b = lC[3];
+}
+
 //Input a value 0 to 255 to get a color value.
 //The colours are a transition r - g -b - back to r
 uint32_t Wheel(byte WheelPos)
 {
   if (WheelPos < 85) {
-   return Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+   return FromRGB(WheelPos * 3, 255 - WheelPos * 3, 0);
   } else if (WheelPos < 170) {
    WheelPos -= 85;
-   return Color(255 - WheelPos * 3, 0, WheelPos * 3);
+   return FromRGB(255 - WheelPos * 3, 0, WheelPos * 3);
   } else {
    WheelPos -= 170; 
-   return Color(0, WheelPos * 3, 255 - WheelPos * 3);
-  }
-}
-
-/* patterns */
-
-void rainbow(uint8_t wait) {
-  int i, j;
-   
-  for (j=0; j < 256; j++) {     // 3 cycles of all 256 colors in the wheel
-    for (i=0; i < strip.numPixels(); i++) {
-      strip.setPixelColor(i, Wheel( (i + j) % 255));
-    }  
-    strip.show();   // write all the pixels out
-    delay(wait);
-  }
-}
-
-// Slightly different, this one makes the rainbow wheel equally distributed 
-// along the chain
-void rainbowCycle(uint8_t wait) {
-  int i, j;
-  
-  for (j=0; j < 256 * 5; j++) {     // 5 cycles of all 25 colors in the wheel
-    for (i=0; i < strip.numPixels(); i++) {
-      // tricky math! we use each pixel as a fraction of the full 96-color wheel
-      // (thats the i / strip.numPixels() part)
-      // Then add in j which makes the colors go around per pixel
-      // the % 96 is to make the wheel cycle around
-      strip.setPixelColor(i, Wheel( ((i * 256 / strip.numPixels()) + j) % 256) );
-    }  
-    strip.show();   // write all the pixels out
-    delay(wait);
-  }
-}
-
-// fill the dots one after the other with said color
-// good for testing purposes
-void colorWipe(uint32_t c, uint8_t wait) {
-  int i;
-  
-  for (i=0; i < strip.numPixels(); i++) {
-      strip.setPixelColor(i, c);
-      strip.show();
-      delay(wait);
+   return FromRGB(0, WheelPos * 3, 255 - WheelPos * 3);
   }
 }
 
 // --------------------------------------------------------------------
-
-/*
-void  loErrHandler(int num, const char *msg, const char *where)
-{
-  cout << "lo lib error: " << num << " : " << msg << "\n" << where << endl;
-}
-
-// catch any incoming messages and display them. returning 1 means that the
-// message has not been fully handled and the server should try other methods 
-int generic_handler(const char *path, const char *types, lo_arg ** argv,
-                    int argc, void *data, void *user_data)
-{
-    int i;
-
-    printf("path: %s\n", path);
-    for (i = 0; i < argc; i++) {
-        printf("arg %d '%c' ", i, types[i]);
-        lo_arg_pp((lo_type)types[i], argv[i]);
-        printf("\n");
-    }
-    printf("\n");
-    fflush(stdout);
-
-    return 1;
-}
-
-// set individual LED colors.  
-int led_handler(const char *path, const char *types, lo_arg ** argv,
-                    int argc, void *data, void *user_data)
-{
-    int i;
-
-    printf("path: %s\n", path);
-    
-    if (argc % 2 != 0)
-    {
-      printf ("Invalid arg count for 'led' msg - must be even!\n");
-      return 1;
-    }
-
-    int index;
-    uint32_t color;
-
-
-    for (i = 0; i < argc; i+=2) 
-    {
-      if (types[i] == LO_INT32)
-        index = argv[i]->i;
-      else if (types[i] == LO_FLOAT)
-        index = (int)argv[i]->f;
-      else
-      {
-        printf("invalid type for 'index'");
-        break;
-      }
-     
-      int j = i + 1; 
-      if (types[j] == LO_INT32)
-        color = argv[j]->i;
-      else if (types[j] == LO_FLOAT)
-        color = (int)argv[j]->f;
-      else
-      {
-        printf("invalid type for 'color'");
-        break;
-      }
-      
-      strip.setPixelColor(index, color);
-    }
-      
-    strip.show();
-    printf("\n");
-    fflush(stdout);
-
-    return 1;
-}
-*/
 
 const int pixelCount(25);
 
@@ -231,11 +123,20 @@ public:
   uint32_t csColors[pixelCount];
 };
 
-const int colorSetCount(10);
-
-ColorSet colorSets[colorSetCount];
+ColorSet gColorSets[colorSetCount];
+// color set we're currently updating using setpixel
 int gIUpdatingCs = 0;
 
+// index of the last color array sent to the pixels.
+// this should be updated on showarray or at the end of fadeto.  
+int gILastColor = 0;
+
+byte interpolate(byte from, byte to, int val, int total)
+{
+  return ((to - from) * val) / total;
+}
+
+// ColorSet mCsFadeWk;
 class fade
 {
 public:
@@ -243,14 +144,44 @@ public:
   {
     from = to = 0;
     count = 0; 
+    counter = 0;
     end = true;
   }
+  
+  void Init(int aFrom, int aTo, int aCount)
+  {
+    from  = aFrom;
+    to = aTo;
+    count = aCount;
+    end = false;
+  }
+  
+  void ComputeCs(ColorSet &aCs)
+  {
+    for (int i = 0; i < pixelCount; ++i)
+    {
+      byte rf,gf,bf,rt,gt,bt;
+      ToRGB(gColorSets[from].csColors[i],rf,gf,bf);
+      ToRGB(gColorSets[to].csColors[i],rt,gt,bt);
+      
+      byte r,g,b;
+      r = interpolate(rf,rt,counter,count);
+      g = interpolate(gf,gt,counter,count);
+      b = interpolate(bf,bt,counter,count);
+       
+      aCs.csColors[i] = FromRGB(r,g,b);
+    }
+  }
+  
+private:
+  int counter;
+  
   int from, to;
   int count;
   bool end;
 };
 
-fade fadequeue[pixelCount];
+fade fadequeue[fadequeuecount];
 int fadeindex = 0;
 
 void ProcessLine (const String& aSLine)
@@ -278,7 +209,7 @@ void ProcessLine (const String& aSLine)
     {
       for (int i = 0; i < pixelCount; ++i)
       {
-        strip.setPixelColor(i, colorSets[lI].csColors[i]);
+        strip.setPixelColor(i, gColorSets[lI].csColors[i]);
       }
       strip.show();
     }
@@ -303,41 +234,29 @@ void ProcessLine (const String& aSLine)
       // yeah.  Set the colorarray that we're updating.  
       if (lIndex >= 0 && lIndex < pixelCount)
       {
-        colorSets[gIUpdatingCs].csColors[lIndex] = lColor;
+        gColorSets[gIUpdatingCs].csColors[lIndex] = lColor;
       }
     }
     else
       Serial.println("Space not found!");
   }
-  else if (aSLine.startsWith("fade "))
+  else if (aSLine.startsWith("fadeto "))
   {
-    Serial.print("fade: ");
+    Serial.print("fadeto: ");
     // should be followed by three ints, separated by a space.
-    int lISpace = aSLine.indexOf(" ", 5);
+    int lISpace = aSLine.indexOf(" ", 7);
     if (lISpace == -1)
       return;
       
     // from the end of "fade " to the space.
-    int lIFromIndex = aSLine.substring(5, lISpace).toInt();
+    int lIToIndex = aSLine.substring(7, lISpace).toInt();
       
-    int lISpace2 = aSLine.indexOf(" ", lISpace + 1);
-    if (lISpace2 == -1)
-      return;
-
-    // between the first space and the second.
-    int lIToIndex = aSLine.substring(lISpace + 1, lISpace2).toInt();
-
-    // from the second space to the end.
-    int lICount = aSLine.substring(lISpace2 + 1).toInt();
+    // between the first space to the end.
+    int lICount = aSLine.substring(lISpace + 1).toInt();
       
-    fadequeue[fadeindex].from = lIFromIndex;
-    fadequeue[fadeindex].to = lIFromIndex;
-    fadequeue[fadeindex].count = lIFromIndex;
-    fadequeue[fadeindex].end = false;;
+    fadequeue[fadeindex].Init(gILastColor, lIToIndex, lICount);
     
-    String lSWk(lIFromIndex, DEC);
-    Serial.print(lSWk);
-    Serial.print(" ");
+    
     String lSWk2(lIToIndex, DEC);
     Serial.print(lSWk2);
     Serial.print(" ");
@@ -345,25 +264,6 @@ void ProcessLine (const String& aSLine)
     Serial.println(lSWk3);
   }
 }
-
-/*
--- make an array of colors, but don't actually send them to
--- the leds yet.
-setcolorarray <index>
-<index> <color>
-...
-end
-
--- send an array of colors to the leds.
--- stops any fades that are in progress.
-setcolor <index>
-
--- add a fade to the action queue.
-addfade <index1> <index2> <time>
-
--- reset the action queue.
-reset
-*/
 
 void loop() {
 
@@ -398,37 +298,4 @@ void loop() {
   
 }
 
-// -----------------------------------------------------------------------
-// junkyard
-// -----------------------------------------------------------------------
-
-
-  // Some example procedures showing how to display to the pixels
-  /*
-  colorWipe(Color(255, 0, 0), 50);
-  colorWipe(Color(0, 255, 0), 50);
-  colorWipe(Color(0, 0, 255), 50);
-  rainbow(20);
-  rainbowCycle(20);
-  */
-
-    // colorWipe(Color(255, 0, 0), 50);
-    // int index = Serial.parseInt();
-    // int color = Serial.parseInt();
-    // hope this does range checking!
-    // strip.setPixelColor(index, color);
-    
-    /*
-    // char lC = Serial.read();
-    int lC = Serial.parseInt();
-    
-    if (lC != 0)
-    {
-      Serial.print("I received: ");
-      Serial.println(lC, DEC);
-      int index = lC % 25;
-      strip.setPixelColor(index, Color(lC, lC, lC));
-      strip.show();
-    }
-    */
 
