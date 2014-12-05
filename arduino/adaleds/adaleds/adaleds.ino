@@ -4,6 +4,12 @@
  #include <avr/power.h>
 #endif
 
+//#define PRINT Serial.print
+//#define PRINTLN Serial.println
+#define PRINT //
+#define PRINTLN //
+
+
 /*
 
 This sketch implements a mini language to tell the ws2801 pixels what to do.
@@ -204,24 +210,24 @@ public:
       if (i == 0)
       {
         // ToRGB(lcolor,r,g,b);
-        Serial.print("interp:: r: ");
-        Serial.print(r);
-        Serial.print(" g: ");
-        Serial.print(g);
-        Serial.print(" b: ");
-        Serial.println(b);
-        Serial.print(" rf: ");
-        Serial.println(rf);
-        Serial.print(" rt: ");
-        Serial.println(rt);
-        Serial.print(" counter: ");
-        Serial.println(counter);
-        Serial.print(" count: ");
-        Serial.println(count);
-        Serial.print(" gColorSets[from].csColors[i]: ");
-        Serial.println(String(gColorSets[from].csColors[i], DEC));
-        Serial.print(" gColorSets[to].csColors[i]: ");
-        Serial.println(String(gColorSets[to].csColors[i], DEC));
+        PRINT("interp:: r: ");
+        PRINT(r);
+        PRINT(" g: ");
+        PRINT(g);
+        PRINT(" b: ");
+        PRINTLN(b);
+        PRINT(" rf: ");
+        PRINTLN(rf);
+        PRINT(" rt: ");
+        PRINTLN(rt);
+        PRINT(" counter: ");
+        PRINTLN(counter);
+        PRINT(" count: ");
+        PRINTLN(count);
+        PRINT(" gColorSets[from].csColors[i]: ");
+        PRINTLN(String(gColorSets[from].csColors[i], DEC));
+        PRINT(" gColorSets[to].csColors[i]: ");
+        PRINTLN(String(gColorSets[to].csColors[i], DEC));
       } 
        
       aCs.csColors[i] = FromRGB(r,g,b);
@@ -246,14 +252,14 @@ int fadeindex = 0;
 
 void ProcessLine (const String& aSLine)
 {
-  Serial.println("ProcessLine");
+  PRINTLN("ProcessLine");
   // setcolorarray?
   if (aSLine.startsWith("updatearray "))
   {
     int lI = aSLine.substring(12).toInt();
-    Serial.print("updatearray: ");
+    PRINT("updatearray: ");
     String lSWk(lI, DEC);
-    Serial.println(lSWk);
+    PRINTLN(lSWk);
     // yeah.  Set the colorarray that we're updating.  
     if (lI >= 0 && lI < colorSetCount)
       gIUpdatingCs = lI;
@@ -261,9 +267,9 @@ void ProcessLine (const String& aSLine)
   else if (aSLine.startsWith("showarray "))
   {
     int lI = aSLine.substring(10).toInt();
-    Serial.print("showarray: ");
+    PRINT("showarray: ");
     String lSWk(lI, DEC);
-    Serial.println(lSWk);
+    PRINTLN(lSWk);
     // push the indicated color array to the leds.
     if (lI >= 0 && lI < colorSetCount)
     {
@@ -274,7 +280,7 @@ void ProcessLine (const String& aSLine)
   else if (aSLine.startsWith("setpixel "))
   {
     // within the current array (see "updatearray"), set a pixel's color. 
-    Serial.print("setpixel: ");
+    PRINT("setpixel: ");
     // should be followed by two ints, separated by a space.
     int lISpace = aSLine.indexOf(" ", 9);
     if (lISpace != -1)
@@ -283,10 +289,10 @@ void ProcessLine (const String& aSLine)
       uint32_t lColor = aSLine.substring(lISpace + 1).toInt();
       
       String lSWk(lIndex, DEC);
-      Serial.print(lSWk);
-      Serial.print(" ");
+      PRINT(lSWk);
+      PRINT(" ");
       String lSWk2(lColor, DEC);
-      Serial.println(lSWk2);
+      PRINTLN(lSWk2);
       
       // yeah.  Set the colorarray that we're updating.  
       if (lIndex >= 0 && lIndex < pixelCount)
@@ -295,11 +301,11 @@ void ProcessLine (const String& aSLine)
       }
     }
     else
-      Serial.println("Space not found!");
+      PRINTLN("Space not found!");
   }
   else if (aSLine.startsWith("fadeto "))
   {
-    Serial.print("fadeto: ");
+    PRINT("fadeto: ");
     
     // should be followed by three ints, separated by a space.
     int lISpace = aSLine.indexOf(" ", 7);
@@ -315,20 +321,20 @@ void ProcessLine (const String& aSLine)
     fadequeue[fadeindex].Init(gILastColor, lIToIndex, lICount);
         
     String lSWk2(lIToIndex, DEC);
-    Serial.print(lSWk2);
-    Serial.print(" ");
+    PRINT(lSWk2);
+    PRINT(" ");
     String lSWk3(lICount, DEC);
-    Serial.println(lSWk3);
+    PRINTLN(lSWk3);
 
     uint32_t lcolor = FromRGB(12,13,145);
     byte r,g,b;
     ToRGB(lcolor,r,g,b);
-    Serial.print("colortest: r: ");
-    Serial.print(r);
-    Serial.print(" g: ");
-    Serial.print(g);
-    Serial.print(" b: ");
-    Serial.println(b);
+    PRINT("colortest: r: ");
+    PRINT(r);
+    PRINT(" g: ");
+    PRINT(g);
+    PRINT(" b: ");
+    PRINTLN(b);
    
   }
 }
@@ -346,7 +352,7 @@ void loop() {
       char inChar = Serial.read();
       inString += inChar;
       
-      Serial.println(inString);
+      PRINTLN(inString);
       
       // if you get a newline, print the string,
       // then the string's value:
