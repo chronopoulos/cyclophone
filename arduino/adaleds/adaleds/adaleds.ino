@@ -142,7 +142,11 @@ int gILastColor = 0;
 
 byte interpolate(byte from, byte to, int val, int total)
 {
-  return ((to - from) * val) / total;
+  if (to > from)
+    return from + ((to - from) * val) / total;
+  else
+    return to + ((from-to) * (total - val)) / total;
+     
 }
 
 // ColorSet mCsFadeWk;
@@ -176,8 +180,11 @@ public:
     sColorSet.Show();
     counter++;
     
-    if (counter >= count)
+    if (counter > count)
+    {
+      gILastColor = to;
       end = true;
+    }
         
   }
   
