@@ -4,8 +4,9 @@
  #include <avr/power.h>
 #endif
 
-//#define PRINT Serial.print
-//#define PRINTLN Serial.println
+
+// #define PRINT Serial.print
+// #define PRINTLN Serial.println
 #define PRINT //
 #define PRINTLN //
 
@@ -13,6 +14,9 @@
 /*
 
 This sketch implements a mini language to tell the ws2801 pixels what to do.
+
+It manages a number of color arrays and has functions to send them to the pixels.
+
 
 The commands:
 
@@ -175,11 +179,15 @@ public:
     counter = 0;
     end = false;
   }
+  
+  bool End() { return end; }
 
   void DoFading()
   {
     if (end)
       return;
+
+    PRINTLN("dofading");
 
     ComputeCs(sColorSet);
     
@@ -190,9 +198,18 @@ public:
     {
       gILastColor = to;
       end = true;
+      
+      // go to the next fade, if any!
+      int next = NextIndex(fadeindex);
+      if (!fadequeue[next].end)
+        fadeindex = next;        
     }
-        
   }
+  
+  static int NextIndex(int aIdx);
+  static fade fadequeue[fadequeuecount];
+  static int fadeindex;
+
   
   void ComputeCs(ColorSet &aCs)
   {
@@ -247,8 +264,17 @@ private:
 
 ColorSet fade::sColorSet;
 
-fade fadequeue[fadequeuecount];
-int fadeindex = 0;
+fade fade::fadequeue[fadequeuecount];
+int fade::fadeindex = 0;
+
+int fade::NextIndex(int aIdx)
+{
+  ++aIdx;
+  if (aIdx == fadequeuecount)
+    return 0;
+  else
+    return aIdx;
+}
 
 void ProcessLine (const String& aSLine)
 {
@@ -317,9 +343,22 @@ void ProcessLine (const String& aSLine)
       
     // between the first space to the end.
     int lICount = aSLine.substring(lISpace + 1).toInt();
+
+    // find an unused fade, or if there aren't any, fall through.
+    int nxt = fade::fadeindex; 
+    do
+    {
+      if (fade::fadequeue[nxt].End())
+      {
+        PRINTLN("fade init");
+        fade::fadequeue[nxt].Init(gILastColor, lIToIndex, lICount);
+        break;
+      }
       
-    fadequeue[fadeindex].Init(gILastColor, lIToIndex, lICount);
-        
+      nxt = fade::NextIndex(nxt);
+    }
+    while (nxt != fade::fadeindex);
+           
     String lSWk2(lIToIndex, DEC);
     PRINT(lSWk2);
     PRINT(" ");
@@ -365,7 +404,7 @@ void loop() {
     }
 
     // Do fade stuff, if there's fades happening.
-    fadequeue[fadeindex].DoFading();
+    fade::fadequeue[fade::fadeindex].DoFading();
    
   }
   
