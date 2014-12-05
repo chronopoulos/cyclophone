@@ -88,9 +88,9 @@ uint32_t FromRGB(byte r, byte g, byte b)
 void ToRGB(uint32_t color, byte &r, byte &g, byte &b)
 {
   byte *lC = (byte *)&color;
-  r = lC[1];
-  g = lC[2];
-  b = lC[3];
+  r = lC[2];
+  g = lC[1];
+  b = lC[0];
 }
 
 //Input a value 0 to 255 to get a color value.
@@ -120,6 +120,15 @@ public:
     for (int lI = 0; lI < pixelCount; ++lI)
       csColors[lI] = 0;
   }
+  void Show()
+  {
+      for (int i = 0; i < pixelCount; ++i)
+      {
+        strip.setPixelColor(i, csColors[i]);
+      }
+      strip.show();
+  }
+  
   uint32_t csColors[pixelCount];
 };
 
@@ -153,7 +162,23 @@ public:
     from  = aFrom;
     to = aTo;
     count = aCount;
+    counter = 0;
     end = false;
+  }
+
+  void DoFading()
+  {
+    if (end)
+      return;
+
+    ComputeCs(sColorSet);
+    
+    sColorSet.Show();
+    counter++;
+    
+    if (counter >= count)
+      end = true;
+        
   }
   
   void ComputeCs(ColorSet &aCs)
@@ -169,6 +194,29 @@ public:
       g = interpolate(gf,gt,counter,count);
       b = interpolate(bf,bt,counter,count);
        
+      if (i == 0)
+      {
+        // ToRGB(lcolor,r,g,b);
+        Serial.print("interp:: r: ");
+        Serial.print(r);
+        Serial.print(" g: ");
+        Serial.print(g);
+        Serial.print(" b: ");
+        Serial.println(b);
+        Serial.print(" rf: ");
+        Serial.println(rf);
+        Serial.print(" rt: ");
+        Serial.println(rt);
+        Serial.print(" counter: ");
+        Serial.println(counter);
+        Serial.print(" count: ");
+        Serial.println(count);
+        Serial.print(" gColorSets[from].csColors[i]: ");
+        Serial.println(String(gColorSets[from].csColors[i], DEC));
+        Serial.print(" gColorSets[to].csColors[i]: ");
+        Serial.println(String(gColorSets[to].csColors[i], DEC));
+      } 
+       
       aCs.csColors[i] = FromRGB(r,g,b);
     }
   }
@@ -179,7 +227,12 @@ private:
   int from, to;
   int count;
   bool end;
+
+  // work colorset, shared by all fade objs.
+  static ColorSet sColorSet;
 };
+
+ColorSet fade::sColorSet;
 
 fade fadequeue[fadequeuecount];
 int fadeindex = 0;
@@ -191,7 +244,7 @@ void ProcessLine (const String& aSLine)
   if (aSLine.startsWith("updatearray "))
   {
     int lI = aSLine.substring(12).toInt();
-    Serial.print("setarray: ");
+    Serial.print("updatearray: ");
     String lSWk(lI, DEC);
     Serial.println(lSWk);
     // yeah.  Set the colorarray that we're updating.  
@@ -207,11 +260,8 @@ void ProcessLine (const String& aSLine)
     // push the indicated color array to the leds.
     if (lI >= 0 && lI < colorSetCount)
     {
-      for (int i = 0; i < pixelCount; ++i)
-      {
-        strip.setPixelColor(i, gColorSets[lI].csColors[i]);
-      }
-      strip.show();
+      gColorSets[lI].Show();
+      gILastColor = lI;
     }
   }
   else if (aSLine.startsWith("setpixel "))
@@ -243,6 +293,7 @@ void ProcessLine (const String& aSLine)
   else if (aSLine.startsWith("fadeto "))
   {
     Serial.print("fadeto: ");
+    
     // should be followed by three ints, separated by a space.
     int lISpace = aSLine.indexOf(" ", 7);
     if (lISpace == -1)
@@ -255,13 +306,23 @@ void ProcessLine (const String& aSLine)
     int lICount = aSLine.substring(lISpace + 1).toInt();
       
     fadequeue[fadeindex].Init(gILastColor, lIToIndex, lICount);
-    
-    
+        
     String lSWk2(lIToIndex, DEC);
     Serial.print(lSWk2);
     Serial.print(" ");
     String lSWk3(lICount, DEC);
     Serial.println(lSWk3);
+
+    uint32_t lcolor = FromRGB(12,13,145);
+    byte r,g,b;
+    ToRGB(lcolor,r,g,b);
+    Serial.print("colortest: r: ");
+    Serial.print(r);
+    Serial.print(" g: ");
+    Serial.print(g);
+    Serial.print(" b: ");
+    Serial.println(b);
+   
   }
 }
 
@@ -291,7 +352,8 @@ void loop() {
     }
 
     // Do fade stuff, if there's fades happening.
-    
+    fadequeue[fadeindex].DoFading();
+   
   }
   
   
