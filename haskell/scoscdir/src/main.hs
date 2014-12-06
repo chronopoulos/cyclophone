@@ -443,6 +443,17 @@ calcColor note =
    in
       (shift ri 16) .|. (shift gi 8) .|. bi
 
+sendColorsNew :: String -> Int -> [(Int, Int)] -> IO ()
+sendColorsNew ipAddr port colors = do
+  OSC.withTransport (OSC.openUDP ipAddr port) 
+      (\t -> do 
+        OSC.sendOSC t (OSC.Message "updatearray" [0])
+        mapM (\(a,b) -> 
+                    (OSC.sendOSC t (OSC.Message "setpixel" 
+                                    [OSC.int32 (keyLedIndex a),OSC.int32 b])))
+                  colors)
+        OSC.sendOSC t (OSC.Message "showarray" [0])
+
 sendColors :: String -> Int -> [(Int, Int)] -> IO ()
 sendColors ipAddr port colors = 
   let colorz = foldl (++) [] (map (\(a,b) -> [OSC.int32 (keyLedIndex a),OSC.int32 b]) colors) in do
