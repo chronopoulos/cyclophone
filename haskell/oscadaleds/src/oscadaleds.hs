@@ -28,7 +28,7 @@ getArgsPort args =
 getArgsSerial args = 
  if (length args) < 3
    then "/dev/ttyACM0"
-   else (read (args !! 2))
+   else (args !! 2)
 
 main = do
   args <- getArgs
@@ -37,8 +37,7 @@ main = do
       putStrLn "oscadaleds requires 3 args:"
       putStrLn "oscadalesd <ip> <port> <serial port>"
     else do
-      -- serial <- openSerial (getArgsSerial args) B115200 8 One Even Software 
-      serial <- openSerial "/dev/ttyACM0" B115200 8 One Even Software 
+      serial <- openSerial (getArgsSerial args) B115200 8 One Even Software 
       withTransport (t (getArgsIp args) (getArgsPort args)) (f serial)
       where
         f serial fd = forever (recvMessage fd >>= (toSerial serial))
