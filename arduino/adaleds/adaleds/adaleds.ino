@@ -4,11 +4,15 @@
  #include <avr/power.h>
 #endif
 
+// #define DEBUG
 
-//#define PRINT Serial.print
-//#define PRINTLN Serial.println
+#ifdef DEBUG
+#define PRINT Serial.print
+#define PRINTLN Serial.println
+#else
 #define PRINT //
 #define PRINTLN //
+#endif
 
 /*
 
@@ -154,14 +158,17 @@ int gIUpdatingCs = 0;
 // this should be updated on showarray or at the end of fadeto.  
 int gILastColor = 0;
 
-byte interpolate(byte from, byte to, int val, int total)
+// limited by size of int.  for 2 byte ints don't use numbers > 255.
+unsigned int interpolate(unsigned int from, unsigned int to, unsigned int val, unsigned int total)
 {
   if (to > from)
     return from + ((to - from) * val) / total;
   else
-    return to + ((from-to) * (total - val)) / total;
-     
+    return to + ((from-to) * (total - val)) / total;    
 }
+
+int halfintshift = sizeof(unsigned int) * 4;
+int bigs = (1<<(sizeof(unsigned int) * 4)) - 1;
 
 // ColorSet mCsFadeWk;
 class fade
@@ -169,18 +176,30 @@ class fade
 public:
   fade()
   {
-    from = to = 0;
+    to = 0;
     count = 0; 
     counter = 0;
     end = true;
   }
   
-  void Init(int aFrom, int aTo, int aCount)
+  void Init(int aTo, int aCount)
   {
-    from  = aFrom;
     to = aTo;
     count = aCount;
     counter = 0;
+    shift = 0;
+    
+    // reduce to 0->255 interpolation if bigger, because otherwise overflow.
+    if (count > bigs)
+    {        
+        while (aCount > 255)
+        {
+          shift++;
+          aCount = aCount >> 1;
+        }
+    }
+    
+    
     end = false;
   }
   
@@ -221,44 +240,23 @@ public:
   static int NextIndex(int aIdx);
   static fade fadequeue[fadequeuecount];
   static int fadeindex;
-
   
   void ComputeCs(ColorSet &aCs)
   {
     for (int i = 0; i < pixelCount; ++i)
     {
       byte rf,gf,bf,rt,gt,bt;
-      ToRGB(gColorSets[from].csColors[i],rf,gf,bf);
+      ToRGB(gColorSets[gILastColor].csColors[i],rf,gf,bf);
       ToRGB(gColorSets[to].csColors[i],rt,gt,bt);
+
+      int from = counter >> shift;
+      int to = count >> shift;
       
       byte r,g,b;
-      r = interpolate(rf,rt,counter,count);
-      g = interpolate(gf,gt,counter,count);
-      b = interpolate(bf,bt,counter,count);
-       
-      if (i == 0)
-      {
-        // ToRGB(lcolor,r,g,b);
-        PRINT("interp:: r: ");
-        PRINT(r);
-        PRINT(" g: ");
-        PRINT(g);
-        PRINT(" b: ");
-        PRINTLN(b);
-        PRINT(" rf: ");
-        PRINTLN(rf);
-        PRINT(" rt: ");
-        PRINTLN(rt);
-        PRINT(" counter: ");
-        PRINTLN(counter);
-        PRINT(" count: ");
-        PRINTLN(count);
-        PRINT(" gColorSets[from].csColors[i]: ");
-        PRINTLN(String(gColorSets[from].csColors[i], DEC));
-        PRINT(" gColorSets[to].csColors[i]: ");
-        PRINTLN(String(gColorSets[to].csColors[i], DEC));
-      } 
-       
+      r = interpolate(rf,rt,from,to);
+      g = interpolate(gf,gt,from,to);
+      b = interpolate(bf,bt,from,to);
+             
       aCs.csColors[i] = FromRGB(r,g,b);
     }
   }
@@ -266,8 +264,11 @@ public:
 private:
   int counter;
   
-  int from, to;
+  int to;
   int count;
+  
+  int shift;
+  
   bool end;
 
   // work colorset, shared by all fade objs.
@@ -355,6 +356,31 @@ void ProcessLine (const String& aSLine)
       
     // between the first space to the end.
     int lICount = aSLine.substring(lISpace + 1).toInt();
+    
+    /*
+    PRINTLN ("INTERPTEST");
+    PRINT("integer size: ");
+    PRINTLN(sizeof(int), DEC);
+    PRINT("unsigned integer size: ");
+    PRINTLN(sizeof(unsigned int), DEC);
+    PRINT("bigs: ");
+    PRINTLN(bigs, DEC);
+    int lIFrom = gColorSets[gILastColor].csColors[0];
+    int lITo = gColorSets[lIToIndex].csColors[0];
+    PRINT("from: ");
+    PRINT(lIFrom, DEC);
+    PRINT("to : ");
+    PRINTLN(lITo, DEC);
+
+    for (int lI = 0; lI <= lICount; ++lI)
+    {
+      int res = interpolate(lIFrom, lITo, lI, lICount);
+      PRINT(lI, DEC);
+      PRINT(" ");
+      PRINTLN(res, DEC);
+    }
+    PRINTLN ("INTERPTEST END");
+    */
 
     // find an unused fade, or if there aren't any, fall through.
     int nxt = fade::fadeindex; 
@@ -363,7 +389,7 @@ void ProcessLine (const String& aSLine)
       if (fade::fadequeue[nxt].End())
       {
         PRINTLN("fade init");
-        fade::fadequeue[nxt].Init(gILastColor, lIToIndex, lICount);
+        fade::fadequeue[nxt].Init(lIToIndex, lICount);
         break;
       }
       
@@ -386,7 +412,6 @@ void ProcessLine (const String& aSLine)
     PRINT(g);
     PRINT(" b: ");
     PRINTLN(b);
-   
   }
 }
 
@@ -417,11 +442,7 @@ void loop() {
 
     // Do fade stuff, if there's fades happening.
     fade::fadequeue[fade::fadeindex].DoFading();
-   
   }
-  
-  
-  
 }
 
 
