@@ -5,13 +5,17 @@
 #endif
 
 
-// #define PRINT Serial.print
-// #define PRINTLN Serial.println
+//#define PRINT Serial.print
+//#define PRINTLN Serial.println
 #define PRINT //
 #define PRINTLN //
 
-
 /*
+
+setpixel 0 100
+showarray 0
+fadeto 0 2
+fadeto 1 2
 
 This sketch implements a mini language to tell the ws2801 pixels what to do.
 
@@ -201,8 +205,16 @@ public:
       
       // go to the next fade, if any!
       int next = NextIndex(fadeindex);
+      
+      PRINT("next fade.  fadeindex=");
+      PRINT(fadeindex, DEC);
+      PRINT(" next=");
+      PRINT(next, DEC);
       if (!fadequeue[next].end)
+      {
+        PRINT("UPDATED fadeindex");
         fadeindex = next;        
+      }
     }
   }
   
