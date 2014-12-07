@@ -52,13 +52,24 @@ makeSampleSynthDef name bufno =
 makeSawSynthDef :: String -> Synthdef 
 makeSawSynthDef name = 
     synthdef name (out gSynthOut ((saw AR (control KR "pitch" 0.0))
-                          * (control KR "amp" 0.5)))
+                          * (control KR "amp" 0.4)))
+
+makeTremSawSynthDef :: String -> Synthdef
+makeTremSawSynthDef name =
+    synthdef name (out gSynthOut ((saw AR (control KR "pitch" 0.0))
+                          * (sinOsc KR (15.0 * (control KR "amp" 0.5)) 0.0)
+                          * (control KR "amp" 0.4)))
 
 makeSineSynthDef :: String -> Synthdef 
 makeSineSynthDef name = 
     synthdef name (out gSynthOut ((sinOsc AR (control KR "pitch" 0.0) 0 * 0.1)
-                          * (control KR "amp" 0.5)))
+                          * (control KR "amp" 0.7)))
 
+makeTremSineSynthDef :: String -> Synthdef
+makeTremSineSynthDef name =
+    synthdef name (out gSynthOut ((sinOsc AR (control KR "pitch" 0.0) 0 * 0.1)
+                          * (sinOsc KR (15.0 * (control KR "amp" 0.5)) 0.0)
+                          * (control KR "amp" 0.7)))
 
 -- synthdef to connect two buses.
 buscon name busfrom busto = 
@@ -349,6 +360,8 @@ main = do
       -- define simple sine wave synth
       withSC3 (async (d_recv (makeSineSynthDef "sine")))
       withSC3 (async (d_recv (makeSawSynthDef "saw")))
+      withSC3 (async (d_recv (makeTremSineSynthDef "tremsine")))
+      withSC3 (async (d_recv (makeTremSawSynthDef "tremsaw")))
 
       let smap = read sml_str :: SoundMap in 
         if (not (isValid smap)) then
