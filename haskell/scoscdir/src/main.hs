@@ -293,10 +293,10 @@ gDenomScale = 12
  
 main = do 
  args <- getArgs
- if (length args /= 3) 
+ if (length args /= 3 && length args /= 5) 
     then do
       print "syntax:"
-      print "scoscdir <ip> <port> <sample mapfile>"
+      print "scoscdir <ip> <port> <sample mapfile> <optional ledip> <optional ledport>"
     else do
       print "scoscdir started."
       -- slist <- treein (args !! 3)
@@ -362,6 +362,10 @@ main = do
               ip = (args !! 0)
               scale = majorScale
               root = 4
+	      ledip = if (length args == 5) then 
+                        Just (IPPort (args !! 3) (read (args !! 4) :: Int))
+                      else
+                        Nothing
               soundstate = SoundState {
                 ss_activeKeys = S.empty,
                 ss_krmIndex = 0,
@@ -371,7 +375,8 @@ main = do
                 ss_scale = scale,
                 ss_altkey = False,
                 ss_looperState = Passthrough,
-                ss_delayon = False
+                ss_delayon = False,
+                ss_ledip = ledip
                 }
            in case port of
              Just p -> do
@@ -410,7 +415,13 @@ data SoundState = SoundState {
   ss_scale :: [Rational],
   ss_altkey :: Bool,
   ss_looperState :: LooperState,
-  ss_delayon :: Bool
+  ss_delayon :: Bool,
+  ss_ledip :: Maybe IPPort
+  }
+
+data IPPort = IPPort { 
+  ipp_ip :: String,
+  ipp_port :: Int
   }
 
 updateScale :: SoundState -> Rational -> [Rational] -> SoundState
@@ -447,15 +458,16 @@ sendColorsNew :: String -> Int -> [(Int, Int)] -> IO ()
 sendColorsNew ipAddr port colors = do
   OSC.withTransport (OSC.openUDP ipAddr port) 
       (\t -> do 
-        OSC.sendOSC t (OSC.Message "updatearray" [0])
+        OSC.sendOSC t (OSC.Message "updatearray" [OSC.int32 0])
         mapM (\(a,b) -> 
                     (OSC.sendOSC t (OSC.Message "setpixel" 
                                     [OSC.int32 (keyLedIndex a),OSC.int32 b])))
-                  colors)
-        OSC.sendOSC t (OSC.Message "showarray" [0])
+             colors
+        OSC.sendOSC t (OSC.Message "showarray" [OSC.int32 0])
+      )
 
-sendColors :: String -> Int -> [(Int, Int)] -> IO ()
-sendColors ipAddr port colors = 
+sendColorsOld :: String -> Int -> [(Int, Int)] -> IO ()
+sendColorsOld ipAddr port colors = 
   let colorz = foldl (++) [] (map (\(a,b) -> [OSC.int32 (keyLedIndex a),OSC.int32 b]) colors) in do
     OSC.withTransport (OSC.openUDP ipAddr port) (\t -> OSC.sendOSC t (OSC.Message "led" colorz))
 
@@ -677,13 +689,16 @@ makeKeyMap_ keycount rootnote scale soundmap =
     -- A.array (0,keycount-1) (zip [0..] (take keycount (cycle sounds)))
 
 updateLEDs :: SoundState -> IO ()
-updateLEDs ss =  
-  let
-    keycolors = makeColors (ss_rootnote ss) (ss_keymap ss)
-   in do
-      print $ "updating colors: "
-      putStrLn $ ppShow keycolors
-      sendColors "127.0.0.1" 8086 keycolors
+updateLEDs ss = 
+  case (ss_ledip ss) of 
+    Nothing -> return ()
+    Just ip -> 
+     let
+       keycolors = makeColors (ss_rootnote ss) (ss_keymap ss)
+      in do
+         print $ "updating colors: "
+         putStrLn $ ppShow keycolors
+         sendColorsNew (ipp_ip ip) (ipp_port ip) keycolors
  
 -- if its a key, look up synth using the key index.
 -- is this something that changes during the program?
