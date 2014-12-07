@@ -45,6 +45,8 @@ using namespace std;
 string gSTargetIpAddress = "127.0.0.1";     // address of sound server
 string gSTargetPort = "8000";          // port of sound server
 
+string gSSerial = "/dev/ttyACM0";
+
 int gIThres = 35;           // threshold for activating key
 int gIInactiveThres = 50;   // threshold for deactivating key.
 float gFGain = 1.2;         // multiply key intensity by this!
@@ -76,6 +78,7 @@ void WriteSettings(ostream &aOs)
 {
   aOs << "TargetIpAddress" << " " << gSTargetIpAddress << endl;
   aOs << "TargetPort" << " " << gSTargetPort << endl;
+  aOs << "Serial" << " " << gSSerial << endl;
   aOs << "Thres" << " " << gIThres << endl; 
   aOs << "InactiveThres" << " " << gIInactiveThres << endl; 
   aOs << "Gain" << " " << gFGain << endl; 
@@ -101,6 +104,11 @@ void UpdateSetting(string aSName, string aSVal)
   if (aSName == "TargetPort")
   {
     gSTargetPort = aSVal;
+    return;
+  }
+  if (aSName == "Serial")
+  {
+    gSSerial = aSVal;
     return;
   }
   if (aSName == "Thres")
@@ -812,7 +820,7 @@ int main(int argc, const char *args[])
 
   cout << setw(4) << setfill('0');
 
-  int tty_fd = openserial("/dev/ttyACM0");
+  int tty_fd = openserial(gSSerial.c_str());
 
   clock_t l_last = clock();
   int start = 100;

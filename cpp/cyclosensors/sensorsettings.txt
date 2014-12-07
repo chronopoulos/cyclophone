@@ -1,5 +1,6 @@
 TargetIpAddress 127.0.0.1
 TargetPort 8000
+Serial /dev/ttyACM1
 Thres 20
 PrevVolCountdownStart 20
 InactiveThres 60
