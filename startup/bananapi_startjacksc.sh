@@ -5,9 +5,9 @@
 export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/dbus/system_bus_socket
 export DISPLAY=:0
 
-screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:0,0 -p1024 -n2 -r 22050
+#screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:0,0 -p1024 -n2 -r 22050
 
-#screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:0,0 -p1024 -n2 -r 44100
+screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:0,0 -p1024 -n2 -r 44100
 
 #jackd -m -p 32 -d dummy --rate 22050 &
 #jackd -P70 -t2000 -d alsa -d hw:1,0 -p 128 -n 3 -r 44100 -s
