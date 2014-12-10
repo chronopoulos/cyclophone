@@ -298,7 +298,8 @@ loadKeyWavSet smapfiledir _ bufstart =
     return $ A.array (1,0) []
 
 gBufStart = 0 
-gLowScale = 43
+--gLowScale = 43
+gLowScale = 10
 gHighScale = 100
 gDenomScale = 12
  
