@@ -16,6 +16,7 @@
 
 /*
 
+updatearray 0
 setpixel 0 100
 showarray 0
 fadeto 0 2
@@ -44,6 +45,8 @@ fadeto <index> <cycles>
 
 */
 
+// Watch out with colorsetcount - its easy to fill up memory, the arduino uno 
+// only has 2k of ram.  
 const int colorSetCount(5);
 const int fadequeuecount(10);
 
