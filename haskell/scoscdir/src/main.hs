@@ -579,6 +579,11 @@ makelist (OSC.Float x:xs) =
     case rest of 
       Nothing -> Nothing
       Just xs -> Just $ (floor x):xs
+makelist (OSC.Int64 x:xs) =
+  let rest = makelist xs in 
+    case rest of 
+      Nothing -> Nothing
+      Just xs -> Just $ (fromIntegral x):xs
 makelist (OSC.Int32 x:xs) =
   let rest = makelist xs in 
     case rest of 
