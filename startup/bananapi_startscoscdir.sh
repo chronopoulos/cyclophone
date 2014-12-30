@@ -6,8 +6,11 @@
 #'~/.cabal/bin/scoscdir 127.0.0.1 8000 ~/cyclophone_samples/mmap.hs 127.0.0.1 8086'
 #screen -d -m ~/.cabal/bin/scoscdir 127.0.0.1 8000 ~/cyclophone_samples/mmap.hs 127.0.0.1 8086 &> ~/scoscdir1.txt
 
-screen -d -m ~/.cabal/bin/scoscdir 127.0.0.1 8000 ~/cyclophone_samples/mmap.hs 127.0.0.1 8086
 
 #screen -d -m session sh -c '~/.cabal/bin/scoscdir 127.0.0.1 8000 ~/cyclophone_samples/mmap.hs 127.0.0.1 8086 ; read x'
 
 #screen -d -m session sh -c 'echo hello ; read x'
+
+#screen -d -m ~/.cabal/bin/scoscdir 127.0.0.1 8000 ~/cyclophone_samples/mmap.hs 127.0.0.1 8086
+
+screen -d -m ~/.cabal/bin/scoscdir 192.168.8.174 8000 ~/cyclophone_samples/mmap.hs 192.168.8.174 8086
