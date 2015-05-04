@@ -34,6 +34,9 @@ import Scales
 -- make a synth from the sample..  'graph' type.
 -- actually is synthdef?
 
+--gDefGain = 0.5
+gDefGain = 1.3
+
 readBuf fname bufno = 
   withSC3 (do
     async (b_allocRead bufno fname 0 0))
@@ -47,29 +50,29 @@ makeSampleSynthDef :: String -> Int -> Synthdef
 makeSampleSynthDef name bufno = 
     synthdef name (out gSynthOut
                     ((playBuf 1 AR (constant bufno) 1.0 1 0 NoLoop RemoveSynth) 
-                         * (control KR "amp" 0.5)))
+                         * (control KR "amp" gDefGain)))
 
 makeSawSynthDef :: String -> Synthdef 
 makeSawSynthDef name = 
     synthdef name (out gSynthOut ((saw AR (control KR "pitch" 0.0))
-                          * (control KR "amp" 0.4)))
+                          * (control KR "amp" (gDefGain * 0.7))))
 
 makeTremSawSynthDef :: String -> Synthdef
 makeTremSawSynthDef name =
     synthdef name (out gSynthOut ((saw AR (control KR "pitch" 0.0))
                           * (sinOsc KR (15.0 * (control KR "amp" 0.5)) 0.0)
-                          * (control KR "amp" 0.4)))
+                          * (control KR "amp" (gDefGain * 0.7))))
 
 makeSineSynthDef :: String -> Synthdef 
 makeSineSynthDef name = 
     synthdef name (out gSynthOut ((sinOsc AR (control KR "pitch" 0.0) 0 * 0.1)
-                          * (control KR "amp" 0.7)))
+                          * (control KR "amp" gDefGain)))
 
 makeTremSineSynthDef :: String -> Synthdef
 makeTremSineSynthDef name =
     synthdef name (out gSynthOut ((sinOsc AR (control KR "pitch" 0.0) 0 * 0.1)
                           * (sinOsc KR (15.0 * (control KR "amp" 0.5)) 0.0)
-                          * (control KR "amp" 0.7)))
+                          * (control KR "amp" gDefGain)))
 
 -- synthdef to connect two buses.
 buscon name busfrom busto = 
@@ -298,7 +301,8 @@ loadKeyWavSet smapfiledir _ bufstart =
     return $ A.array (1,0) []
 
 gBufStart = 0 
-gLowScale = 43
+--gLowScale = 43
+gLowScale = 10
 gHighScale = 100
 gDenomScale = 12
  
@@ -578,6 +582,11 @@ makelist (OSC.Float x:xs) =
     case rest of 
       Nothing -> Nothing
       Just xs -> Just $ (floor x):xs
+makelist (OSC.Int64 x:xs) =
+  let rest = makelist xs in 
+    case rest of 
+      Nothing -> Nothing
+      Just xs -> Just $ (fromIntegral x):xs
 makelist (OSC.Int32 x:xs) =
   let rest = makelist xs in 
     case rest of 

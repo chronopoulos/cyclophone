@@ -7,7 +7,14 @@ export DISPLAY=:0
 
 #screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:0,0 -p1024 -n2 -r 22050
 
-screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:0,0 -p1024 -n2 -r 44100
+# bananapi onboard sound
+#screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:0,0 -p1024 -n2 -r 44100
+
+# creative soundblaster
+#screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p128 -n2 -r 44100
+#screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p256 -n2 -r 44100
+#screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p512 -n2 -r 44100
+screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p256 -n3 -r 44100
 
 #jackd -m -p 32 -d dummy --rate 22050 &
 #jackd -P70 -t2000 -d alsa -d hw:1,0 -p 128 -n 3 -r 44100 -s
@@ -18,10 +25,10 @@ screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:0,0 -p1024 -n2 -r 44100
 
 # jackd -P70 -t2000 -d alsa -d hw:0,0 -n 3 -r 44100 -s &
 # jackd -m -p 32 -d dummy &
-sleep 5
 #alsa_out -d hw:1,0 -r 22050 -q1 2>&1 > /dev/null &
 # alsa_out -d hw:0,0 -q1 2>&1 > /dev/null &
-sleep 1
+
+sleep 5
 screen -d -m scsynth -u 57110 
 sleep 5
 jack_connect SuperCollider:out_1 system:playback_1 &
