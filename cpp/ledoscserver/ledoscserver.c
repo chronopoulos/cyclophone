@@ -7,6 +7,13 @@
 #include <lo/lo.h>
 using namespace std;
 
+/*****************************************************************************
+
+This sketch provides an OSC interface for controlling the WS2801 leds from a 
+pcduino.  It mostly works, although its glitchy when there's load on the 
+system, for instance when running supercollider for cyclophone audio.
+
+****************************************************************************/
 
 /*****************************************************************************
 Example sketch for driving Adafruit WS2801 pixels!
