@@ -2,6 +2,7 @@ import Control.Concurrent
 import Control.Monad
 import Sound.OSC.FD
 import System.Environment
+import Data.Time.Clock
 
 {-
 main = 
@@ -29,5 +30,9 @@ main = do
     else do
       withTransport (t (getArgsIp args) (getArgsPort args)) f
       where
-        f fd = forever (recvMessage fd >>= print)
+        f fd = forever $ do 
+          msg <- recvMessage fd
+          time <- getCurrentTime
+          print $ show time
+          print msg
         t ip port = udpServer ip  port 
