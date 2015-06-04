@@ -7,7 +7,8 @@ import Data.List
 import qualified Data.Text as T
 import qualified Data.Array as A
 --import qualified Data.Map as M
-import qualified Data.MultiMap as MM
+--import qualified Data.MultiMap as MM
+import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 -- import System.FilePath
 import qualified Filesystem.Path.CurrentOS as FP
@@ -23,6 +24,7 @@ import qualified Sound.SC3.Server.Command as F
 
 import Data.Ratio
 import Data.Bits
+import Data.Functor
 
 import Treein
 import SoundMap
@@ -226,7 +228,7 @@ loadWav filename keytype bufno makesyn =
 
 -- either one synthdef for all pitches, or synthdefs assigned per note.
 data SoundBank = MonoBank SynthStuff | 
-                 NoteBank (MM.MultiMap Rational SynthStuff) |
+                 NoteBank (M.Map Rational SynthStuff) |
                  KeyBank (A.Array Int SynthStuff) |
                  EmptyBank
 
@@ -282,7 +284,7 @@ loadSoundSet path bufidx (KeyWavSet dir wavlst) = do
 -- the whole dir to a new location and it still works.
 -- if filename is an absolute path, then the other two entries are ignored.
 -- if ws_rootdir is absolute, the soundmap file location is ignored.
-loadNoteWavSet :: FP.FilePath -> SoundSet -> Int -> IO (MM.MultiMap Rational SynthStuff)
+loadNoteWavSet :: FP.FilePath -> SoundSet -> Int -> IO (M.Map Rational SynthStuff)
 loadNoteWavSet smapfiledir (NoteWavSet dir denom notemap) bufstart = do
   let rewt = (FP.append (FP.directory smapfiledir)
                         (FP.fromText dir)) in
@@ -291,15 +293,15 @@ loadNoteWavSet smapfiledir (NoteWavSet dir denom notemap) bufstart = do
               (\((nt, fn, kt), bufidx) -> 
                   readsamp denom rewt fn nt bufidx kt)
               (zip notemap [bufstart..]))
-    return $ MM.fromList lst
+    return $ M.fromList lst
    else
-    return MM.empty
+    return M.empty
    where
     readsamp denom rtd fn nt bufidx kt = 
       let file = FP.append rtd (FP.fromText fn) in do
-        ss <- loadWav file kt bufidx makeSampleSynthDef
+        ss <- loadWav file kt bufidx (makePitchSampleSynthDef (nt % denom))
         return ((nt % denom), ss)  
-loadNoteWavSet smapfiledir _ bufstart = return MM.empty 
+loadNoteWavSet smapfiledir _ bufstart = return M.empty 
 
 loadKeyWavSet :: FP.FilePath -> SoundSet -> Int -> IO (A.Array Int SynthStuff)
 loadKeyWavSet smapfiledir (KeyWavSet dir keywavs) bufstart = do
@@ -650,9 +652,9 @@ makeKeyMap :: Int -> Rational -> [Rational] -> KeyRangeMap ->
 makeKeyMap keycount rootnote scale (KeyRangeMap krm) =  
   let -- notes = take 24 $ noteseries (scaleftn scale) rootnote
       soundlist = map (\i -> findSound i rootnote scale (KeyRangeMap krm))
-                      [0..23]
+                      [0..(keycount-1)]
    in
-    A.array (0,23) (zip [0..] soundlist)
+    A.array (0,(keycount-1)) (zip [0..] soundlist)
 
 idxInRange :: Int -> KeyRange -> Int
 idxInRange keyidx All = keyidx
@@ -671,23 +673,44 @@ krmLookup :: Int -> KeyRangeMap -> Maybe (KeyRange, SoundBank)
 krmLookup keyidx (KeyRangeMap krm) = 
   find (\(r,sb) -> SoundMap.inRange keyidx r) krm
          
--- find the note withing the soundbank.
+-- find the CLOSEST note within the soundbank.  
+-- counting on pitch adjustment to keep it in tune.
+sbClosestLookup :: Int -> Rational -> SoundBank -> Maybe (Rational, SynthStuff)
+sbClosestLookup idx note (MonoBank ss) = Just (note, ss)
+sbClosestLookup idx note (NoteBank mp) = 
+  -- return note mod the range, and its corresponding synthstuff 
+  let low = M.lookupLE note mp
+      high = M.lookupGE note mp
+   in case (low, high) of 
+    (Just (lk,lv), Nothing) -> Just (note, lv)
+    (Nothing, Just (hk,hv)) -> Just (note, hv)
+    (Just (lk,lv), Just (hk,hv)) -> 
+      -- should cover the equality cases too, ie note == lk or note == hk
+      if (note - lk < hk - note) 
+        then Just (note, lv)
+        else Just (note, hv)
+    _ -> Nothing
+sbClosestLookup idx note (KeyBank array) = 
+  -- return note mod the range, and its corresponding synthstuff 
+  let mahkey = mod idx (hi-lo+1)
+      (lo, hi) = A.bounds array 
+   in
+     return (0, array A.! mahkey) 
+
+-- find the EXACT note within the soundbank, or Nothing.
 sbLookup :: Int -> Rational -> SoundBank -> Maybe (Rational, SynthStuff)
 sbLookup idx note (MonoBank ss) = Just (note, ss)
 sbLookup idx note (NoteBank mp) = 
   -- return note mod the range, and its corresponding synthstuff 
-  let low = MM.findMin mp
-      high = MM.findMax mp
-   in case (low, high) of 
-    (Just l, Just h) -> 
-      case rmod note l h of 
-        Just mahnote -> 
-          let rlist = MM.lookup mahnote mp in
-            case rlist of 
-              [] -> Nothing
-              (x:xs) -> Just (mahnote, x)
-        _ -> Nothing
-    _ -> Nothing
+  if (M.null mp) then Nothing
+    else
+      let (l,_) = M.findMin mp
+          (h,_) = M.findMax mp
+        in 
+          case rmod note l h of 
+            Just mahnote -> 
+              (\x -> (mahnote,x)) <$> M.lookup mahnote mp
+            _ -> Nothing
 sbLookup idx note (KeyBank array) = 
   -- return note mod the range, and its corresponding synthstuff 
   let mahkey = mod idx (hi-lo+1)
@@ -719,11 +742,11 @@ rmod should iterate from L to H, for any values of n + (x % 1), x being an integ
 
 -}
 
-makeKeyMap_ :: Int -> Rational -> [Rational] -> MM.MultiMap Rational SynthStuff -> A.Array Int (Rational, SynthStuff)
+makeKeyMap_ :: Int -> Rational -> [Rational] -> M.Map Rational SynthStuff -> A.Array Int (Rational, SynthStuff)
 makeKeyMap_ keycount rootnote scale soundmap = 
   let notes = noteseries (scaleftn scale) rootnote
-      sounds = foldr (++) [] 
-                 (map (\x -> (map (\y -> (x,y)) (MM.lookup x soundmap))) notes)
+      sounds = catMaybes
+                 (map (\x -> (\y -> (x,y)) <$> (M.lookup x soundmap)) notes)
    in
     -- nope won't work because requiring compute of whole 'sounds' lists which
     -- is an infinite task.
