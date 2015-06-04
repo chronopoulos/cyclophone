@@ -6,9 +6,9 @@ import Data.List.Split
 import Data.List
 import qualified Data.Text as T
 import qualified Data.Array as A
---import qualified Data.Map as M
+import qualified Data.Map as M
 --import qualified Data.MultiMap as MM
-import qualified Data.Map.Strict as M
+--import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 -- import System.FilePath
 import qualified Filesystem.Path.CurrentOS as FP
@@ -665,7 +665,7 @@ findSound keyindex root scale krm =
   let note = (noteseries (scaleftn scale) root) !! keyindex
       krsb = krmLookup keyindex krm    
    in case krsb of 
-    Just (r,sb) -> sbLookup (idxInRange keyindex r) note sb
+    Just (r,sb) -> sbClosestLookup (idxInRange keyindex r) note sb
     Nothing -> Nothing
 
 -- find the soundbank within the KeyRangeMap.
@@ -679,8 +679,8 @@ sbClosestLookup :: Int -> Rational -> SoundBank -> Maybe (Rational, SynthStuff)
 sbClosestLookup idx note (MonoBank ss) = Just (note, ss)
 sbClosestLookup idx note (NoteBank mp) = 
   -- return note mod the range, and its corresponding synthstuff 
-  let low = M.lookupLE note mp
-      high = M.lookupGE note mp
+  let low = myLookupLE note mp
+      high = myLookupGE note mp
    in case (low, high) of 
     (Just (lk,lv), Nothing) -> Just (note, lv)
     (Nothing, Just (hk,hv)) -> Just (note, hv)
@@ -696,6 +696,22 @@ sbClosestLookup idx note (KeyBank array) =
       (lo, hi) = A.bounds array 
    in
      return (0, array A.! mahkey) 
+
+myLookupLE :: Ord k => k -> M.Map k v -> Maybe (k, v)
+myLookupLE k map = 
+  let kvs = M.filterWithKey (\key _ -> key <= k) map in
+    if (M.null kvs)
+      then Nothing 
+      else Just $ M.findMax kvs
+
+myLookupGE :: Ord k => k -> M.Map k v -> Maybe (k,v)
+myLookupGE k map = 
+  let kvs = M.filterWithKey (\key _ -> k <= key) map in
+    if (M.null kvs)
+      then Nothing 
+      else Just $ M.findMin kvs
+
+
 
 -- find the EXACT note within the soundbank, or Nothing.
 sbLookup :: Int -> Rational -> SoundBank -> Maybe (Rational, SynthStuff)
