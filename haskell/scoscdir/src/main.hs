@@ -52,6 +52,12 @@ makeSampleSynthDef name bufno =
                     ((playBuf 1 AR (constant bufno) 1.0 1 0 NoLoop RemoveSynth) 
                          * (control KR "amp" gDefGain)))
 
+makePitchSampleSynthDef :: String -> Int -> Synthdef
+makePitchSampleSynthDef name bufno = 
+    synthdef name (out gSynthOut
+                    ((playBuf 1 AR (constant bufno) (control KR "pitch" 0.0) 1 0 NoLoop RemoveSynth) 
+                         * (control KR "amp" gDefGain)))
+
 makeSawSynthDef :: String -> Synthdef 
 makeSawSynthDef name = 
     synthdef name (out gSynthOut ((saw AR (control KR "pitch" 0.0))
@@ -206,12 +212,13 @@ data SynthStuff = SynthStuff {
 -- tests = [SMap blah, SMapFile (T.pack "/thisisapth")]
 -- blah = SampMap (T.pack "blah") [(1,(T.pack "blah2")), (2, (T.pack "dsfa"))]
 
-loadWav :: FP.FilePath -> KeyType -> Int -> IO SynthStuff
-loadWav filename keytype bufno = 
+-- makeSampleSynthDef :: String -> Int -> Synthdef
+loadWav :: FP.FilePath -> KeyType -> Int -> (String -> Int -> Synthdef) -> IO SynthStuff
+loadWav filename keytype bufno makesyn = 
  let fn = (FP.encodeString filename) in do
   readBuf fn bufno
   let sdname = "def" ++ (show bufno)
-      syn = (makeSampleSynthDef sdname bufno) 
+      syn = (makesyn sdname bufno) 
    in do
     withSC3 (async (d_recv syn))
     return $ SynthStuff sdname keytype
@@ -221,7 +228,6 @@ data SoundBank = MonoBank SynthStuff |
                  NoteBank (MM.MultiMap Rational SynthStuff) |
                  KeyBank (A.Array Int SynthStuff) |
                  EmptyBank
-      
 
 data KeyRangeMap = KeyRangeMap [(KeyRange, SoundBank)]
 
@@ -239,15 +245,25 @@ loadSoundBanks path ((t,ss):moar) bufstart = do
   therest <- loadSoundBanks path moar bufidx
   return $ (t, sb) : therest 
 loadSoundBanks path [] bufstart = return []
-   
+  
+-- loadSoundSet : loads sounds into a soundbank, increments the 
+-- buffer index if any buffers were allocated.
 loadSoundSet :: FP.FilePath -> Int -> SoundSet -> IO (SoundBank, Int)
+
 loadSoundSet path bufidx (Synth name keytype) = 
   -- basically just assume there is a synth in SC with this name.
   return (MonoBank (SynthStuff name keytype), bufidx)
+
 loadSoundSet path bufidx (NoteWavSet dir denom notemap) = do
   -- load all bufs, with increasing buffer indexes
   wavs <- loadNoteWavSet path (NoteWavSet dir denom notemap) bufidx
   return $ ((NoteBank wavs), bufidx + (length notemap))
+
+loadSoundSet path bufidx (ShiftWav filename note keytype) = do
+  -- load all bufs, with increasing buffer indexes
+  wav <- loadWav path keytype bufidx makePitchSampleSynthDef
+  return (MonoBank wav, bufidx + 1)
+
 loadSoundSet path bufidx (KeyWavSet dir wavlst) = do
   -- load all bufs, with increasing buffer indexes
   wavs <- loadKeyWavSet path (KeyWavSet dir wavlst) bufidx
@@ -276,7 +292,7 @@ loadNoteWavSet smapfiledir (NoteWavSet dir denom notemap) bufstart = do
    where
     readsamp denom rtd fn nt bufidx kt = 
       let file = FP.append rtd (FP.fromText fn) in do
-        ss <- loadWav file kt bufidx 
+        ss <- loadWav file kt bufidx makeSampleSynthDef
         return ((nt % denom), ss)  
 loadNoteWavSet smapfiledir _ bufstart = return MM.empty 
 
@@ -295,7 +311,7 @@ loadKeyWavSet smapfiledir (KeyWavSet dir keywavs) bufstart = do
    where
     readsamp rtd fn key bufidx kt = 
       let file = FP.append rtd (FP.fromText fn) in do
-        ss <- loadWav file kt bufidx 
+        ss <- loadWav file kt bufidx makeSampleSynthDef 
         return (key, ss)  
 loadKeyWavSet smapfiledir _ bufstart = 
     return $ A.array (1,0) []
@@ -317,7 +333,6 @@ main = do
       -- slist <- treein (args !! 3)
       withSC3 reset
    
-
       -- create delay synthdef. 
       withSC3 (async 
         (d_recv (delaycon gDelayConName gSynthOut gDelayOut)))

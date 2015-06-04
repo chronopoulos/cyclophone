@@ -16,6 +16,11 @@ data SoundSet =
   Synth { 
     syn_name :: String, 
     syn_keytype :: KeyType } | 
+  ShiftWav {
+    sw_wavfile :: T.Text,
+    sw_pitch :: Rational,
+    sw_keytype :: KeyType
+  } |
   NoteWavSet {
     nws_rootdir :: T.Text,
     nws_denominator :: Integer,
