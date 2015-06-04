@@ -52,10 +52,11 @@ makeSampleSynthDef name bufno =
                     ((playBuf 1 AR (constant bufno) 1.0 1 0 NoLoop RemoveSynth) 
                          * (control KR "amp" gDefGain)))
 
-makePitchSampleSynthDef :: String -> Int -> Synthdef
-makePitchSampleSynthDef name bufno = 
+makePitchSampleSynthDef :: Rational -> String -> Int -> Synthdef
+makePitchSampleSynthDef note name bufno = 
+  let pitch = 1.0 / (toFreq note) in 
     synthdef name (out gSynthOut
-                    ((playBuf 1 AR (constant bufno) (control KR "pitch" 0.0) 1 0 NoLoop RemoveSynth) 
+                    ((playBuf 1 AR (constant bufno) ((constant pitch) * (control KR "pitch" 0.0)) 1 0 NoLoop RemoveSynth) 
                          * (control KR "amp" gDefGain)))
 
 makeSawSynthDef :: String -> Synthdef 
@@ -260,9 +261,13 @@ loadSoundSet path bufidx (NoteWavSet dir denom notemap) = do
   return $ ((NoteBank wavs), bufidx + (length notemap))
 
 loadSoundSet path bufidx (ShiftWav filename note keytype) = do
-  -- load all bufs, with increasing buffer indexes
-  wav <- loadWav path keytype bufidx makePitchSampleSynthDef
-  return (MonoBank wav, bufidx + 1)
+  let wavfname = (FP.append (FP.directory path)
+                         (FP.fromText filename)) in
+   if (FP.valid wavfname) then do
+     wav <- loadWav wavfname keytype bufidx (makePitchSampleSynthDef note)
+     return (MonoBank wav, bufidx + 1)
+   else
+    error $ "invalid filename to loadSoundSet: " ++ (FP.encodeString wavfname)
 
 loadSoundSet path bufidx (KeyWavSet dir wavlst) = do
   -- load all bufs, with increasing buffer indexes
