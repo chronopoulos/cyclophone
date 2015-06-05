@@ -84,7 +84,7 @@ makeTremSineSynthDef name =
                           * (control KR "amp" gDefGain)))
 
 -- synthdef to connect two buses.
-buscon name busfrom busto = 
+passthroughcon name busfrom busto =
   synthdef name (out busto (in' 1 AR busfrom))
 
 -- connect buses with delay.
@@ -124,9 +124,6 @@ delaycon name busfrom busto =
       outs2 = out busto outsig
     in
       synthdef name (mrg [outs2, loco])
-
-passthroughcon name busfrom busto =
-  synthdef name (out busto (in' 1 AR busfrom))
 
 -- all-in-one looper synthdef.
 loopster name buf busfrom busto = 
@@ -363,14 +360,32 @@ main = do
         async (d_recv (passthroughcon "out0" gLoopOut 0))
         async (d_recv (passthroughcon "out1" gLoopOut 1))
         send (s_new "out0" 
-                             1001
-                             AddToTail 1 
-                             [])
+                     1001
+                     AddToTail 1 
+                     [])
 
         send (s_new "out1" 
-                             1002
-                             AddToTail 1 
-                             [])
+                     1002
+                     AddToTail 1 
+                     [])
+
+        -- connect in-chans to out.
+        -- don't know if this will work or not.  couldn't find a decent 
+        -- microphone for testing.
+        {-
+        async (d_recv (synthdef "inout0" (out 0 (in' 1 AR (numOutputBuses + 0)))))
+        async (d_recv (synthdef "inout1" (out 1 (in' 1 AR (numOutputBuses + 1)))))
+        send (s_new "inout0" 
+                     1003
+                     AddToTail 1 
+                     [])
+
+        send (s_new "inout1" 
+                     1004
+                     AddToTail 1 
+                     [])
+        -}
+
 
       -- read in the buffers, create synthdefs
       --sml_str <- readFile (args !! 2)
