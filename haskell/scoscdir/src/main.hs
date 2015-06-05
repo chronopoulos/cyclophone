@@ -823,11 +823,12 @@ onoscmessage soundstate msg = do
        let sname = s_synthdef sstuff in do 
         -- print $ "keyh start: " ++ (show i) ++ " " ++ (show a)
         -- create synth w volume.
-        withSC3 (send (n_free [(gNodeOffset + i)]))
-        withSC3 (send (s_new sname 
-                             (gNodeOffset + i) 
-                             AddToHead 1 
-                             [("amp", a), ("pitch", toFreq note)]))
+        withSC3 $ do 
+          send (n_free [(gNodeOffset + i)])
+          send (s_new sname 
+               (gNodeOffset + i) 
+               AddToHead 1 
+               [("amp", a), ("pitch", toFreq note)])
         -- put in the active list.
         return $ soundstate { ss_activeKeys = (S.insert i (ss_activeKeys soundstate)) }
       else do
@@ -884,11 +885,12 @@ onoscmessage soundstate msg = do
               (0.0, True) -> do 
                 -- replace delay with passthrough.
                 print "delay passthrough"
-                withSC3 (send (n_free [1000]))
-                withSC3 (send (s_new gDelayPtName
-                                     1000
-                                     AddBefore gLoopSynthId 
-                                     []))
+                withSC3 $ do 
+                  send (n_free [1000])
+                  send (s_new gDelayPtName
+                       1000
+                       AddBefore gLoopSynthId 
+                       [])
                 return $ soundstate { ss_delayon = False }
               (_, True) -> do
                 print "setting delay time"
@@ -898,11 +900,12 @@ onoscmessage soundstate msg = do
               (_, False) -> do 
                 -- replace passthrough with delay.
                 print "delay on"
-                withSC3 (send (n_free [1000]))
-                withSC3 (send (s_new gDelayConName
-                                     1000
-                                     AddBefore gLoopSynthId 
-                                     [("delaytime", a)]))
+                withSC3 $ do
+                  send (n_free [1000])
+                  send (s_new gDelayConName
+                       1000
+                       AddBefore gLoopSynthId 
+                       [("delaytime", a)])
                 return $ soundstate { ss_delayon = True }
         1 -> let
           ln = (length (ss_keyrangemaps soundstate)) 
