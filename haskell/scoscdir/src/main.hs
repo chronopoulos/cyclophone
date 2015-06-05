@@ -333,46 +333,44 @@ main = do
  args <- getArgs
  if (length args /= 3 && length args /= 5) 
     then do
-      print "syntax:"
-      print "scoscdir <ip> <port> <sample mapfile> <optional ledip> <optional ledport>"
+      putStrLn "syntax:"
+      putStrLn "scoscdir <ip> <port> <sample mapfile> <optional ledip> <optional ledport>"
     else do
-      print "scoscdir started."
-      -- slist <- treein (args !! 3)
-      withSC3 reset
-   
-      -- create delay synthdef. 
-      withSC3 (async 
-        (d_recv (delaycon gDelayConName gSynthOut gDelayOut)))
-      -- create the delay passthrough synthdef too.
-      withSC3 (async (d_recv (passthroughcon gDelayPtName gSynthOut gDelayOut)))
-      -- start off with delay passthrough. 
-      -- will need to create synths with AddToHead so they are before this in 
-      -- the graph. 
-      withSC3 (send (s_new gDelayPtName
-                           1000
-                           AddToTail 1 
-                           []))
+      putStrLn "scoscdir started."
+      withSC3 $ do 
+        reset
+        -- create delay synthdef. 
+        async 
+          (d_recv (delaycon gDelayConName gSynthOut gDelayOut))
+        -- create the delay passthrough synthdef too.
+        async (d_recv (passthroughcon gDelayPtName gSynthOut gDelayOut))
+        -- start off with delay passthrough. 
+        -- will need to create synths with AddToHead so they are before this in 
+        -- the graph. 
+        send (s_new gDelayPtName
+                             1000
+                             AddToTail 1 
+                             [])
 
-      -- create looper buffer.
-      withSC3 (send (b_alloc (fromIntegral gLoopBufId) (44100 * 120) 1))
+        -- create looper buffer.
+        send (b_alloc (fromIntegral gLoopBufId) (44100 * 120) 1)
 
-      -- create the looper synthdef, and a synth from that.   
-      withSC3 (async (d_recv (loopster "looper" gLoopBufId gDelayOut gLoopOut)))
-      withSC3 (send (s_new "looper" gLoopSynthId AddToTail 1 []))
+        -- create the looper synthdef, and a synth from that.   
+        async (d_recv (loopster "looper" gLoopBufId gDelayOut gLoopOut))
+        send (s_new "looper" gLoopSynthId AddToTail 1 [])
 
-      -- connect gLoopOut to out1 and out2.
-      withSC3 (async (d_recv (passthroughcon "out0" gLoopOut 0)))
-      withSC3 (async (d_recv (passthroughcon "out1" gLoopOut 1)))
-      withSC3 (send (s_new "out0" 
-                           1001
-                           AddToTail 1 
-                           []))
+        -- connect gLoopOut to out1 and out2.
+        async (d_recv (passthroughcon "out0" gLoopOut 0))
+        async (d_recv (passthroughcon "out1" gLoopOut 1))
+        send (s_new "out0" 
+                             1001
+                             AddToTail 1 
+                             [])
 
-      withSC3 (send (s_new "out1" 
-                           1002
-                           AddToTail 1 
-                           []))
-
+        send (s_new "out1" 
+                             1002
+                             AddToTail 1 
+                             [])
 
       -- read in the buffers, create synthdefs
       --sml_str <- readFile (args !! 2)
@@ -384,11 +382,12 @@ main = do
       print "loading sounds to supercollider..." 
 
       -- define simple sine wave synth
-      withSC3 (async (d_recv (makeSineSynthDef "sine")))
-      withSC3 (async (d_recv (makeSawSynthDef "saw")))
-      withSC3 (async (d_recv (makeTremSineSynthDef "tremsine")))
-      withSC3 (async (d_recv (makeTremSawSynthDef "tremsaw")))
-
+      withSC3 $ do 
+        async (d_recv (makeSineSynthDef "sine"))
+        async (d_recv (makeSawSynthDef "saw"))
+        async (d_recv (makeTremSineSynthDef "tremsine"))
+        async (d_recv (makeTremSawSynthDef "tremsaw"))
+      
       let smap = read sml_str :: SoundMap in 
         if (not (isValid smap)) then
           print "empty sound map file!"
