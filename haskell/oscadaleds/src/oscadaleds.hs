@@ -35,8 +35,11 @@ main = do
   if (length args) < 3
     then do 
       putStrLn "oscadaleds requires 3 args:"
-      putStrLn "oscadalesd <ip> <port> <serial port>"
+      putStrLn "oscadaleds <ip> <port> <serial port>"
     else do
+      putStrLn "oscadaleds server"
+      putStrLn $ "recieving OSC msgs at: " ++ (getArgsIp args) ++ ":" ++ show (getArgsPort args) 
+      putStrLn $ "serial comms on: " ++ (getArgsSerial args) 
       serial <- openSerial (getArgsSerial args) B115200 8 One Even Software 
       withTransport (t (getArgsIp args) (getArgsPort args)) (f serial)
       where
