@@ -12,9 +12,9 @@ export DISPLAY=:0
 
 # creative soundblaster
 #screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p128 -n2 -r 44100
-#screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p256 -n2 -r 44100
+screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p256 -n2 -r 44100
 #screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p512 -n2 -r 44100
-screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p256 -n3 -r 44100
+#screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p256 -n3 -r 44100
 
 #jackd -m -p 32 -d dummy --rate 22050 &
 #jackd -P70 -t2000 -d alsa -d hw:1,0 -p 128 -n 3 -r 44100 -s

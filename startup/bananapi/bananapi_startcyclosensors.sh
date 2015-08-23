@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# gpio load spi
+gpio load spi
 
 cd ~/code/cyclophone/cpp/cyclosensors/
 
