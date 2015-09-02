@@ -1,0 +1,8 @@
+this makes the spidev devices appear:
+
+> sudo modprobe spi-sun7i
+
+the following didn't work:
+
+"And you can permanently enable it by commenting out the blacklist spi-sun7i line in /etc/modprobe.d/bpi-blacklist.conf."
+
