@@ -8,7 +8,7 @@ use tinyosc as osc;
 
 fn main() {
 
-  match (rmain()) {
+  match rmain() {
     Ok(s) => println!("ok"),
     Err(e) => println!("error: {} ", e),
     }
@@ -17,25 +17,34 @@ fn main() {
 fn rmain() -> Result<String, Error> { 
   let mut socket = try!(UdpSocket::bind("127.0.0.1:34254"));
   let mut buf = [0; 100];
-  let (amt, src) = try!(socket.recv_from(&mut buf));
+  while true {
+    let (amt, src) = try!(socket.recv_from(&mut buf));
 
-  // Send a reply to the socket we received data from
-  // println!("message received: {:?}", buf);
-  println!("length: {}", amt);
-  let omsg = match osc::Message::deserialize(&buf[.. amt]) {
-    Ok(m) => m,
-    Err(e) => {
-        return Err(Error::new(ErrorKind::Other, "oh no!"));
-        //return Error(String::from(" :: couldn't decode OSC message :c"));
-        // return;
-      },
-    };
+    println!("length: {}", amt);
+    let inmsg = match osc::Message::deserialize(&buf[.. amt]) {
+      Ok(m) => m,
+      Err(e) => {
+          return Err(Error::new(ErrorKind::Other, "oh no!"));
+          //return Error(String::from(" :: couldn't decode OSC message :c"));
+          // return;
+        },
+      };
 
-  // let buf = &mut buf[..amt];
-  // buf.reverse();
-  // try!(socket.send_to(buf, &src));
+    println!("message recieved {} {:?}", inmsg.path, inmsg.arguments );
 
-  println!("blaha {} ", omsg.path );
+    match inmsg {
+      osc::Message { path: "keyc", arguments: ref args } => {
+          println!("mah args: {:?} ", args);
+          match inmsg.serialize() {
+           Ok(v) => socket.send_to(&v, "127.0.0.1:34255"),
+           Err(e) => return Err(Error::new(ErrorKind::Other, "oh no!")),
+            }
+        },
+      _ => { println!("ignore");
+           Ok(0) } ,
+      };
+  };
+
 
   drop(socket); // close the socket
   Ok(String::from("meh"))
