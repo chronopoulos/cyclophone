@@ -17,7 +17,7 @@ fn main() {
 fn rmain() -> Result<String, Error> { 
   let mut socket = try!(UdpSocket::bind("127.0.0.1:34254"));
   let mut buf = [0; 100];
-  while true {
+  loop { 
     let (amt, src) = try!(socket.recv_from(&mut buf));
 
     println!("length: {}", amt);
@@ -25,8 +25,6 @@ fn rmain() -> Result<String, Error> {
       Ok(m) => m,
       Err(e) => {
           return Err(Error::new(ErrorKind::Other, "oh no!"));
-          //return Error(String::from(" :: couldn't decode OSC message :c"));
-          // return;
         },
       };
 
