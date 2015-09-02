@@ -5,6 +5,7 @@ use std::string::String;
 extern crate tinyosc;
 use tinyosc as osc;
 
+use std::fmt::format;
 
 fn main() {
 
@@ -32,11 +33,33 @@ fn rmain() -> Result<String, Error> {
 
     match inmsg {
       osc::Message { path: "keyc", arguments: ref args } => {
-          println!("mah args: {:?} ", args);
-          match inmsg.serialize() {
-           Ok(v) => socket.send_to(&v, "127.0.0.1:34255"),
-           Err(e) => return Err(Error::new(ErrorKind::Other, "oh no!")),
-            }
+        if (args.len() == 2) 
+          {
+            let q = &args[0];
+            let r = &args[1];
+        
+            // match (args[0], args[1]) {
+            match (q,r) {
+              (&osc::Argument::i(a), &osc::Argument::f(b)) => {
+                  let pathh = format(format_args!("blah{}", a));    
+                  let arghs = Vec::new(); 
+                  let outmsg = osc::Message { path: &pathh, arguments: arghs };
+                  match inmsg.serialize() {
+                   Ok(v) => socket.send_to(&v, "127.0.0.1:34255"),
+                   Err(e) => return Err(Error::new(ErrorKind::Other, "oh no!")),
+                    }
+                },
+              _ => { println!("ignore");
+                   // return Err(Error::new(ErrorKind::Other, "unexpected osc args!"));
+                   Ok(0)
+                },
+              }
+          }
+        else
+          {
+             println!("ignore");
+             Ok(0)    
+          }
         },
       _ => { println!("ignore");
            Ok(0) } ,
