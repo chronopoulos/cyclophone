@@ -42,9 +42,10 @@ fn rmain() -> Result<String, Error> {
             match (q,r) {
               (&osc::Argument::i(a), &osc::Argument::f(b)) => {
                   let pathh = format(format_args!("blah{}", a));    
-                  let arghs = Vec::new(); 
+                  let mut arghs = Vec::new();
+                  arghs.push(osc::Argument::f(b)); 
                   let outmsg = osc::Message { path: &pathh, arguments: arghs };
-                  match inmsg.serialize() {
+                  match outmsg.serialize() {
                    Ok(v) => socket.send_to(&v, "127.0.0.1:34255"),
                    Err(e) => return Err(Error::new(ErrorKind::Other, "oh no!")),
                     }
