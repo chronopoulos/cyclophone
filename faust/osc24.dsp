@@ -11,7 +11,10 @@ declare copyright 	"(c)GRAME 2009";
 import("music.lib");
 
 smooth(c)		= *(1-c) : +~*(c);
-vol 			= hslider("volume [unit:dB]", 0, -96, 0, 0.1) : db2linear : smooth(0.999) ;
+// initial value 0, ie full blast:
+//vol 			= hslider("volume [unit:dB]", 0, -96, 0, 0.1) : db2linear : smooth(0.999) ;
+// initial value -96, ie off.
+vol 			= hslider("volume [unit:dB]", -96, -96, 0, 0.1) : db2linear : smooth(0.999) ;
 freq 			= hslider("freq [unit:Hz]", 1000, 20, 24000, 1);
 
 

@@ -1,12 +1,19 @@
-install faust from source!
+install faust from source!, at least that's what worked for me.
 
-on raspbian, I installed faust from packages first.  that doens't come with the faust2alsaconsole script though, which is what I use to compile.  so I removed that, but I think it left its library dependencies in place.  
+on raspbian, I installed faust from packages (apt-get install faust) first.  That doesn't come with the faust2alsaconsole script though, which is what I use to compile.  so I removed the faust package, but I think it left its library dependencies in place.  
 
-At any rate, installing was pretty straightforward 
+At any rate, at this point installing from source was pretty straightforward 
+  git clone https://github.com/nlogax/faust.git
+  cd faust
   make
   sudo make install
 
-After that I needed to install package asoundlib2-dev.
+then 
+  cd cyclophone/faust
+  ./faust2alsaconsole -osc osc24.dsp
+  ./startosc24_pi.sh
+
+But it got a misssing runtime library error.  So, "sudo apt-get install asoundlib2-dev"
 
 Also, faust2alsaconsole needs this line:
 
