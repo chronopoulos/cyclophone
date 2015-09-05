@@ -1,0 +1,11 @@
+	 alsaaudio(int argc, char *argv[], dsp* DSP) : fAudio(0), fDSP(DSP), fRunning(false) {
+			fAudio = new AudioInterface (
+				AudioParam().cardName( sopt(argc, argv, "--device", "-d",  	getDefaultEnv("FAUST2ALSA_DEVICE", "hw:0")  ) )
+				.frequency( lopt(argc, argv, "--frequency", "-f", 			getDefaultEnv("FAUST2ALSA_FREQUENCY",44100) ) )
+				.buffering( lopt(argc, argv, "--buffer", "-b",    			getDefaultEnv("FAUST2ALSA_BUFFER",512)     ) )
+				.periods( lopt(argc, argv, "--periods", "-p",     			getDefaultEnv("FAUST2ALSA_PERIODS",2)       ) )
+				.inputs(DSP->getNumInputs())
+				.outputs(DSP->getNumOutputs()));
+		}
+
+
