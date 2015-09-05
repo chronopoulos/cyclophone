@@ -1,0 +1,20 @@
+install faust from source!
+
+on raspbian, I installed faust from packages first.  that doens't come with the faust2alsaconsole script though, which is what I use to compile.  so I removed that, but I think it left its library dependencies in place.  
+
+At any rate, installing was pretty straightforward 
+  make
+  sudo make install
+
+After that I needed to install package asoundlib2-dev.
+
+Also, faust2alsaconsole needs this line:
+
+elif [[ $(uname -m) == armv7l ]]; then
+  MYGCCFLAGS="-O3 -march=armv7-a -mfpu=neon-vfpv4 -mfloat-abi=hard -ffast-math -ftree-vectorize"
+
+in its MYGCCFLAGS section.
+
+
+
+
