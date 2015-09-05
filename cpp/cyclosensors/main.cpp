@@ -35,6 +35,7 @@
 #include <deque>
 #include <set>
 #include "cyclomap.h"
+#include <sys/time.h>
 
 using namespace std;
 
@@ -50,6 +51,8 @@ string gSSerial = "/dev/ttyACM0";
 int gIThres = 35;           // threshold for activating key
 int gIInactiveThres = 50;   // threshold for deactivating key.
 float gFGain = 1.2;         // multiply key intensity by this!
+
+int gISleep = 0;            // microseconds of sleep per scan 
 
 // deque length for determining velocity (current val - last in deque)
 int gIDequeLength = 5;
@@ -82,6 +85,7 @@ void WriteSettings(ostream &aOs)
   aOs << "Thres" << " " << gIThres << endl; 
   aOs << "InactiveThres" << " " << gIInactiveThres << endl; 
   aOs << "Gain" << " " << gFGain << endl; 
+  aOs << "Sleep" << " " << gISleep << endl; 
   aOs << "DequeLength" << " " << gIDequeLength << endl; 
   aOs << "PrevHitThres" << " " << gIPrevHitThres << endl; 
   aOs << "PrevHitCountdownStart" << " " << gIPrevHitCountdownStart << endl; 
@@ -124,6 +128,11 @@ void UpdateSetting(string aSName, string aSVal)
   if (aSName == "Gain")
   {
     gFGain = atof(aSVal.c_str());
+    return;
+  }
+  if (aSName == "Sleep")
+  {
+    gISleep = atoi(aSVal.c_str());
     return;
   }
   if (aSName == "DequeLength")
@@ -703,6 +712,73 @@ void printDiffs(unsigned int aUiCount, IRSensor aIrsArray[])
   }  
 }
 
+/*
+struct timespec {
+    time_t   tv_sec;         seconds 
+    long     tv_nsec;        nanoseconds
+};
+*/
+
+#define USECS_PER_SEC 1000000
+
+void timeval_normalize(timeval &t) 
+{
+   if (t.tv_usec >= USECS_PER_SEC) { 
+       t.tv_usec -= USECS_PER_SEC; 
+       t.tv_sec++; 
+   } else if ((t).tv_usec < 0) { 
+       t.tv_usec += USECS_PER_SEC; 
+       t.tv_sec -- ; 
+   } 
+}
+
+void timeval_sub(timeval &t1, const timeval &t2)
+{
+   t1.tv_usec -= t2.tv_usec; 
+   t1.tv_sec  -= t2.tv_sec; 
+   timeval_normalize(t1); 
+} 
+
+void timeval_add_us(timeval &t, long n) 
+{ 
+   t.tv_usec += n; 
+   timeval_normalize(t); 
+}
+
+double timeval_to_secs(const timeval &t)
+{
+  double lD = t.tv_usec;
+  lD /= USECS_PER_SEC;
+  lD += t.tv_sec;
+  return lD;
+}
+
+#define NSECS_PER_SEC 1000000000
+
+void timespec_normalize(timespec &t) 
+{
+   if (t.tv_nsec >= NSECS_PER_SEC) { 
+       t.tv_nsec -= NSECS_PER_SEC; 
+       t.tv_sec++; 
+   } else if ((t).tv_nsec < 0) { 
+       t.tv_nsec += NSECS_PER_SEC; 
+       t.tv_sec -- ; 
+   } 
+}
+
+void timespec_sub(timespec &t1, const timespec &t2)
+{
+   t1.tv_nsec -= t2.tv_nsec; 
+   t1.tv_sec  -= t2.tv_sec; 
+   timespec_normalize(t1); 
+} 
+
+void timespec_add_ns(timespec &t, long n) 
+{ 
+   t.tv_nsec += n; 
+   timespec_normalize(t); 
+}
+
 int main(int argc, const char *args[])
 {
   // cout << "argc: " << argc << endl;
@@ -822,9 +898,12 @@ int main(int argc, const char *args[])
 
   int tty_fd = openserial(gSSerial.c_str());
 
-  clock_t l_last = clock();
+  // clock_t l_last = clock();
   int start = 100;
   // int start = 25;
+
+  timeval ts_last;
+  gettimeofday(&ts_last, 0);
 
   char c;
 
@@ -834,7 +913,7 @@ int main(int argc, const char *args[])
   {
     for (int count = start; count > 0; --count)
     {
-      sleep(.1);
+      usleep(gISleep);
       
       UpdateSensors(lSpi0, lUi0Count, 0, lIrsSpi0Sensors, lIrsSpi0ByPin,
         lotarget,lCycloMap);
@@ -855,14 +934,22 @@ int main(int argc, const char *args[])
       }
     }
 
-    clock_t l_now = clock();
+    timeval ts_now;
+    gettimeofday(&ts_now, 0);
+    // clock_gettime(CLOCK_MONOTONIC, &ts_now);
+
+    cout << "now: " << ts_now.tv_sec << " " << ts_now.tv_usec << endl;
 
     double lD = start;
-    lD /= l_now - l_last; 
-    lD *= CLOCKS_PER_SEC;
+   
+    timeval tv_diff;
+    tv_diff = ts_now;
+    timeval_sub(tv_diff, ts_last);
+    lD /= timeval_to_secs(tv_diff);
 
-    l_last = l_now;
+    ts_last = ts_now;
 
+    // cout << "interval: " << l_interval << "  " << ((float)l_interval) / CLOCKS_PER_SEC << endl;
     cout << "framerate for: " << start << ": " << lD << endl;
 
     printBaselines(lUi0Count, lIrsSpi0Sensors);

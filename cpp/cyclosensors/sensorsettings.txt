@@ -1,5 +1,5 @@
---TargetIpAddress 127.0.0.1
-TargetIpAddress 192.168.8.180
+TargetIpAddress 127.0.0.1
+--TargetIpAddress 192.168.8.180
 --TargetIpAddress 192.168.8.214
 TargetPort 8000
 Serial /dev/ttyACM1
@@ -7,6 +7,7 @@ Thres 20
 PrevVolCountdownStart 20
 InactiveThres 60
 Gain 1.5
+Sleep 100
 DequeLength 15
 PrevHitThres 350
 PrevHitCountdownStart 200
