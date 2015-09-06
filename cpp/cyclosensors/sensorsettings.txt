@@ -7,7 +7,7 @@ Thres 20
 PrevVolCountdownStart 20
 InactiveThres 60
 Gain 1.5
-Sleep 100
+Sleep 1000
 DequeLength 15
 PrevHitThres 350
 PrevHitCountdownStart 200
