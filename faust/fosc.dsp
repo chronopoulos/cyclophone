@@ -19,4 +19,5 @@ smooth(c)		= *(1-c) : +~*(c);
 
 meh 			= hslider("meh", 0.0,0.0, 1.0, 1);
 
-process 		=  vgroup("Oscillator0", osc(meh * 2380 + 20) * (meh - 1.0) * 96);
+// process 		=  vgroup("Oscillator0", osc(meh * 2380 + 20) * (meh - 1.0) * 96);
+process 		=  vgroup("Oscillator0", osc(meh * 2380 + 20) * meh); 
