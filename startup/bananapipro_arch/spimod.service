@@ -1,0 +1,13 @@
+[Unit]
+Description=chmod 660 on /dev/spidev* devices.
+#After=multi-user.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/bin/spimod.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

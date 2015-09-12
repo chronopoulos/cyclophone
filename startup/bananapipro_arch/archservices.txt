@@ -1,0 +1,14 @@
+Because apparently rc.local is no longer a thing, we need to have systemd services to kick off 
+cyclophone and etc.  
+
+install example: 
+
+sudo cp spimod.service /etc/systemd/system/
+sudo cp spimod.sh /usr/bin
+sudo systemctl enable spimod 
+
+sudo cp cyclophone.service /etc/systemd/system/
+sudo systemctl enable cyclophone
+
+
+make sure files are executable and etc!

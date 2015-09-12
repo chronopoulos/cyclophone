@@ -1,0 +1,14 @@
+[Unit]
+Description=start the cyclophone programs.
+After=multi-user.target
+After=spimod
+
+[Service]
+Type=oneshot
+User=bananapi
+Group=wheel
+ExecStart=/bin/sh -c "/home/bananapi/code/cyclophone/startup/bananapipro_arch/startall.sh"
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

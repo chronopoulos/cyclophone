@@ -1,4 +1,4 @@
-~/code/cyclophone/startup/bananapi_startcyclosensors.sh
-~/code/cyclophone/startup/bananapi_startjacksc.sh
-~/code/cyclophone/startup/bananapi_startoscadaleds.sh
-~/code/cyclophone/startup/bananapi_startscoscdir.sh
+~/code/cyclophone/startup/bananapipro_arch/startcyclosensors.sh
+~/code/cyclophone/startup/bananapipro_arch/startjacksc.sh
+~/code/cyclophone/startup/bananapipro_arch/startoscadaleds.sh
+~/code/cyclophone/startup/bananapipro_arch/startscoscdir.sh
