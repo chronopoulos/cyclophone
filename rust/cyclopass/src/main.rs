@@ -19,6 +19,8 @@ fn rmain() -> Result<String, Error> {
   // let socket = try!(UdpSocket::bind("192.168.8.214:8000"));
   let socket = try!(UdpSocket::bind("127.0.0.1:8000"));
   let mut buf = [0; 100];
+  println!("cyclopass");
+
   loop { 
     let (amt, src) = try!(socket.recv_from(&mut buf));
 
@@ -52,7 +54,10 @@ fn rmain() -> Result<String, Error> {
                   arghs.push(osc::Argument::f(b)); 
                   let outmsg = osc::Message { path: &pathh, arguments: arghs };
                   match outmsg.serialize() {
-                   Ok(v) => socket.send_to(&v, "127.0.0.1:5510"),
+                   Ok(v) => {
+                        println!("sending {:?}", v);
+			socket.send_to(&v, "127.0.0.1:5510")
+                        },
                    Err(e) => return Err(Error::new(ErrorKind::Other, "oh no!")),
                     }
                 },
