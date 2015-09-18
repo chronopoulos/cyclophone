@@ -13,8 +13,21 @@
 # creative soundblaster
 #screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p128 -n2 -r 44100
 #screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p256 -n2 -r 44100
-screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p512 -n2 -r 44100
+#screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p512 -n2 -r 44100
 #screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p256 -n3 -r 44100
+
+#screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p1024 -n2 -r 44100
+#id > /home/bananapi/id.out
+
+capsh --print > /home/bananapi/capshout.print.fromservice
+
+chrt -p $$ > /home/bananapi/chrt.print.fromservice
+
+# screen -dmS jack_session sh -c 'chrt -r 80 jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p1024 -n2 -r 44100; exec bash'
+screen -dmS jack_session sh -c 'jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p1024 -n2 -r 44100; exec bash'
+
+
+# screen -dmS session_name sh -c 'my-prog; exec bash'
 
 #jackd -m -p 32 -d dummy --rate 22050 &
 #jackd -P70 -t2000 -d alsa -d hw:1,0 -p 128 -n 3 -r 44100 -s
@@ -29,7 +42,9 @@ screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p512 -n2 -r 44100
 # alsa_out -d hw:0,0 -q1 2>&1 > /dev/null &
 
 sleep 5
-screen -d -m scsynth -u 57110 
+#screen -d -m scsynth -u 57110 
+screen -dmS scsynth_session sh -c 'scsynth -u 57110; exec bash'
+
 sleep 5
 jack_connect SuperCollider:out_1 system:playback_1 &
 jack_connect SuperCollider:out_2 system:playback_2 &

@@ -6,4 +6,4 @@
 
 cd /home/bananapi/code/cyclophone/cpp/cyclosensors/
 
-screen -d -m ./cyclosensors
+screen -dmS cyclosensors sh -c './cyclosensors'

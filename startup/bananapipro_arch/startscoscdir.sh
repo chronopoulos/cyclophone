@@ -19,6 +19,11 @@
 # debug by writing to logs.  but, doesn't seem to write anything.
 # screen -d -m ~/.cabal/bin/scoscdir 192.168.8.180 8000 ~/cyclophone_samples/mmap.hs 192.168.8.180 8086 > /home/pi/scoscdirout.txt 2>&1
 
-screen -d -m ~/.cabal/bin/scoscdir 192.168.8.180 8000 ~/cyclophone_samples/mmap.hs 192.168.8.180 8086 
+# screen -d -m ~/.cabal/bin/scoscdir 192.168.8.180 8000 ~/cyclophone_samples/mmap.hs 192.168.8.180 8086 
+
+# screen -d -m ~/bin/scoscdir 192.168.8.180 8000 ~/cyclophone_samples/mmap.hs 192.168.8.180 8086 
+
+screen -dmS scoscdir sh -c '/home/bananapi/bin/scoscdir 192.168.8.180 8000 /home/bananapi/cyclophone_samples/mmap.hs 192.168.8.180 8086; exec bash'
+
 
 # foo > allout.txt 2>&1
