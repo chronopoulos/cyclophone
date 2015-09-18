@@ -1,0 +1,25 @@
+-- first, don't forget to build the program with the osc option:
+
+[bananapi@lemaker faust]$ ./faust2alsaconsole -osc fosc24.1.dsp
+
+-- start a screen or tmux and execute this:
+
+> oscdump 5511
+
+
+-- start another session and execute the faust program. for example:
+
+> ./fosc24.1 --device hw:1
+
+-- hopefully will get a messsage from oscdump like this;
+
+Faust OSC version ssssiii "0.94" "-" "'0x00'" "is running on UDP ports " 5510 5511 5512
+
+
+-- now try these messages:
+
+> oscsend localhost 5510 "/*" s hello
+> oscsend localhost 5510 "/*" s get
+
+-- if you get nothing, then osc isn't working.  try restarting without anything running, there seems
+-- to be a bug where it won't receive osc message if its started when there's a lot of cpu activiy
