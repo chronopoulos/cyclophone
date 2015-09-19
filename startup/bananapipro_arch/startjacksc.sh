@@ -24,6 +24,11 @@ capsh --print > /home/bananapi/capshout.print.fromservice
 chrt -p $$ > /home/bananapi/chrt.print.fromservice
 
 # screen -dmS jack_session sh -c 'chrt -r 80 jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p1024 -n2 -r 44100; exec bash'
+
+
+sleep 30
+
+
 screen -dmS jack_session sh -c 'jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p1024 -n2 -r 44100; exec bash'
 
 
