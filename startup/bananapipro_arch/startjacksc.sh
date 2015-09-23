@@ -19,9 +19,9 @@
 #screen -d -m jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p1024 -n2 -r 44100
 #id > /home/bananapi/id.out
 
-capsh --print > /home/bananapi/capshout.print.fromservice
+#capsh --print > /home/bananapi/capshout.print.fromservice
 
-chrt -p $$ > /home/bananapi/chrt.print.fromservice
+#chrt -p $$ > /home/bananapi/chrt.print.fromservice
 
 # screen -dmS jack_session sh -c 'chrt -r 80 jackd -R -P70 -t2000 -d alsa -d hw:1,0 -p1024 -n2 -r 44100; exec bash'
 
