@@ -1,4 +1,3 @@
-#!/bin/bash
 
 # jackd start for lenovo t61.
 # produced.  unfortunately is is super distorted audio.

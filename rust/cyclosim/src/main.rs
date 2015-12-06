@@ -94,6 +94,7 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
             }
           },
          2 => {
+            // probably a slider event!
             let meh = 
               if inpath.starts_with("hs") {
                 let i = inpath[2..].parse::<i32>();
@@ -105,7 +106,6 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
               }
               else { None };
 
-            // probably a slider event!
             let one = &args[0];
             let two = &args[1];
             
