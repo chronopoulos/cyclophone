@@ -783,9 +783,15 @@ int main(int argc, const char *args[])
 {
   // cout << "argc: " << argc << endl;
 
-  // read settings file
+  const char *lCSettingsFile = "sensorsettings.txt";
 
-  ifstream lIfs("sensorsettings.txt");
+  if (argc > 1)
+  {
+    lCSettingsFile = args[1];
+  }
+ 
+  // read settings file
+  ifstream lIfs(lCSettingsFile);
   if (lIfs.is_open())
   {
     ReadSettings(lIfs);
@@ -794,17 +800,10 @@ int main(int argc, const char *args[])
   {
     ofstream lOfs("sensorsettings.txt");
     WriteSettings(lOfs);
+    
+    cout << "unable to read settings file.  wrote default file: 'sensorsettings.txt'" << endl;
+    return 0;
   }
-
-  int sensor = 0;
-
-  if (argc > 1)
-  {
-    istringstream lIss(args[1]);
-    lIss >> sensor;
-  }
- 
-  // cout << "sensor: " << sensor << endl;
 
   lo_address lotarget = lo_address_new(gSTargetIpAddress.c_str(), gSTargetPort.c_str());
   CycloMap *lCycloMap;
