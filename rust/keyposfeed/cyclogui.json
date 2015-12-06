@@ -5,11 +5,7 @@
       "type": "sizer",
       "orientation": "vertical",
       "controls": [
-          {"type": "label", 
-           "name": "title",
-           "label": "cyclophone"
-          }          
-         ,{
+          {
            "type": "sizer",
            "orientation": "horizontal",
            "controls": [
@@ -21,6 +17,27 @@
               }
             , { "type": "button"
               , "name": "b2"
+              }
+            , {
+               "type": "sizer",
+               "orientation": "vertical",
+               "controls": [
+                 { "type": "button"
+                 , "name": "center0"
+                 }
+                ,{ "type": "button"
+                 , "name": "center1"
+                 }
+                ,{ "type": "button"
+                 , "name": "center2"
+                 }
+                ,{ "type": "button"
+                 , "name": "center3"
+                 }
+                ,{ "type": "button"
+                 , "name": "center4"
+                 }
+                ]
               }
             ]
           }

@@ -87,6 +87,51 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
              Ok(0)    
           }
         },
+      osc::Message { path: "switch", arguments: ref args } => {
+        if args.len() == 1 
+          {
+            let idx = &args[0];  // knob index
+      
+            println!("switch {:?}", idx);
+ 
+            match idx {
+              &osc::Argument::i(idx) => {
+                for i in 0..5 {
+                  println!("switch {}, {}", i, idx);
+                  let pathh = format(format_args!("center{}", i));    
+                  let mut arghs = Vec::new();
+                  if i == idx {
+                    arghs.push(osc::Argument::s("b_pressed")); 
+                  }
+                  else {
+                    arghs.push(osc::Argument::s("b_unpressed")); 
+                  }
+
+                  let outmsg = osc::Message { path: &pathh, arguments: arghs };
+                  match outmsg.serialize() {
+                    Ok(v) => {
+                      println!("sending {:?}, {:?}", pathh, args);
+                      socket.send_to(&v, &sendip[..]);
+                      ()
+                    },
+                    Err(e) => return Err(Box::new(e)),
+                  }
+                };
+              
+                Ok(0)
+              },
+              _ => { 
+                println!("ignore");
+                Ok(0)
+              },
+            }
+          }
+        else
+          {
+             println!("ignore");
+             Ok(0)    
+          }
+        },
       osc::Message { path: "knob", arguments: ref args } => {
         if args.len() == 2 
           {
