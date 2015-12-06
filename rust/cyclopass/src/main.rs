@@ -54,18 +54,19 @@ fn rmain() -> Result<String, Error> {
                   arghs.push(osc::Argument::f(b)); 
                   let outmsg = osc::Message { path: &pathh, arguments: arghs };
                   match outmsg.serialize() {
-                   Ok(v) => {
-                        println!("sending {:?}", v);
-			socket.send_to(&v, "127.0.0.1:5510")
-                        },
-                   Err(e) => return Err(Error::new(ErrorKind::Other, "oh no!")),
-                    }
+                    Ok(v) => {
+                      println!("sending {:?}", v);
+              			  socket.send_to(&v, "127.0.0.1:5510")
+                    },
+                    Err(e) => return Err(Error::new(ErrorKind::Other, "oh no!")),
+                  }
                 },
-              _ => { println!("ignore");
-                   // return Err(Error::new(ErrorKind::Other, "unexpected osc args!"));
-                   Ok(0)
-                },
-              }
+              _ => { 
+                println!("ignore");
+                // return Err(Error::new(ErrorKind::Other, "unexpected osc args!"));
+                Ok(0)
+              },
+            }
           }
         else
           {
