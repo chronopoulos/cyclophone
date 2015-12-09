@@ -3,17 +3,19 @@
 mod tryopt;
 mod stringerror;
 
+// use std::error;
+
 use std::net::UdpSocket;
 // use std::io::{Error,ErrorKind};
 use std::string::String;
 use std::env;
 // use std::str::FromStr;
 // use std::str;
-
+use std::net::ToSocketAddrs;
 extern crate tinyosc;
 use tinyosc as osc;
 
-
+// use std::error;
 // use std::fmt::format;
 
 fn main() {
@@ -30,15 +32,25 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
   
   let syntax = "syntax: \n cyclosim <recvip:port> <sendip:port>";
 
-  let recvip = try_opt_resbox!(iter.next(), syntax);
-  let sendip = try_opt_resbox!(iter.next(), syntax);
+  let recvipstr = try_opt_resbox!(iter.next(), syntax);
+  let sendipstr = try_opt_resbox!(iter.next(), syntax);
 
-  let socket = try!(UdpSocket::bind(&recvip[..]));
+  let mut recvips = try!((&recvipstr).to_socket_addrs());
+  let mut sendips = try!((&sendipstr).to_socket_addrs());
+
+  let recvip = try_opt_resbox!(recvips.next(), "receive address is bad");
+  let sendip = try_opt_resbox!(sendips.next(), "send address is bad");
+
+  println!("recv addr: {:?}", recvip);
+  println!("send addr: {:?}", sendip);
+
+  let recvsocket = try!(UdpSocket::bind(recvip));
+  let sendsocket = try!(UdpSocket::bind("0.0.0.0:0"));
   let mut buf = [0; 100];
   println!("cyclosim");
 
   loop { 
-    let (amt, _) = try!(socket.recv_from(&mut buf));
+    let (amt, _) = try!(recvsocket.recv_from(&mut buf));
 
     println!("length: {}", amt);
     let inmsg = match osc::Message::deserialize(&buf[.. amt]) {
@@ -78,11 +90,12 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
                 let mut arghs = Vec::new();
                 arghs.push(osc::Argument::i(index)); 
                 arghs.push(osc::Argument::i(p)); 
+                println!("sending {:?} {:?}", butttype, arghs);
                 let outmsg = osc::Message { path: &butttype, arguments: arghs };
                 match outmsg.serialize() {
                   Ok(v) => {
-                    println!("sending {:?}", v);
-                    try!(socket.send_to(&v, &sendip[..]));
+                    try!(sendsocket.send_to(&v, sendip));
+                    println!("sent {:?}", v);
                     ()
                   },
                   Err(e) => return Err(Box::new(e)),
@@ -118,7 +131,8 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
                 match outmsg.serialize() {
                   Ok(v) => {
                     println!("sending {:?}", v);
-                    try!(socket.send_to(&v, &sendip[..]));
+                    try!(sendsocket.send_to(&v, sendip));
+                    println!("sent {:?}", v);
                     ()
                   },
                   Err(e) => return Err(Box::new(e)),
