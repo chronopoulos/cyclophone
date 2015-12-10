@@ -50,12 +50,12 @@ fn sendkey(path: &str, index: i32, position: f32, oscsocket: &UdpSocket, oscsoun
   let mut arghs = Vec::new();
   arghs.push(osc::Argument::i(index)); 
   arghs.push(osc::Argument::f(position)); 
-  println!("sending {:?} {:?}", "keyp", arghs);
+  // println!("sending {:?} {:?}", "keyp", arghs);
   let outmsg = osc::Message { path: "keyp", arguments: arghs };
   match outmsg.serialize() {
     Ok(v) => {
       try!(oscsocket.send_to(&v, oscsoundip));
-      println!("sent {:?}", v);
+      // println!("sent {:?}", v);
       ()
     },
     Err(e) => return Err(Box::new(e)),
@@ -76,7 +76,7 @@ fn sendkeygui(prefix: &str, index: i32, position: f32, oscsocket: &UdpSocket, os
   let outmsg = osc::Message { path: &pathh, arguments: arghs };
   match outmsg.serialize() {
     Ok(v) => {
-      println!("sending {:?}", v);
+      // println!("sending {:?}", v);
       oscsocket.send_to(&v, oscguiip);
     },
     Err(e) => return Err(Box::new(e)),
@@ -84,6 +84,38 @@ fn sendkeygui(prefix: &str, index: i32, position: f32, oscsocket: &UdpSocket, os
 
   Ok(())
 } 
+
+fn updateState(ke: KeyEvt, 
+              ks: &mut BTreeMap<i32,KeyState>,
+              oscsocket: &UdpSocket,
+              oscsoundip: &SocketAddr)
+   -> Result<(), Box<std::error::Error> >
+{
+  match ke.evttype { 
+    KeType::KeyPress => {
+      // println!("keypress {}", ke.keyindex);
+      // new state entry.
+      ks.insert(ke.keyindex, KeyState { position: ke.position, pressed: true }); 
+      // send keyc message with new press.
+      try!(sendkey("keyc", ke.keyindex.clone(), ke.position, &oscsocket, &oscsoundip));
+      ()
+    },
+    KeType::KeyMove => {
+      // println!("keymove {}", ke.keyindex);
+      // replace the existing entry with an updated one.   
+      ks.insert(ke.keyindex, KeyState { position: ke.position, pressed: true });
+      ()
+    },
+    KeType::KeyUnpress => {
+      // println!("keyunpress {}", ke.keyindex);
+      // change to pressed = false, and use new position too.  
+      ks.insert(ke.keyindex, KeyState { position: ke.position, pressed: false });
+      ()
+    },
+  };
+
+  Ok(())
+}
 
 fn keythread( rx: mpsc::Receiver<KeyEvt>, 
               oscsoundip: SocketAddr,
@@ -96,48 +128,30 @@ fn keythread( rx: mpsc::Receiver<KeyEvt>,
   // if no sliders are down just wait for a slider evt.
 
   let mut ks: BTreeMap<i32,KeyState> = BTreeMap::new();
-  let interval = Duration::from_millis(50);
-  let increment = 0.15;
+  let interval = Duration::from_millis(10);
+  let increment = 0.1;
   let mut delkeys: Vec<i32> = Vec::new();
 
   loop {
-    let oke = 
-      if ks.is_empty() {
-        let ke = try!(rx.recv());
-        Some(ke)
-      }
-      else {
-        thread::sleep(interval); 
-        let meh = rx.try_recv();
-        match meh { 
-          Ok(x) => Some(x), 
-          Err(mpsc::TryRecvError::Empty) => None,
-          Err(mpsc::TryRecvError::Disconnected) => return Ok("disconnected".to_string()), 
-        }
-      };
-    match oke { 
-      Some(ke) => 
-        match ke.evttype { 
-          KeType::KeyPress => {
-            // new state entry.
-            ks.insert(ke.keyindex, KeyState { position: ke.position, pressed: true }); 
-            // send keyc message with new press.
-            try!(sendkey("keyc", ke.keyindex.clone(), ke.position, &oscsocket, &oscsoundip));
-          },
-          KeType::KeyMove => {
-            // replace the existing entry with an updated one.   
-            ks.insert(ke.keyindex, KeyState { position: ke.position, pressed: true });
-            ()
-          },
-          KeType::KeyUnpress => {
-            println!("keyunpress {}", ke.keyindex);
+    if ks.is_empty() {
+      let ke = try!(rx.recv());
+      updateState(ke, &mut ks, &oscsocket, &oscsoundip);
+    }
+    else {
+      thread::sleep(interval); 
+    }
 
-            // change to pressed = false, and use new position too.  
-            ks.insert(ke.keyindex, KeyState { position: ke.position, pressed: false });
-            ()
-          },
-        },
-      None => (),
+    loop { 
+      let rke = rx.try_recv(); 
+      match rke { 
+        Ok(ke) => {
+          try!(updateState(ke, &mut ks, &oscsocket, &oscsoundip));
+          ()
+        }
+        Err(mpsc::TryRecvError::Empty) => break,
+        Err(mpsc::TryRecvError::Disconnected) => 
+          return Ok("disconnected".to_string()), 
+      }
     }
 
     // increment unpressed keys, send position update message to the gui.  
@@ -207,13 +221,12 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
   loop { 
     let (amt, _) = try!(recvsocket.recv_from(&mut buf));
 
-    println!("length: {}", amt);
     let inmsg = match osc::Message::deserialize(&buf[.. amt]) {
        Ok(m) => m,
        Err(()) => return Err(stringerror::stringBoxErr("OSC deserialize error")),
       };
 
-    println!("message recieved {} {:?}", inmsg.path, inmsg.arguments );
+    // println!("message recieved {} {:?}", inmsg.path, inmsg.arguments );
 
     match inmsg {
       osc::Message { path: inpath, arguments: ref args } => {
@@ -250,7 +263,7 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
                 match outmsg.serialize() {
                   Ok(v) => {
                     try!(sendsocket.send_to(&v, sendip));
-                    println!("sent {:?}", v);
+                    // println!("sent {:?}", v);
                     ()
                   },
                   Err(e) => return Err(Box::new(e)),
@@ -286,7 +299,7 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
                 match outmsg.serialize() {
                   Ok(v) => {
                     try!(sendsocket.send_to(&v, sendip));
-                    println!("sent {:?}", v);
+                    // println!("sent {:?}", v);
                     ()
                   },
                   Err(e) => return Err(Box::new(e)),
