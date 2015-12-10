@@ -3,28 +3,21 @@
 mod tryopt;
 mod stringerror;
 
-// use std::error;
 use std::thread;
 use std::sync::{Arc, Mutex};
 use std::collections::BTreeMap;
 
 use std::net::UdpSocket;
 use std::net::SocketAddr;
-// use std::io::{Error,ErrorKind};
 use std::string::String;
 use std::fmt::format;
 use std::env;
 use std::sync::mpsc;
-// use std::str::FromStr;
-// use std::str;
 use std::time::Duration;
 
 use std::net::ToSocketAddrs;
 extern crate tinyosc;
 use tinyosc as osc;
-
-// use std::error;
-// use std::fmt::format;
 
 fn main() {
 
@@ -45,17 +38,6 @@ pub struct KeyEvt {
 , keyindex: i32
 , position: f32
 }
-
-/*
-
-option 1: map of index to keystate struct.
-remove keystate from map when key goes inactive.
-if map is empty, no scan is necessary.
-
-option 2: array of keystates.  have to scan whole list to check state.
-have to pass in key count.
-
-*/
 
 pub struct KeyState { 
   position: f32
@@ -103,7 +85,6 @@ fn sendkeygui(prefix: &str, index: i32, position: f32, oscsocket: &UdpSocket, os
   Ok(())
 } 
 
-
 fn keythread( rx: mpsc::Receiver<KeyEvt>, 
               oscsoundip: SocketAddr,
               oscguiip: SocketAddr,
@@ -115,8 +96,8 @@ fn keythread( rx: mpsc::Receiver<KeyEvt>,
   // if no sliders are down just wait for a slider evt.
 
   let mut ks: BTreeMap<i32,KeyState> = BTreeMap::new();
-  let interval = Duration::from_millis(500);
-  let increment = 0.05;
+  let interval = Duration::from_millis(50);
+  let increment = 0.15;
   let mut delkeys: Vec<i32> = Vec::new();
 
   loop {
@@ -163,10 +144,10 @@ fn keythread( rx: mpsc::Receiver<KeyEvt>,
     for (key, value) in ks.iter_mut() {
       // if unpressed, increment the position towards 1.0.  
       if value.pressed == false { 
-        value.position += increment;
-        // once we reach 1.0, it goes on the delete list.
-        if value.position >= 1.0 {
-          value.position = 1.0;
+        value.position -= increment;
+        // once we reach 0.0, it goes on the delete list.
+        if value.position <= 0.0 {
+          value.position = 0.0;
           delkeys.push(key.clone());
         }
         sendkeygui("vs", key.clone(), value.position, &oscsocket, &oscguiip); 
@@ -189,19 +170,23 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
   let args = env::args();
   let mut iter = args.skip(1); // skip the program name
   
-  let syntax = "syntax: \n cyclosim <recvip:port> <sendip:port>";
+  let syntax = "syntax: \n cyclosim <recvip:port> <sendip:port> <guiupdateip:port>";
 
   let recvipstr = try_opt_resbox!(iter.next(), syntax);
   let sendipstr = try_opt_resbox!(iter.next(), syntax);
+  let guiipstr = try_opt_resbox!(iter.next(), syntax);
 
   let mut recvips = try!((&recvipstr).to_socket_addrs());
   let mut sendips = try!((&sendipstr).to_socket_addrs());
+  let mut guiips = try!((&guiipstr).to_socket_addrs());
 
   let recvip = try_opt_resbox!(recvips.next(), "receive address is bad");
   let sendip = try_opt_resbox!(sendips.next(), "send address is bad");
+  let guiip = try_opt_resbox!(guiips.next(), "gui address is bad");
 
   println!("recv addr: {:?}", recvip);
   println!("send addr: {:?}", sendip);
+  println!("gui addr: {:?}", guiip);
 
   let recvsocket = try!(UdpSocket::bind(recvip));
   let sendsocket = try!(UdpSocket::bind("0.0.0.0:0"));
@@ -213,7 +198,7 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
   let ktss = try!(sendsocket.try_clone());
 
   thread::spawn(move || { 
-    match keythread(rx, sendip, recvip, ktss) { 
+    match keythread(rx, sendip, guiip, ktss) { 
       Err(e) => println!("keythread exited with error: {:?}", e),
       Ok(_) => (),
     }
@@ -300,7 +285,6 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
                 let outmsg = osc::Message { path: &path, arguments: arghs };
                 match outmsg.serialize() {
                   Ok(v) => {
-                    println!("sending {:?}", v);
                     try!(sendsocket.send_to(&v, sendip));
                     println!("sent {:?}", v);
                     ()
