@@ -50,8 +50,8 @@ fn sendkey(path: &str, index: i32, position: f32, oscsocket: &UdpSocket, oscsoun
   let mut arghs = Vec::new();
   arghs.push(osc::Argument::i(index)); 
   arghs.push(osc::Argument::f(position)); 
-  // println!("sending {:?} {:?}", "keyp", arghs);
-  let outmsg = osc::Message { path: "keyp", arguments: arghs };
+  // println!("sending {:?} {:?} {:?}", path, arghs, oscsoundip);
+  let outmsg = osc::Message { path: path, arguments: arghs };
   match outmsg.serialize() {
     Ok(v) => {
       try!(oscsocket.send_to(&v, oscsoundip));
@@ -73,10 +73,10 @@ fn sendkeygui(prefix: &str, index: i32, position: f32, oscsocket: &UdpSocket, os
   // arghs.push(osc::Argument::f(b * 100.0 - 100.0)); 
   arghs.push(osc::Argument::s("s_moved")); 
   arghs.push(osc::Argument::f(position)); 
+  // println!("sendkeygui {:?}, {:?}", pathh, arghs);
   let outmsg = osc::Message { path: &pathh, arguments: arghs };
   match outmsg.serialize() {
     Ok(v) => {
-      // println!("sending {:?}", v);
       oscsocket.send_to(&v, oscguiip);
     },
     Err(e) => return Err(Box::new(e)),
@@ -96,8 +96,8 @@ fn updateState(ke: KeyEvt,
       // println!("keypress {}", ke.keyindex);
       // new state entry.
       ks.insert(ke.keyindex, KeyState { position: ke.position, pressed: true }); 
-      // send keyc message with new press.
-      try!(sendkey("keyc", ke.keyindex.clone(), ke.position, &oscsocket, &oscsoundip));
+      // send keyh (key hit) message with new press.
+      try!(sendkey("keyh", ke.keyindex.clone(), ke.position, &oscsocket, &oscsoundip));
       ()
     },
     KeType::KeyMove => {
@@ -128,7 +128,7 @@ fn keythread( rx: mpsc::Receiver<KeyEvt>,
   // if no sliders are down just wait for a slider evt.
 
   let mut ks: BTreeMap<i32,KeyState> = BTreeMap::new();
-  let interval = Duration::from_millis(10);
+  let interval = Duration::from_millis(20);
   let increment = 0.1;
   let mut delkeys: Vec<i32> = Vec::new();
 
@@ -166,8 +166,10 @@ fn keythread( rx: mpsc::Receiver<KeyEvt>,
         }
         sendkeygui("vs", key.clone(), value.position, &oscsocket, &oscguiip); 
       }
-  
-      try!(sendkey("keyp", key.clone(), value.position, &oscsocket, &oscsoundip));
+ 
+      let code = if value.position == 0.0 { "keye" } else { "keyc" };
+ 
+      try!(sendkey(code, key.clone(), value.position, &oscsocket, &oscsoundip));
     }
 
     // remove any keystates that were put in the delete list.
