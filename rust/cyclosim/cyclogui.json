@@ -1,0 +1,167 @@
+{
+  "title": "rustmeh",
+  "rootControl": 
+    {
+      "type": "sizer",
+      "orientation": "vertical",
+      "controls": [
+          {
+           "type": "sizer",
+           "orientation": "horizontal",
+           "controls": [
+              { "type": "button"
+              , "name": "b0"
+              }
+            , { "type": "button"
+              , "name": "b1"
+              }
+            , { "type": "button"
+              , "name": "b2"
+              }
+            , {
+               "type": "sizer",
+               "orientation": "vertical",
+               "controls": [
+                 { "type": "button"
+                 , "name": "center0"
+                 }
+                ,{ "type": "button"
+                 , "name": "center1"
+                 }
+                ,{ "type": "button"
+                 , "name": "center2"
+                 }
+                ,{ "type": "button"
+                 , "name": "center3"
+                 }
+                ,{ "type": "button"
+                 , "name": "center4"
+                 }
+                ]
+              }
+            ]
+          }
+         ,{
+           "type": "sizer",
+           "orientation": "horizontal",
+           "controls": [
+             { "type": "slider"
+             , "orientation": "horizontal"
+             , "name": "hs0"
+             }
+            ,{ "type": "slider"
+             , "orientation": "horizontal"
+             , "name": "hs1"
+             }
+            ,{ "type": "slider"
+             , "orientation": "horizontal"
+             , "name": "hs2"
+             }
+           ]
+          }
+        ,{
+           "type": "sizer",
+           "orientation": "horizontal",
+           "controls": [
+             { "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs0"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs1"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs2"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs3"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs4"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs5"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs6"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs7"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs8"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs9"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs10"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs11"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs12"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs13"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs14"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs15"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs16"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs17"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs18"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs19"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs20"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs21"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs22"
+             }
+            ,{ "type": "slider"
+             , "orientation": "vertical"
+             , "name": "vs23"
+             }
+          ]
+         }       ] 
+    }
+}
+
+

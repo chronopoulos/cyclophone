@@ -1,0 +1,8 @@
+{
+  "htmlfile": "/home/bananapi/code/oscpad/elm/Main.html",
+  "guifile": "cyclogui.json",
+  "ip": "0.0.0.0:3030",
+  "wip": "0.0.0.0:1234",
+  "oscrecvip": "127.0.0.1:9555",
+  "oscsendip": "127.0.0.1:5432"
+}
