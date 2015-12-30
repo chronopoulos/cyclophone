@@ -281,11 +281,11 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
             let meh = 
               if inpath.starts_with("hs") {
                 let i = inpath[2..].parse::<i32>();
-                Some(("knob", i))
+                Some(("knob", i, false))
               }
               else if inpath.starts_with("vs") {
                 let i = inpath[2..].parse::<i32>();
-                Some(("keyc", i))
+                Some(("keyc", i, true))
               }
               else { None };
 
@@ -293,7 +293,10 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
             let two = &args[1];
             
             match (one,two,meh) {
-              (&osc::Argument::s(evtname), &osc::Argument::f(amt), Some((path,Ok(idx)))) => {
+              (&osc::Argument::s(evtname)
+              , &osc::Argument::f(amt)
+              , Some((path,Ok(idx), iskey))) 
+              => {
                 let mut arghs = Vec::new();
                 arghs.push(osc::Argument::i(idx));
                 arghs.push(osc::Argument::f(amt)); 
@@ -308,10 +311,16 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
                 }
        
                 // make a key update event and send to the keythread. 
-                if let Some(et) = match evtname { "s_pressed" => Some(KeType::KeyPress), "s_moved" => Some(KeType::KeyMove), "s_unpressed" => Some(KeType::KeyUnpress), _ => None } 
-                {
-                  let ke = KeyEvt{evttype: et, keyindex: idx, position: amt};
-                  tx.send(ke);
+                if iskey {
+                  if let Some(et) = match evtname { 
+                        "s_pressed" => Some(KeType::KeyPress), 
+                        "s_moved" => Some(KeType::KeyMove), 
+                        "s_unpressed" => Some(KeType::KeyUnpress), 
+                        _ => None } 
+                  {
+                    let ke = KeyEvt{evttype: et, keyindex: idx, position: amt};
+                    tx.send(ke);
+                  }
                 }
               },
               _ => { 
