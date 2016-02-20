@@ -1,0 +1,13 @@
+[package]
+name = "fraust_test"
+version = "0.1.0"
+authors = ["Ben B <bburdette@gmail.com>"]
+build = "build.rs"
+
+[dependencies]
+cpal = "0.2.9"
+libc = "0.2.0"
+
+[build-dependencies]
+gcc = "0.3"
+
