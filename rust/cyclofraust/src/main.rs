@@ -10,6 +10,7 @@ use std::fmt::format;
 use std::sync::mpsc;
 use std::thread;
 use std::str::FromStr;
+use std::cmp::min;
 
 extern crate tinyosc;
 use tinyosc as osc;
@@ -40,7 +41,14 @@ pub struct KeyEvt {
 , position: f32
 }
 
+/*
+fn sosafe(count: usize, mut input: &[f32], mut output: &[f32]) { 
+  let cnt = min( count, min(input.len(), output.len()));
 
+  unsafe { fraust_compute(cnt as i32, input.as_mut_ptr(), output.as_mut_ptr()); }
+
+}
+*/
 
 fn main() {
 
@@ -78,7 +86,8 @@ fn main() {
 
 
     let endpoint = cpal::get_default_endpoint().expect("Failed to get default endpoint");
-    let format = endpoint.get_supported_formats_list().unwrap().nth(200).expect("Failed to get endpoint format");
+    // let format = endpoint.get_supported_formats_list().unwrap().nth(200).expect("Failed to get endpoint format");
+    let format = endpoint.get_supported_formats_list().unwrap().nth(500).expect("Failed to get endpoint format");
     let mut voice = cpal::Voice::new(&endpoint, &format).expect("Failed to create a channel");
 
     // Produce a sinusoid of maximum amplitude.
@@ -90,29 +99,40 @@ fn main() {
 
     unsafe { fraust_init(format.samples_rate.0 as i32); }
 
-    let mut flts = [0.0;5000];
+    let bufmax = 1000;
+    let mut flts = [0.0;1000];
     flts[0] = 1.0;
     
-    let mut outflts = [0.0;5000];
+    let mut outflts = [0.0;1000];
 
     let volstring = CString::new("Volume").unwrap();
 
     unsafe { fraust_setval(volstring.as_ptr(), 0.05); }
 
-    let mut count = 0;
+    let mut loopcount = 0;
+    let mut buflen = 0;
+    let bufmaxu = bufmax as usize;
+    let mut bufidx = bufmaxu - 1;
+
+    // make a full buffer to begin with.
+    // unsafe { fraust_compute(bufmax, flts.as_mut_ptr(), outflts.as_mut_ptr()); }
+
+    let mut sampcount = 0;
 
     loop {
-        println!("loope {}", count);
-        count = count + 1;
+        // println!("loope {}", count);
+        loopcount = loopcount + 1;
         // get key events.
         match rx.try_recv() { 
           Ok(ke) => {
             match ke.evttype { 
               KeType::KeyHit => { 
-                  unsafe { fraust_setval(volstring.as_ptr(), 0.5); }
+                  println!("setting vol to 0.3!");
+                  unsafe { fraust_setval(volstring.as_ptr(), 0.3); }
                 }
               KeType::KeyUnpress => { 
-                  unsafe { fraust_setval(volstring.as_ptr(), 0.01); }
+                  println!("setting vol to 0.001!");
+                  unsafe { fraust_setval(volstring.as_ptr(), 0.001); }
                 }
               _ => {}
             }
@@ -120,11 +140,11 @@ fn main() {
           _ => {}
         }
 
-        unsafe { fraust_compute(5000, flts.as_mut_ptr(), outflts.as_mut_ptr()); }
-
-        match voice.append_data(5000) {
+        match voice.append_data(bufmaxu) {
             cpal::UnknownTypeBuffer::U16(mut buffer) => {
+                println!("blah I'm here U16");
                 for (sample, value) in buffer.chunks_mut(format.channels.len()).zip(&mut outflts.iter()) {
+                    println!("len: {}", format.channels.len());
                     let value = ((value * 0.5 + 0.5) * std::u16::MAX as f32) as u16;
                     // make all values the same in each channel.
                     for out in sample.iter_mut() { *out = value; }
@@ -132,6 +152,7 @@ fn main() {
             },
 
             cpal::UnknownTypeBuffer::I16(mut buffer) => {
+                println!("blah I'm here I16");
                 for (sample, value) in buffer.chunks_mut(format.channels.len()).zip(&mut outflts.iter()) {
                     let value = (value * std::i16::MAX as f32) as i16;
                     for out in sample.iter_mut() { *out = value; }
@@ -139,13 +160,39 @@ fn main() {
             },
 
             cpal::UnknownTypeBuffer::F32(mut buffer) => {
-                for (sample, value) in buffer.chunks_mut(format.channels.len()).zip(&mut outflts.iter()) {
-                    for out in sample.iter_mut() { *out = *value; }
+              // point outflts.iter() at the 'bufstart'.
+              // copy vals until the buffer is done, then refresh it.
+              for sample in buffer.chunks_mut(format.channels.len())
+                {
+                  // copy an output value to all the channels.
+                  for out in sample.iter_mut() 
+                  { 
+                    sampcount = sampcount + 1; 
+                    *out = outflts[bufidx];
+                  }
+  
+                  bufidx = bufidx + 1;
+                  if bufidx == bufmaxu
+                  {
+                    println!("makin samples! sampcount: {}, bufidx: {}", sampcount, bufidx);
+                    unsafe { fraust_compute(bufmax, flts.as_mut_ptr(), outflts.as_mut_ptr()); }
+                    bufidx = 0;
+                  }
                 }
+              /*
+              for (sample, value) in 
+                buffer.chunks_mut(format.channels.len()).zip(&mut outflts.iter()) 
+                {
+                    for out in sample.iter_mut() { sampcount = sampcount + 1; *out = *value; }
+                }
+              */
             },
         }
 
         voice.play();
+        
+        // println!("sampcount: {}", sampcount);
+        // println!("sampcount / chans: {}", sampcount / format.channels.len());
     }
 }
 
@@ -166,7 +213,7 @@ fn oscthread(oscrecvip: SocketAddr, sender: mpsc::Sender<KeyEvt>) -> Result<Stri
   loop { 
     let (amt, src) = try!(socket.recv_from(&mut buf));
 
-    println!("length: {}", amt);
+    // println!("length: {}", amt);
     let inmsg = match osc::Message::deserialize(&buf[.. amt]) {
       Ok(m) => m,
       Err(e) => {
@@ -174,7 +221,7 @@ fn oscthread(oscrecvip: SocketAddr, sender: mpsc::Sender<KeyEvt>) -> Result<Stri
         },
       };
 
-    println!("message recieved {} {:?}", inmsg.path, inmsg.arguments );
+    // println!("message received {} {:?}", inmsg.path, inmsg.arguments );
 
     match inmsg {
       osc::Message { path: "keyh", arguments: ref args } => {
@@ -190,7 +237,25 @@ fn oscthread(oscrecvip: SocketAddr, sender: mpsc::Sender<KeyEvt>) -> Result<Stri
               //Ok(0)
             },
           _ => { 
-            println!("ignore");
+            // println!("ignore");
+            Ok(())
+          },
+        }
+      }
+      osc::Message { path: "keye", arguments: ref args } => {
+        let q = &args[0];
+        let r = &args[1];
+        // coming from the cyclophone, a is the key index and 
+        // b is nominally 0.0 to 1.0
+        match (q,r) {
+          (&osc::Argument::i(idx), &osc::Argument::f(amt)) => {
+              // build a keyevt to send over to the sound thread.
+              let ke = KeyEvt{ evttype: KeType::KeyUnpress, keyindex: idx, position: amt };
+              sender.send(ke)
+              //Ok(0)
+            },
+          _ => { 
+            // println!("ignore");
             Ok(())
           },
         }
@@ -201,7 +266,7 @@ fn oscthread(oscrecvip: SocketAddr, sender: mpsc::Sender<KeyEvt>) -> Result<Stri
       osc::Message { path: "keyc", arguments: ref args } => {
       },
       */
-      _ => { println!("ignore");
+      _ => { // println!("ignore");
            Ok(()) } ,
       };
   };
