@@ -11,6 +11,7 @@ use std::sync::mpsc;
 use std::thread;
 use std::str::FromStr;
 use std::cmp::min;
+
 extern crate portaudio;
 
 use portaudio as pa;
@@ -50,6 +51,7 @@ fn main() {
 
 fn run() -> Result<(), pa::Error> {
 
+
     // ---------------------------------------------
     // start the osc receiver thread
     // ---------------------------------------------
@@ -87,15 +89,18 @@ fn run() -> Result<(), pa::Error> {
     // ---------------------------------------------
     // start the portaudio process!
     // ---------------------------------------------
-    println!("PortAudio Test: output sawtooth wave. SR = {}, BufSize = {}", SAMPLE_RATE, FRAMES_PER_BUFFER);
-
-    let mut left_saw = 0.0;
-    let mut right_saw = 0.0;
 
     let pa = try!(pa::PortAudio::new());
 
+/*
     let mut settings = try!(pa.default_output_stream_settings(CHANNELS, SAMPLE_RATE, FRAMES_PER_BUFFER));
     // we won't output out of range samples so don't bother clipping them.
+    settings.flags = pa::stream_flags::CLIP_OFF;
+*/
+
+    let id = pa::DeviceIndex(2);
+    let params = pa::StreamParameters::<f32>::new(id, 2, true, 0.0);
+    let mut settings = pa::OutputStreamSettings::new(params, SAMPLE_RATE, FRAMES_PER_BUFFER);
     settings.flags = pa::stream_flags::CLIP_OFF;
 
     // This routine will be called by the PortAudio engine when audio is needed. It may called at
@@ -120,7 +125,7 @@ fn run() -> Result<(), pa::Error> {
           _ => {}
         }
 
-        if (frames * 2 > bufmax)
+        if frames * 2 > bufmax
         {
           pa::Abort
         }
@@ -240,4 +245,6 @@ fn oscthread(oscrecvip: SocketAddr, sender: mpsc::Sender<KeyEvt>) -> Result<Stri
   // drop(socket); // close the socket
   // Ok(String::from("meh"))
 }
+
+
 
