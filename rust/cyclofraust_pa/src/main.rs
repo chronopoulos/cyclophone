@@ -1,6 +1,5 @@
-// #![feature(step_by)]
-// extern crate cpal;
 extern crate libc;
+
 use std::ffi::CString;
 use std::net::UdpSocket;
 use std::net::SocketAddr;
@@ -102,6 +101,9 @@ fn run() -> Result<(), pa::Error> {
     let params = pa::StreamParameters::<f32>::new(id, 2, true, 0.0);
     let mut settings = pa::OutputStreamSettings::new(params, SAMPLE_RATE, FRAMES_PER_BUFFER);
     settings.flags = pa::stream_flags::CLIP_OFF;
+
+    printPaDev(id, &pa);
+
 
     // This routine will be called by the PortAudio engine when audio is needed. It may called at
     // interrupt level on some machines so don't do anything that could mess up the system like
@@ -231,8 +233,6 @@ fn oscthread(oscrecvip: SocketAddr, sender: mpsc::Sender<KeyEvt>) -> Result<Stri
         }
       }
       /*
-      osc::Message { path: "keye", arguments: ref args } => {
-      }
       osc::Message { path: "keyc", arguments: ref args } => {
       },
       */
@@ -246,5 +246,49 @@ fn oscthread(oscrecvip: SocketAddr, sender: mpsc::Sender<KeyEvt>) -> Result<Stri
   // Ok(String::from("meh"))
 }
 
+const INTERLEAVED: bool = true;
+const LATENCY: pa::Time = 0.0; // Ignored by PortAudio::is_*_format_supported.
+const STANDARD_SAMPLE_RATES: [f64; 13] = [
+    8000.0, 9600.0, 11025.0, 12000.0, 16000.0, 22050.0, 24000.0, 32000.0,
+    44100.0, 48000.0, 88200.0, 96000.0, 192000.0,
+];
 
+fn printPaDev(idx: pa::DeviceIndex, pado: &pa::PortAudio) -> Result<(), pa::Error> {
+  let info = try!(pado.device_info(idx));
+  println!("--------------------------------------- {:?}", idx);
+  println!("{:#?}", &info);
+
+  let in_channels = info.max_input_channels;
+  let input_params = 
+    pa::StreamParameters::<i16>::new(idx, in_channels, INTERLEAVED, LATENCY);
+  let out_channels = info.max_output_channels;
+  let output_params = 
+    pa::StreamParameters::<i16>::new(idx, out_channels, INTERLEAVED, LATENCY);
+
+  println!("Supported standard sample rates for half-duplex 16-bit {} channel input:", 
+    in_channels);
+  for &sample_rate in &STANDARD_SAMPLE_RATES {
+    if pado.is_input_format_supported(input_params, sample_rate).is_ok() {
+        println!("\t{}hz", sample_rate);
+    }
+  }
+
+  println!("Supported standard sample rates for half-duplex 16-bit {} channel output:", 
+    out_channels);
+  for &sample_rate in &STANDARD_SAMPLE_RATES {
+    if pado.is_output_format_supported(output_params, sample_rate).is_ok() {
+        println!("\t{}hz", sample_rate);
+    }
+  }
+
+  println!("Supported standard sample rates for full-duplex 16-bit {} channel input, {} channel output:",
+     in_channels, out_channels);
+  for &sample_rate in &STANDARD_SAMPLE_RATES {
+    if pado.is_duplex_format_supported(input_params, output_params, sample_rate).is_ok() {
+        println!("\t{}hz", sample_rate);
+    }
+  }
+
+  Ok(())
+}
 
