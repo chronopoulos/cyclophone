@@ -145,10 +145,10 @@ fn run() -> Result<(), Box<std::error::Error> > {
     let pcm_out = PCM::open(&*default, Direction::Playback, nonblock).unwrap();
     {
       let hwp = HwParams::any(&pcm_out).unwrap();
-      hwp.set_period_size_near(256,ValueOr::Nearest).unwrap();
-      hwp.set_buffer_size_near(32768).unwrap();
-      hwp.set_channels(2).unwrap();
       hwp.set_rate_near(sample_rate, ValueOr::Nearest).unwrap();
+      hwp.set_buffer_size_near(1024).unwrap();
+      hwp.set_period_size_near(64,ValueOr::Nearest).unwrap();
+      hwp.set_channels(2).unwrap();
       hwp.set_format(Format::float()).unwrap();
       hwp.set_access(Access::RWInterleaved).unwrap();
       pcm_out.hw_params(&hwp).unwrap();
