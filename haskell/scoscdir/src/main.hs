@@ -420,7 +420,8 @@ main = do
                       else
                         Nothing
               soundstate = SoundState {
-                ss_activeKeys = S.empty,
+                ss_activeKeys = S.empty,  
+                ss_hitKeys = S.empty,
                 ss_krmIndex = 0,
                 ss_keyrangemaps = sounds, 
                 ss_keymap = makeKeyMap 24 root scale (head sounds),
@@ -461,6 +462,7 @@ data LooperState = Record | Play | Passthrough
 --    2) make the key inactive.
 data SoundState = SoundState {
   ss_activeKeys :: S.Set Int,
+  ss_hitKeys :: S.Set Int,
   ss_krmIndex :: Int,
   ss_keyrangemaps :: [KeyRangeMap],
   ss_keymap :: A.Array Int (Maybe (Rational, SynthStuff)),
@@ -844,17 +846,25 @@ onoscmessage soundstate msg = do
                (gNodeOffset + i) 
                AddToHead 1 
                [("amp", a), ("pitch", toFreq note)])
-        -- put in the active list.
-        return $ soundstate { ss_activeKeys = (S.insert i (ss_activeKeys soundstate)) }
+        -- put in the active list, also the hit list.
+        return $ soundstate { 
+          ss_activeKeys = (S.insert i (ss_activeKeys soundstate)), 
+          ss_hitKeys = (S.insert i (ss_hitKeys soundstate)) }
       else do
+        -- this key has been hit.
+        return $ soundstate { ss_hitKeys = (S.insert i (ss_hitKeys soundstate)) }
         -- print "nochange1"
-        return soundstate
+        -- return soundstate
     ("keyc", Just i, Just a, Just (note, sstuff)) -> do
      -- print "keyc"
      if (S.member i (ss_activeKeys soundstate)) then
-        if (s_keytype sstuff == Vol) || (s_keytype sstuff == HitVol) then do 
+        -- active key!
+        if (s_keytype sstuff == Vol) || 
+           ((s_keytype sstuff == HitVol) && (not (S.member i (ss_hitKeys soundstate)))) then do 
           -- print $ "setvolactive: " ++ (show i) ++ " " ++ (show a)
-          -- set the volume.
+          -- for HitVol keys, adjust the volume only until a hit is received, 
+          -- then don't adjust the volume anymore.  
+          -- for Vol keys, always set the volume.
           withSC3 (send (F.n_set1 (gNodeOffset + i) "amp" a))
           -- no change to soundstate.
           return soundstate
@@ -862,7 +872,7 @@ onoscmessage soundstate msg = do
           -- print "nochange2"
           -- no change to soundstate.
           return soundstate
-      else if (s_keytype sstuff == Vol) then do
+      else if (s_keytype sstuff == Vol || s_keytype sstuff == VolHit) then do
           -- print $ "start inactive: " ++ (show i) ++ " " ++ (show a)
           -- create synth, with initial amplitude setting.
           withSC3 (send (s_new (s_synthdef sstuff)
@@ -882,7 +892,8 @@ onoscmessage soundstate msg = do
           -- print $ "freeing: " ++ (show i)
           withSC3 (send (n_free [(gNodeOffset + i)]))
           -- remove key from active set.
-          return $ soundstate { ss_activeKeys = (S.delete i (ss_activeKeys soundstate)) }
+          return $ soundstate { ss_activeKeys = (S.delete i (ss_activeKeys soundstate)) 
+                              , ss_hitKeys = (S.delete i (ss_hitKeys soundstate)) }
         else do
           -- print "nochange4"
           return soundstate

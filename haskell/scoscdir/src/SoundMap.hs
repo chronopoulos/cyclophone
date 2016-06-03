@@ -5,7 +5,7 @@ import Data.Ratio
 
 -- sample holding data struct.
 
-data KeyType = Hit | Vol | HitVol
+data KeyType = Hit | Vol | HitVol | VolHit
   deriving (Show, Read, Eq)
 
 data KeyRange = All | 
