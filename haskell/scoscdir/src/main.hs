@@ -894,6 +894,10 @@ onoscmessage soundstate msg = do
           -- remove key from active set.
           return $ soundstate { ss_activeKeys = (S.delete i (ss_activeKeys soundstate)) 
                               , ss_hitKeys = (S.delete i (ss_hitKeys soundstate)) }
+        else if (s_keytype sstuff == VolHit) then do 
+          -- remove key from active set, and from hitkeys.  
+          return $ soundstate { ss_activeKeys = (S.delete i (ss_activeKeys soundstate)) 
+                              , ss_hitKeys = (S.delete i (ss_hitKeys soundstate)) }
         else do
           -- print "nochange4"
           return soundstate
