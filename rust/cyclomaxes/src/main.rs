@@ -23,7 +23,7 @@ fn rmain() -> Result<String, Error> {
   // let socket = try!(UdpSocket::bind("192.168.8.214:8000"));
   let socket = try!(UdpSocket::bind("127.0.0.1:8000"));
   let mut buf = [0; 100];
-  println!("cyclopass");
+  println!("cyclomaxes");
 
   let mut maxmap : BTreeMap<i32,f32>  = BTreeMap::new();
 
@@ -73,12 +73,23 @@ fn rmain() -> Result<String, Error> {
         },
       osc::Message { path: "button", arguments: ref args } => {
         // write the array out to a file.
-        match File::create("maxes.txt") {
+        match File::create("maxes.map") {
           Ok(mut file) => { 
             write!(file, "{:?}", maxmap);
             println!("wrote to maxes.txt");
           },
           _ => println!("unable to write maxes.txt file!"), 
+        };
+        // write the array out to a file.
+        match File::create("maxes.array") {
+          Ok(mut file) => {
+            for v in maxmap.values() 
+            { 
+              write!(file, "{}\n", v);
+            }
+            println!("wrote to maxes.array");
+          },
+          _ => println!("unable to write maxes.array file!"), 
         };
       }
       _ => { println!("ignore");
@@ -87,8 +98,5 @@ fn rmain() -> Result<String, Error> {
       };
   };
 
-
-  // drop(socket); // close the socket
-  // Ok(String::from("meh"))
 }
 
