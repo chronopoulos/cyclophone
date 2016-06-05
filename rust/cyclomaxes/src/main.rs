@@ -20,8 +20,7 @@ fn main() {
 }
 
 fn rmain() -> Result<String, Error> { 
-  // let socket = try!(UdpSocket::bind("192.168.8.214:8000"));
-  let socket = try!(UdpSocket::bind("127.0.0.1:8000"));
+  let socket = try!(UdpSocket::bind("0.0.0.0:8000"));
   let mut buf = [0; 100];
   println!("cyclomaxes");
 
