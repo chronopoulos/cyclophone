@@ -10,7 +10,7 @@ void BasicMap::OnKeyHit(lo_address aLoAddress, int aIKeyIndex, float aFIntensity
   if (!mBSendHits)
     return;
 
-  aFIntensity *= mFGain;
+  aFIntensity *= mFGain * mVMults[aIKeyIndex];
   if (aFIntensity > 1.0)
     aFIntensity = 1.0;
 
@@ -26,7 +26,7 @@ void BasicMap::OnContinuous(lo_address aLoAddress, int aIKeyIndex, float aFInten
   if (!mBSendContinuous)
     return;
 
-  aFIntensity *= mFGain;
+  aFIntensity *= mFGain * mVMults[aIKeyIndex];;
   if (aFIntensity > 1.0)
     aFIntensity = 1.0;
 

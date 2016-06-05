@@ -81,6 +81,57 @@ int gIContinuousCount = 1;    // send continuous update every N turns.
 vector<float> gVMaxes;
 vector<float> gVMults;
 
+void ReadMaxes(istream &aIs)
+{
+  gVMaxes.clear();
+  float lF;
+
+  aIs >> lF;
+  while (!aIs.eof())
+  {
+    gVMaxes.push_back(lF);
+    aIs >> lF;
+  }
+
+}
+
+void BuildMults()
+{
+  // load up with defaults in case of failure below.
+  gVMults.clear();
+  for (int i = 0; i < 24; ++i)
+    gVMults.push_back(1.0);
+
+  bool lBZeros = false;
+  for (int i = 0; i < gVMaxes.size() ; ++i)
+  {
+    if (gVMaxes[i] == 0.0)
+    {
+      cout << "zero found in maxes.array!  using 1.0 defalts." << endl;
+      return;
+    }
+  }
+
+  if (gVMaxes.size() == 24)
+  {
+    cout << "Building key range mults vector" << endl; 
+    for (int i = 0; i < 24; ++i)
+    {
+      gVMults[i] = 1.0 / gVMaxes[i];
+    }
+    cout << "key mult array built:" << endl;
+    for (int i = 0; i < 24; ++i)
+    {
+      cout << i << " " << gVMults[i] << endl;
+    }
+  }
+  else
+  {
+    cout << "Maxes count (" << gVMaxes.size() << ") is != 24!  Using defaults mults (1.0)." << endl;
+  }
+}
+
+
 void WriteSettings(ostream &aOs)
 {
   aOs << "TargetIpAddress" << " " << gSTargetIpAddress << endl;
@@ -195,7 +246,7 @@ void UpdateSetting(string aSName, string aSVal)
   }
   if (aSName == "Maxes.Array")
   {
-    ifstream lIfs(aSVal);
+    ifstream lIfs(aSVal.c_str());
     if (lIfs.is_open())
     {
       ReadMaxes(lIfs);
@@ -205,53 +256,6 @@ void UpdateSetting(string aSName, string aSVal)
     else
       cout << "Unable to read maxes file: " << aSVal << endl;
     return;
-  }
-}
-
-void ReadMaxes(istream &aIs)
-{
-  gVMaxes.clear();
-  float lF;
-  while (!aIs.eof())
-  {
-    aIs >> lF;
-    gVMaxes.push_back(lF);
-  }
-}
-
-void BuildMults()
-{
-  // load up with defaults in case of failure below.
-  gVMults.clear();
-  for (int i = 0; i < 24; ++i)
-    gVMults.push_back(1.0);
-
-  bool lBZeros = false;
-  for (int i = 0; i < gVMaxes.size() ; ++i)
-  {
-    if (gVMaxes[i] == 0.0)
-    {
-      cout << "zero found in maxes.array!  using 1.0 defalts." << endl;
-      return;
-    }
-  }
-
-  if (gVMaxes.size() == 24)
-  {
-    cout << "Building key range mults vector" << endl; 
-    for (int i = 0; i < 24; ++i)
-    {
-      gVMults[i] = 1.0 / gVMaxes[i];
-    }
-    cout << "key mult array built:" << endl;
-    for (int i = 0; i < 24; ++i)
-    {
-      cout << i << " " << gVMults[i] << endl;
-    }
-  }
-  else
-  {
-    cout << "Maxes count is != 24!  Using defaults mults (1.0)." << endl;
   }
 }
 
@@ -886,6 +890,7 @@ int main(int argc, const char *args[])
     lBm->mBSendHits = gBSendHits;
     lBm->mBSendContinuous = gBSendContinuous;
     lBm->mBSendEnds = gBSendEnds;
+    lBm->mVMults = gVMults;
     lCycloMap = lBm; 
   }
 

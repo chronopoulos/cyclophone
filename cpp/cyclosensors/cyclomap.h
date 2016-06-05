@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <vector>
 #include "lo/lo.h"
 
 using namespace std;
@@ -35,6 +36,11 @@ public:
     mBKeySent = new bool[mIMaxKeyIndex];
     for (int lI = 0; lI < mIMaxKeyIndex; ++lI)
         mBKeySent[lI] = false;
+  
+    // load up with defaults 
+    mVMults.clear();
+    for (int i = 0; i < 24; ++i)
+      mVMults.push_back(1.0);
   } 
   virtual ~BasicMap()
   {
@@ -47,6 +53,8 @@ public:
 
   const int mIMaxKeyIndex;
   bool *mBKeySent;
+
+  vector<float> mVMults;
 
   bool mBSendHits;
   bool mBSendContinuous;
