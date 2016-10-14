@@ -13,9 +13,11 @@
            "controls": [
               { "type": "button"
               , "name": "b0"
+              , "label": "alt"
               }
             , { "type": "button"
               , "name": "b1"
+              , "label": "loop"
               }
             , { "type": "button"
               , "name": "b2"
@@ -26,18 +28,23 @@
                "controls": [
                  { "type": "button"
                  , "name": "center0"
+                 , "label": "chromatic"
                  }
                 ,{ "type": "button"
                  , "name": "center1"
+                 , "label": "major"
                  }
                 ,{ "type": "button"
                  , "name": "center2"
+                 , "label": "pentatonic"
                  }
                 ,{ "type": "button"
                  , "name": "center3"
+                 , "label": "hungarian"
                  }
                 ,{ "type": "button"
                  , "name": "center4"
+                 , "label": "harmonic"
                  }
                 ]
               }
@@ -50,14 +57,17 @@
              { "type": "slider"
              , "orientation": "horizontal"
              , "name": "hs0"
+             , "label": "delay feedback"
              }
             ,{ "type": "slider"
              , "orientation": "horizontal"
              , "name": "hs1"
+             , "label": "sound"
              }
             ,{ "type": "slider"
              , "orientation": "horizontal"
              , "name": "hs2"
+             , "label": "transpose"
              }
            ]
           }
@@ -68,98 +78,122 @@
              { "type": "slider"
              , "orientation": "vertical"
              , "name": "vs0"
+             , "label": "00"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs1"
+             , "label": "01"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs2"
+             , "label": "02"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs3"
+             , "label": "03"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs4"
+             , "label": "04"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs5"
+             , "label": "05"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs6"
+             , "label": "06"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs7"
+             , "label": "07"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs8"
+             , "label": "08"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs9"
+             , "label": "09"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs10"
+             , "label": "10"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs11"
+             , "label": "11"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs12"
+             , "label": "12"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs13"
+             , "label": "13"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs14"
+             , "label": "14"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs15"
+             , "label": "15"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs16"
+             , "label": "16"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs17"
+             , "label": "17"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs18"
+             , "label": "18"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs19"
+             , "label": "19"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs20"
+             , "label": "20"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs21"
+             , "label": "21"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs22"
+             , "label": "22"
              }
             ,{ "type": "slider"
              , "orientation": "vertical"
              , "name": "vs23"
+             , "label": "23"
              }
           ]
          }       ] 
