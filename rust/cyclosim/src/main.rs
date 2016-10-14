@@ -71,7 +71,7 @@ fn sendkeygui(prefix: &str, index: i32, position: f32, oscsocket: &UdpSocket, os
   // let pathh = format(format_args!("/Oscillator{}/meh", a));    
   let mut arghs = Vec::new();
   // arghs.push(osc::Argument::f(b * 100.0 - 100.0)); 
-  arghs.push(osc::Argument::s("s_moved")); 
+  arghs.push(osc::Argument::s("location")); 
   arghs.push(osc::Argument::f(position)); 
   // println!("sendkeygui {:?}, {:?}", pathh, arghs);
   let outmsg = osc::Message { path: &pathh, arguments: arghs };
@@ -182,6 +182,38 @@ fn keythread( rx: mpsc::Receiver<KeyEvt>,
   
 }
 
+fn find_location(args: &Vec<osc::Argument>) -> Option<f32> {
+  let mut arg_iter = args.into_iter();
+  let mut arg = arg_iter.next();
+
+  let mut ret = None; // Option<f32>;
+
+  while arg.is_some()
+  {
+    match arg
+    {
+    Some(&osc::Argument::s("location")) => {
+      arg = arg_iter.next();
+      match arg {
+        Some(&osc::Argument::f(loc)) => {
+          ret = Some(loc);
+          break;
+          },
+        _ => {
+          continue;
+        }
+      }
+    }
+    _ => {
+      arg = arg_iter.next();
+        continue;
+    }
+    }
+  }
+  ret
+}
+  
+
 fn rmain() -> Result<String, Box<std::error::Error> > { 
   let args = env::args();
   let mut iter = args.skip(1); // skip the program name
@@ -228,17 +260,17 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
        Err(()) => return Err(stringerror::stringBoxErr("OSC deserialize error")),
       };
 
-    // println!("message recieved {} {:?}", inmsg.path, inmsg.arguments );
+    println!("message recieved {} {:?}", inmsg.path, inmsg.arguments );
 
     match inmsg {
       osc::Message { path: inpath, arguments: ref args } => {
-        match args.len() {
-         1 => {
+        if args.len() == 1
+          {
             // probably a button event!
             let one = &args[0];
             let press = match one {
-                          &osc::Argument::s("b_pressed") => Some(1), 
-                          &osc::Argument::s("b_unpressed") => Some(0), 
+                          &osc::Argument::s("pressed") => Some(1), 
+                          &osc::Argument::s("unpressed") => Some(0), 
                           _ => None
                           };
             
@@ -275,8 +307,9 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
                 println!("ignore - blah {:?}", (a,b));
               },
             }
-          },
-         2 => {
+          }
+        else if args.len() > 1
+          {
             // probably a slider event!
             let meh = 
               if inpath.starts_with("hs") {
@@ -289,12 +322,9 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
               }
               else { None };
 
-            let one = &args[0];
-            let two = &args[1];
-            
-            match (one,two,meh) {
+            match (&args[0], find_location(args), meh) {
               (&osc::Argument::s(evtname)
-              , &osc::Argument::f(amt)
+              , Some(amt)
               , Some((path,Ok(idx), iskey))) 
               => {
                 let mut arghs = Vec::new();
@@ -313,9 +343,9 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
                 // make a key update event and send to the keythread. 
                 if iskey {
                   if let Some(et) = match evtname { 
-                        "s_pressed" => Some(KeType::KeyPress), 
-                        "s_moved" => Some(KeType::KeyMove), 
-                        "s_unpressed" => Some(KeType::KeyUnpress), 
+                        "pressed" => Some(KeType::KeyPress), 
+                        "moved" => Some(KeType::KeyMove), 
+                        "unpressed" => Some(KeType::KeyUnpress), 
                         _ => None } 
                   {
                     let ke = KeyEvt{evttype: et, keyindex: idx, position: amt};
@@ -328,14 +358,14 @@ fn rmain() -> Result<String, Box<std::error::Error> > {
               },
             }
           }
-        _ =>  
+          else
           {
-             println!("ignore");
+            println!("osc message with zero args! ignore");
           }
-        }
-      }
+      } 
     }
   }
 }
+
 
 
