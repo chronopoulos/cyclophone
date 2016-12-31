@@ -33,7 +33,8 @@ executable scoscdir
                        containers,
                        multimap,
                        hosc,
-                       hsc3
+                       hsc3,
+                       time
    -- hs-source-dirs:      
   default-language:    Haskell2010
 

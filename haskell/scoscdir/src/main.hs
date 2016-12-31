@@ -18,6 +18,7 @@ import Control.Monad
 import Control.Monad.Fix
 import GHC.Float
 import Sound.SC3
+import Data.Time.Clock
 import qualified Sound.OSC.FD as OSC
 -- import qualified Sound.SC3.Server.Command.Double as F
 import qualified Sound.SC3.Server.Command as F
@@ -430,7 +431,9 @@ main = do
                 ss_altkey = False,
                 ss_looperState = Passthrough,
                 ss_delayon = False,
-                ss_ledip = ledip
+                ss_ledip = ledip,
+                ss_recording_ke_start = Nothing,
+                ss_recorded_keyevents = [] 
                 }
            in case port of
              Just p -> do
@@ -448,6 +451,9 @@ dblRat r =
 
 
 data LooperState = Record | Play | Passthrough
+ deriving (Read, Show)
+
+data KeyEvt = KeyChange | KeyHit | KeyEnd
  deriving (Read, Show)
 
 -- track active sounds.
@@ -471,13 +477,16 @@ data SoundState = SoundState {
   ss_altkey :: Bool,
   ss_looperState :: LooperState,
   ss_delayon :: Bool,
-  ss_ledip :: Maybe IPPort
+  ss_ledip :: Maybe IPPort, 
+  ss_recording_ke_start :: Maybe UTCTime,
+  ss_recorded_keyevents :: [(NominalDiffTime, KeyEvt, Int, Double)]
   }
 
 data IPPort = IPPort { 
   ipp_ip :: String,
   ipp_port :: Int
   }
+
 
 updateScale :: SoundState -> Rational -> [Rational] -> SoundState
 updateScale ss root scale = 
@@ -823,17 +832,46 @@ onoscmessage_ soundstate msg = do
   -- print $ "osc message: " ++ OSC.messageAddress msg 
   return soundstate
 
+appendKeyEvt :: SoundState -> OSC.Message -> IO SoundState
+appendKeyEvt soundstate msg = 
+  case ss_recording_ke_start soundstate of
+    Just starttime -> 
+      let msgtext = OSC.messageAddress msg 
+      in
+        let mbke = case msgtext of 
+                      "keyh" -> Just KeyHit
+                      "keyc" -> Just KeyChange
+                      "keye" -> Just KeyEnd
+                      _ -> Nothing
+        in
+          case mbke of 
+            Just ke -> 
+              do 
+                time <- getCurrentTime
+                let i = getoscindex msg 
+                    a = getoscamt msg 
+                    difftime = diffUTCTime time starttime in
+                  case (i, a) of 
+                    (Just idx, Just amt) -> 
+                      return $ soundstate { ss_recorded_keyevents = (difftime, ke, idx, amt) 
+                                                         : (ss_recorded_keyevents soundstate) } 
+                    _ -> return soundstate
+            Nothing -> return soundstate
+    Nothing -> return soundstate
+
 onoscmessage :: SoundState -> OSC.Message -> IO SoundState
-onoscmessage soundstate msg = do
+onoscmessage ss msg = do
   -- print $ "osc message: " ++ (show msg)
-  -- print $ "osc message: " ++ OSC.messageAddress msg 
+  -- print $ "osc message: " ++ OSC.messageAddress msg
+  soundstate <- appendKeyEvt ss msg
   let soundmap = ss_keymap soundstate
       msgtext = OSC.messageAddress msg 
       idx = getoscindex msg 
       amt = getoscamt msg
       sound = getsound idx soundmap
       node = 1
-   in case (msgtext, idx, amt, sound) of 
+   in 
+   case (msgtext, idx, amt, sound) of 
     ("keyh", Just i, Just a, Just (note, sstuff)) -> do
       -- print "keyh"
       if (s_keytype sstuff == Hit) || (s_keytype sstuff == HitVol) then 
@@ -866,8 +904,8 @@ onoscmessage soundstate msg = do
           -- then don't adjust the volume anymore.  
           -- for Vol keys, always set the volume.
           withSC3 (send (F.n_set1 (gNodeOffset + i) "amp" a))
-          -- no change to soundstate.
-          return soundstate
+          -- no change to soundstate
+          return soundstate  
         else do
           -- print "nochange2"
           -- no change to soundstate.
@@ -984,6 +1022,9 @@ onoscmessage soundstate msg = do
       case i of 
         0 -> return $ soundstate { ss_altkey = (a == 1.0) }
         1 -> doloopster soundstate (a == 1.0)
+        2 -> do 
+          starttime <- getCurrentTime
+          return $ soundstate { ss_recording_ke_start = Just starttime }
         -- 1 -> doloop soundstate (a == 1.0)
         -- 1 -> dolooper soundstate (a == 1.0)
         _ -> return soundstate
