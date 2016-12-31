@@ -1022,9 +1022,14 @@ onoscmessage ss msg = do
       case i of 
         0 -> return $ soundstate { ss_altkey = (a == 1.0) }
         1 -> doloopster soundstate (a == 1.0)
-        2 -> do 
-          starttime <- getCurrentTime
-          return $ soundstate { ss_recording_ke_start = Just starttime }
+        2 -> case ss_recording_ke_start soundstate of 
+              Nothing -> 
+                do 
+                  starttime <- getCurrentTime
+                  return $ soundstate { ss_recording_ke_start = Just starttime }
+              Just _ -> 
+                -- todo: start playback thread!
+                return $ soundstate { ss_recording_ke_start = Nothing }
         -- 1 -> doloop soundstate (a == 1.0)
         -- 1 -> dolooper soundstate (a == 1.0)
         _ -> return soundstate
