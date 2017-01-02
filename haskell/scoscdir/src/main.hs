@@ -7,10 +7,7 @@ import Data.List
 import qualified Data.Text as T
 import qualified Data.Array as A
 import qualified Data.Map as M
---import qualified Data.MultiMap as MM
---import qualified Data.Map.Strict as M
 import qualified Data.Set as S
--- import System.FilePath
 import qualified Filesystem.Path.CurrentOS as FP
 import Data.Maybe
 import Text.Show.Pretty
@@ -479,7 +476,7 @@ data SoundState = SoundState {
   ss_delayon :: Bool,
   ss_ledip :: Maybe IPPort, 
   ss_recording_ke_start :: Maybe UTCTime,
-  ss_recorded_keyevents :: [(NominalDiffTime, KeyEvt, Int, Double)]
+  ss_recorded_keyevents :: [(NominalDiffTime, OSC.Message)]
   }
 
 data IPPort = IPPort { 
@@ -832,7 +829,7 @@ onoscmessage_ soundstate msg = do
   -- print $ "osc message: " ++ OSC.messageAddress msg 
   return soundstate
 
-appendKeyEvt :: SoundState -> OSC.Message -> IO SoundState
+{- appendKeyEvt :: SoundState -> OSC.Message -> IO SoundState
 appendKeyEvt soundstate msg = 
   case ss_recording_ke_start soundstate of
     Just starttime -> 
@@ -858,6 +855,31 @@ appendKeyEvt soundstate msg =
                     _ -> return soundstate
             Nothing -> return soundstate
     Nothing -> return soundstate
+-}
+
+-- save key evts as osc message lists.
+appendKeyEvt :: SoundState -> OSC.Message -> IO SoundState
+appendKeyEvt soundstate msg = 
+  case ss_recording_ke_start soundstate of
+    Just starttime -> 
+      let msgtext = OSC.messageAddress msg 
+      in
+        let mbke = case msgtext of 
+                      "keyh" -> Just KeyHit
+                      "keyc" -> Just KeyChange
+                      "keye" -> Just KeyEnd
+                      _ -> Nothing
+        in
+          case mbke of 
+            Just ke -> 
+              do 
+                time <- getCurrentTime
+                let difftime = diffUTCTime time starttime in
+                  return $ soundstate { ss_recorded_keyevents = (difftime, msg)
+                                                         : (ss_recorded_keyevents soundstate) } 
+            Nothing -> return soundstate
+    Nothing -> return soundstate
+
 
 onoscmessage :: SoundState -> OSC.Message -> IO SoundState
 onoscmessage ss msg = do
@@ -1028,7 +1050,6 @@ onoscmessage ss msg = do
                   starttime <- getCurrentTime
                   return $ soundstate { ss_recording_ke_start = Just starttime }
               Just _ -> 
-                -- todo: start playback thread!
                 return $ soundstate { ss_recording_ke_start = Nothing }
         -- 1 -> doloop soundstate (a == 1.0)
         -- 1 -> dolooper soundstate (a == 1.0)
